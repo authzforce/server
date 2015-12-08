@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2015 Thales Services SAS.
+
+    This file is part of AuthZForce.
+
+    AuthZForce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE resources PUBLIC "-//Sun Microsystems Inc.//DTD Application Server 9.0 Domain//EN" "*<install directory>/lib/dtds/sun-resources_1_3.dtd*">
+<!--
+
+    Template file to create JavaBean custom resources.
+    By specifying the "factory-class-name" for creating java-bean
+    and the values for the bean-properties using "properties" of the
+    custom-resource, applications can lookup java-bean via JNDI.
+
+    To learn more on custom resources,refer :
+
+    http://docs.sun.com/app/docs/doc/819-2554/ablld?l=en&a=view
+    
+    http://docs.sun.com/app/docs/doc/820-4332/create-custom-resource-1?a=view
+
+    http://docs.sun.com/app/docs/doc/820-4332/delete-custom-resource-1?a=view
+
+    http://docs.sun.com/app/docs/doc/820-4332/list-custom-resources-1?a=view 
+
+    For detailed explanation of attributes and elements of this resources xml
+    pl. refer to sun-resources_1_3.dtd
+
+
+    =========================================SAMPLE============================================
+
+
+    In the sample configuration below, 
+    JavaBean org.glassfish.resource.custom.test.Customer
+    has attributes (along with getters and setters)
+
+    To initialize the JavaBean with values, set the property name and the value.
+    Applications can do  :
+
+    (CustomResourceJavaBean)initialContext.lookup("custom/my-java-bean")
+
+    to get the bean instance that is populated with customerId, customerLocation, customerSince attributes
+
+    Following command will create a resource using this template :
+
+    GLASSFISH_INSTALL_DIR/bin/asadmin add-resources <ABSOLUTE_PATH_TO_TEMPLATE_FILE>
+
+
+    <resources>
+        <custom-resource res-type="org.glassfish.resource.custom.test.Customer" jndi-name="custom/my-java-bean" 
+         factory-class="org.glassfish.resources.custom.factory.JavaBeanFactory">
+          <property name="customerId" value="cu-101" />
+          <property name="customerLocation" value="San Francisco" />
+          <property name="customerSince" value="1990" />
+        </custom-resource>
+    </resources> 
+
+
+=========================================SAMPLE============================================
+
+-->
+
+<resources>
+</resources>
+
+
+

@@ -1,0 +1,22 @@
+<assembly>
+	<id>src</id>
+	<!-- Generates a zip package containing the needed files -->
+	<formats>
+		<format>zip</format>
+	</formats>
+
+	<!-- Adds dependencies to zip package under lib directory -->
+	<dependencySets>
+		<dependencySet>
+			<includes>
+				<include>com.thalesgroup.ktd.scis:atom-model:jar:sources</include>
+				<include>com.thalesgroup.ktd.scis:oasis-xacml-model:jar:sources</include>
+				<include>com.thalesgroup.authzforce:authzforce-core-model:jar:sources</include>
+				<include>com.thalesgroup.authzforce:authzforce-rest-api-model:jar:generated-sources</include>
+				<include>com.thalesgroup.appsec:thales-appsec-common-utils:jar:sources</include>
+				<include>com.thalesgroup.authzforce.core:authzforce-core:jar:sources</include>
+				<include>com.thalesgroup.authzforce:authzforce-rest-service:jar:sources</include>
+			</includes>
+		</dependencySet>
+	</dependencySets>
+</assembly>

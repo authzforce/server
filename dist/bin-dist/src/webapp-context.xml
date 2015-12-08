@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Context used by Tomcat -->
+<Context path="/authzforce" docBase="/opt/${productName}/webapp">
+	<!-- Logging configuration file -->
+	<Parameter name="logbackConfigLocation" value="file:///opt/${productName}/conf/logback.xml"
+		override="false" />
+	<!-- Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: 
+		e.g. ${user.dir}. Default values can be supplied using the ":" separator between key and value (see org.springframework.util.SystemPropertyUtils 
+		class) (${catalina.base} applies to Tomcat only, use ${com.sun.aas.instanceRoot} for Glassfish). -->
+	<Environment name="com.thalesgroup.authzforce.config.dir" value="file:///opt/${productName}/conf"
+		type="java.lang.String" override="false" />
+	<!-- Data (e.g. domains created and managed by the API) directory path that may contain ${...} placeholders, 
+		to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ":" separator 
+		between key and value (see org.springframework.util.SystemPropertyUtils class) -->
+	<Environment name="com.thalesgroup.authzforce.data.dir" value="file:///opt/${productName}/data"
+		type="java.lang.String" override="false" />
+	<!-- Interval for reloading domains if configuration file changes have been detected since last reload -->
+	<Environment name="com.thalesgroup.authzforce.domains.sync.interval" value="0"
+		type="java.lang.Integer" override="false" />
+	<Environment name="com.sun.xacml.policyset.max.nesting.level" value="0" type="java.lang.Integer"
+		override="false" />
+	<Environment name="com.thalesgroup.theresis.useRandomAddressBasedUUID" value="true"
+		type="java.lang.Boolean" override="false" />
+</Context>

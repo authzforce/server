@@ -1,0 +1,102 @@
+= Introduction to the Access Control GE's Authorization API =
+Please check the [[FI-WARE Open Specification Legal Notice (implicit patents license)]] to understand the rights to use FI-WARE Open Specifications.
+
+== Authorization API Core ==
+The Access Control GE's Authorization API provides two endpoints:
+* Policy Administration Point (PAP): management of authorization policies, used for access control management;
+* Policy Decision Point (PDP): evaluation of authorization decision requests against authorization policies managed with the above PAP, used for access control enforcement.
+
+The API follows the REST architecture style and requires HTTPS access (TLS 1.0 or later) for mutual authentication, confidentiality and integrity of communications. The representation format is XML for information interchange.
+
+== Intended Audience ==
+This specification is intended for clients and implementers of this API. To use this information, the reader should firstly have a general understanding of the [[FIWARE.ArchitectureDescription.Security.Access Control Generic Enabler|Access Control Generic Enabler]]. You should also be familiar with:
+* RESTful web services
+* HTTP/1.1
+* XML data serialization formats.
+
+== API Change History ==
+This version of the API Guide replaces and obsoletes all previous versions. The most recent changes are described in the table below:
+
+{| style="border-collapse: collapse; border-width: 1px; border-style: solid; border-color: #000"
+|-
+! style="border-style: solid; border-width: 1px"| Revision Date
+! style="border-style: solid; border-width: 1px"| Changes Summary
+|-
+| style="border-style: solid; border-width: 1px"| June 27, 2013
+| style="border-style: solid; border-width: 1px"|
+Version 2.3.3. Added 'refPolicySets' resource and changed (pdp|pap)/domains/{domainId} paths to domains/{domainsId/(pap|pdp)
+|-
+| style="border-style: solid; border-width: 1px"| Apr 19, 2013
+| style="border-style: solid; border-width: 1px"|
+Initial Version 2.3.2
+|}
+
+== How to Read This Document ==
+All FI-WARE RESTful API specifications will follow the same list of conventions and will support certain common aspects. Please check [[Common aspects in FI-WARE Open Restful API Specifications]].
+
+For a description of some terms used along this document, see [[FIWARE.ArchitectureDescription.Security.Access Control Generic Enabler]]
+
+== Additional Resources ==
+You can download the most current version of this document from the FIWARE API specification website at [[FIWARE.OpenSpecification.Security.AccessControlGE.Authorization.Open_RESTful_API]]. For more details about the Access Control GE's architecture that this API relates to, please refer to [[FIWARE.ArchitectureDescription.Security.Access Control Generic Enabler]].
+
+= General API Information =
+== Resources Summary ==
+The hierarchy of resources is illustrated in the picture below.
+
+[[File:AccessControlGE.Authorization API.png]]
+
+The root resource '''domains''' is the root of all domains/tenants (the API is multi-tenant). Each domain/tenant under this is identified by and ID '''{domainId}'''. For each of these domain resources, we have two child resources: '''pap''' for the domain's PAP, and '''pdp''' for the domain's PDP. The PAP itself has three child resources: '''policySet''' for the domain's top-level PolicySet (also called root PolicySet), '''attributeFinders''' for the PDP attribute finders, and '''refPolicySets''' for PolicySets used as PolicySetReferences in the top-level PolicySet (e.g. for hierarchical RBAC).
+
+== Authentication ==
+Clients authenticate using TLS client certificate (X.509) prior to accessing the service.
+
+== Representation Format ==
+The API supports XML data format. The request format is specified using the Content-Type header and is required for operations that have a request body. The response format can be specified in requests using the Accept header.
+
+== Representation Transport ==
+Resource representation is transmitted between client and server by using HTTP 1.1 protocol, as defined by IETF RFC-2616. Each time an HTTP request contains payload, a Content-Type header shall be used to specify the MIME type of the wrapped representation. In addition, both client and server may use as many HTTP headers as they consider necessary.
+
+== Resource Identification ==
+Resource identification is made using the mechanisms described by HTTP protocol specification as defined by IETF RFC-2616.
+
+== Links and references ==
+API implementations should follow the HATEOAS principle of the REST architecture style to help clients discover the API - resource representation media types, actions and link relations to other resources - entirely through hypermedia, with a fixed root URL as only starting point. If not, the API should at least be described in a WADL document so that the client code may be generated automatically. The goal is to make the client's job of using the API as easy as possible.
+
+== Limits ==
+Limits are not specified by this API guide. Each API implementation is free to document their own specific limits.
+
+== Versions ==
+Versioning information is not specified by this API guide. Each API implementation is free to document their version info in their own way. However, we recommend to provide such information as part of the WADL (Web Application Document Language) document that describe the actual implementation API, if there is such a document.
+
+== Faults ==
+{| border="1" cellpadding="2"
+|-
+||'''Fault Element'''||'''Associated Error Codes'''||'''Expected in All Requests?'''||'''Description'''
+|-
+||Bad Request||400||Yes||The request could not be processed because it contains missing or invalid information (such as validation error on an input field, a missing required value, and so on).
+|-
+||Unauthorised||401||Yes||Client authentication is required.
+|-
+||Forbidden||403||Yes||The request was a valid request and the server understood it, but is refusing to fulfil it, e.g. because the rule set installed in the server does not permit the request.
+|-
+||Not Found||404||Yes||The request specified a URI of a resource that does not exist.
+|-
+||Method Not Allowed||405||Yes||The HTTP verb specified in the request (DELETE, GET, HEAD, POST, PUT) is not supported for this request URI.
+|-
+||Not Acceptable||406||Yes||The resource identified by this request is not capable of generating a representation corresponding to one of the media types in the Accept header of the request.
+|-
+||Request entity            too large||413||Yes||The server is refusing to process a request because the request   entity is larger than the server is willing or able to process. The   server MAY close the connection to prevent the client from continuing   the request. 
+|-
+||Internal Server Error||500||Yes||The server encountered an unexpected condition which prevented it from fulfilling the request.
+|-
+||Not Implemented||501||Yes||The server does not (currently) support the functionality required to fulfil the request.
+|-
+||Service Unavailable||503||Yes||The server is currently unable to handle the request due to temporary overloading or maintenance of the server.
+|-
+
+|}
+
+= API Operations =
+The API operations and associated datatypes are fully described in the [https://forge.fi-ware.org/docman/view.php/7/4582/FIWARE-AccessControlGE-API-3.1.2.zip Access Control GE - Authorization Restful API package]. This package includes:
+* WADL document defining the API;
+* Associated XML schemas imported by the WADL, defining datatypes used by the API: XACML standard schemas for XACML PolicySet, Request and Response elements; Atom standard schema for resource link relations; etc.

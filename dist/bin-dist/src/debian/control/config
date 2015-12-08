@@ -1,0 +1,14 @@
+#!/bin/sh
+ 
+# Exit on error
+set -e
+ 
+# Source debconf library.
+. /usr/share/debconf/confmodule
+ 
+# Ask questions
+db_input high [[productName]]/keepSamples || true
+db_input high [[productName]]/restartTomcat || true
+ 
+# Show interface
+db_go || true

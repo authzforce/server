@@ -1,0 +1,14 @@
+Template: [[productName]]/keepSamples
+Type: boolean
+Default: false
+Description: Do you want to keep the test domain created by default?
+ The installation creates a test domain by default to get started testing the API quickly. If this is a production system, you may not need this 
+ (answer: No). If you answer No, you can always create domains later with the API.
+
+Template: [[productName]]/restartTomcat
+Type: boolean
+Default: true
+Description: Do you want to restart Tomcat now to load the AuthZForce webapp?
+ The AuthZForce webapp is now ready to be loaded by Tomcat. If Tomcat is configured for automatic deployment, you do not need to do this and may answer No. 
+ Anyway, if you answer No, you can always restart Tomcat later with this command:
+ $ sudo service tomcat7 restart

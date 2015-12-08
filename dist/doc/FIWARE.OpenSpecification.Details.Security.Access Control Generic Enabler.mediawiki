@@ -1,0 +1,8 @@
+=Detailed Open Specifications=
+Following is a list of Open Specifications linked to this Generic Enabler. Specifications labelled as "PRELIMINARY" are considered stable but subject to minor changes derived from lessons learned during last interactions of the development of a first reference implementation planned for the current Major Release of FI-WARE. Specifications labelled as "DRAFT" are planned for future Major Releases of FI-WARE but they are provided for the sake of future users.
+
+==Open API Specifications==
+* [[FIWARE.OpenSpecification.Security.AccessControlGE.Authorization.Open RESTful API Specification|Access Control GE's RESTful API Specification]]
+
+==Other Open Specifications==
+* XACML 2.0

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2015 Thales Services SAS.
+
+    This file is part of AuthZForce.
+
+    AuthZForce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+	<jee:jndi-lookup id="jndi_configDir" jndi-name="com.thalesgroup.authzforce.config.dir"
+		expected-type="java.lang.String" />
+	<jee:jndi-lookup id="jndi_dataDir" jndi-name="com.thalesgroup.authzforce.data.dir"
+		expected-type="java.lang.String" />
+	<jee:jndi-lookup id="jndi_syncIntervalSec" jndi-name="com.thalesgroup.authzforce.domains.sync.interval"
+		expected-type="java.lang.Integer" default-value="#{new Integer(0)}" />
+
+	<util:list id="apiSchemaLocations">
+		<value>classpath:/xsd/authz-api.xsd</value>
+	</util:list>
+
+	<!-- Used by JAXBProvider in applicationContext.xml (and SecurityDomainManager below) -->
+	<bean id="apiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+		<!-- <property name="catalogLocation" value="classpath:META-INF/jax-rs-catalog.xml" /> -->
+		<property name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+		<property name="schemaLocations" ref="apiSchemaLocations" />
+	</bean>
+
+	<!-- REST API resource schema Used by domainManagerBean -->
+	<bean id="apiSchema" factory-bean="apiSchemaHandler" factory-method="getSchema" />
+
+	<bean id="pdpModelHandler" class="com.thalesgroup.authzforce.core.PdpModelHandler">
+		<!-- <constructor-arg name="catalogLocation" value="classpath:META-INF/jax-rs-catalog.xml" /> -->
+		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+		<!-- <constructor-arg name="extensionXsdLocation" value="classpath:/authzforce-ext.xsd" /> -->
+		<constructor-arg name="extensionXsdLocation" value="#{jndi_configDir}/authzforce-ext.xsd" />
+	</bean>
+
+	<bean id="extensionJaxbClassArray" factory-bean="pdpModelHandler" factory-method="getExtensionJaxbBoundClasses" />
+
+	<bean id="domainManagerBean" class="com.thalesgroup.authzforce.rest.SecurityDomainManager"
+		destroy-method="stopDomainsSync">
+		<!-- root directory of the configuration data of security domains -->
+		<constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
+		<!-- domain template directory for domain creation -->
+		<constructor-arg name="domainTmpl" value="#{jndi_configDir}/domain.tmpl" />
+		<!-- domains directory-to-memory synchronization interval in seconds -->
+		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
+		<constructor-arg name="schema" ref="apiSchema" />
+		<constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+	</bean>
+
+	<bean id="domainsResourceBean" class="com.thalesgroup.authzforce.rest.jaxrs.api.impl.EndUserDomainSetImpl">
+		<constructor-arg name="domainManager" ref="domainManagerBean" />
+		<constructor-arg name="authorizedResourceAttribute" value="authorizedResource" />
+		<constructor-arg name="anyResourceId">
+			<null />
+		</constructor-arg>
+	</bean>
+</beans>

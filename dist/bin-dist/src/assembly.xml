@@ -1,0 +1,31 @@
+<assembly>
+	<id>bin</id>
+	<!-- Generates a zip package containing the needed files -->
+	<formats>
+		<format>zip</format>
+	</formats>
+
+	<!-- Adds dependencies to zip package under lib directory -->
+	<dependencySets>
+		<dependencySet>
+			<includes>
+				<include>com.thalesgroup.authzforce:authzforce-webapp:war</include>
+			</includes>
+			<outputDirectory>${productName}-webapp</outputDirectory>
+			<unpack>true</unpack>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<directory>${project.basedir}/src/conf</directory>
+			<outputDirectory>/conf</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/src</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>webapp-context.xml</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

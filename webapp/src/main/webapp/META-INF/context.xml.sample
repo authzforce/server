@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Context used by Tomcat -->
+<Context>
+<!-- Logging configuration file -->
+<Parameter name="logbackConfigLocation" value="file:${catalina.base}/config/authzforce/logback.xml"
+         override="false"/>
+<Environment name="com.thalesgroup.theresis.useRandomAddressBasedUUID" value="true"
+		type="java.lang.Boolean" override="false" />
+<!-- Configuration directory (${catalina.base} applies to Tomcat only, use ${com.sun.aas.instanceRoot} for Glassfish). -->
+<Environment name="com.thalesgroup.authzforce.config.dir" value="file:${catalina.base}/config/authzforce"
+		type="java.lang.String" override="false" />
+<!-- Interval for reloading domains if configuration file changes have been detected since last reload -->
+<Environment name="com.thalesgroup.authzforce.domains.sync.interval" value="10"
+		type="java.lang.Integer" override="false" />
+</Context>

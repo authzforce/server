@@ -1,0 +1,95 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.ow2.authzforce</groupId>
+		<artifactId>authzforce-ce-parent</artifactId>
+		<version>3.3.6</version>
+	</parent>
+	<artifactId>${artifactId.prefix}-rest-service</artifactId>
+	<version>4.1.2-SNAPSHOT</version>
+	<name>AuthZForce REST service</name>
+	<description>Implementation of RESTful API defined by authzforce-rest-api-model package</description>
+	<organization>
+		<name>Thales Services SAS</name>
+	</organization>
+	<inceptionYear>2012</inceptionYear>
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.authzforce</groupId>
+			<artifactId>authzforce-rest-api-model</artifactId>
+			<version>4.4.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.authzforce</groupId>
+			<artifactId>${artifactId.prefix}-core</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<properties>
+						<!-- Values to be substituted in template -->
+						<inceptionYear>${project.inceptionYear}</inceptionYear>
+						<currentYear>${currentYear}</currentYear>
+						<copyrightOwner>${project.organization.name}</copyrightOwner>
+						<projectName>AuthZForce</projectName>
+					</properties>
+					<!-- <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header> -->
+					<header>license/thales-gpl.txt</header>
+					<strictCheck>true</strictCheck>
+					<includes>
+						<include>src/**</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-license</id>
+						<goals>
+							<!-- attached to verify phase -->
+							<goal>check</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>add-license-headers</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

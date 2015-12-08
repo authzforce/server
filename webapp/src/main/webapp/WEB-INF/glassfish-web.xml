@@ -1,0 +1,30 @@
+<!--
+
+    Copyright (C) 2012-2015 Thales Services SAS.
+
+    This file is part of AuthZForce.
+
+    AuthZForce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE glassfish-web-app PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN" "http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd">
+<glassfish-web-app>
+<!-- See Oracle GlassFish Server 3.1 Application Development Guide - Roles, Principals, and Principal to Role Mapping: http://docs.oracle.com/cd/E18930_01/html/821-2418/beacr.html#scrolltoc -->
+<!--     <security-role-mapping> -->
+<!--         <role-name>authenticated</role-name> -->
+<!--         <group-name>authenticated</group-name> -->
+<!--     </security-role-mapping> -->
+    <!-- http://cxf.apache.org/docs/application-server-specific-configuration-guide.html#ApplicationServerSpecificConfigurationGuide-Glassfish -->
+    <class-loader delegate="false" />
+</glassfish-web-app>

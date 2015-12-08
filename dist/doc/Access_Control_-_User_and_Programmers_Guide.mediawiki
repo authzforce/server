@@ -1,0 +1,448 @@
+= Introduction =
+Thales Access Control GE implementation is mostly based on Thales Access Control Asset. It provides an API to manage XACML-based access control policies and provide authorization decisions based on such policies and the context of a given access request.
+
+== Background and Detail ==
+
+This User and Programmers Guide relates to the Access Control GE which is part of the [[Security Architecture]].
+Please find more information about this Generic Enabler in the following [[FIWARE.OpenSpecification.Security.Access Control Generic Enabler|Open Specification]].
+
+= User Guide =
+Since the Access Control GE is a Generic Enabler which provides backend functionality to other applications (e.g. Generic Enablers or end user facing applications) and security administrators, we do not distinguish between the User and Programmers Guide. Please refer to the Programmers Guide section for more information. 
+
+= Programmer Guide =
+The Authorization Server provides the following APIs:
+* PDP API (PDP = Policy Decision Point in the XACML terminology): provides an API for getting authorization decisions computed by a XACML-compliant access control engine;
+* PAP API, (PAP = Policy Administration Point in XACML terminology): provides API for managing XACML policies to be handled by the Authorization Service PDP.
+The full API (RESTful) is described by the [[FIWARE.OpenSpecification.Security.AccessControlGE.Authorization.Open RESTful API Specification|Access Control GE's RESTful API Specification]]. You will also find there a download link to the API specification written in the Web Application Description Language format (WADL).
+
+XACML is the main international OASIS standard for access control language and request-response formats, that addresses most use cases of access control. Thales Authorization Server supports the full core XACML 2.0 language; therefore it allows to enforce very generic and complex access control policies.
+
+== Attribute-Based Access Control ==
+The Authorization Server provides Attribute-Based Access Control. To understand what is meant by "attribute" in the context of access control, below is the list of categories of attributes identified by the XACML standard:
+* Subject attributes: the subject is an actor (human, program, device, etc.) requesting access to a resource; attributes may be user ID, Organization, Role, Clearance, etc.
+* Resource attributes: the resource is a passive entity (from the access control perspective) on which subject requests to act upon (e.g. data but also human, device, application, etc.); resource attributes may be resource ID, URL, classification, etc.
+* Action attributes: the action is the action that the subject requests to perform on the resource (e.g. create, read, delete); attributes may be action ID, parameter A, parameter B, etc.
+* Environment attributes: anything else, e.g. current time, CPU load of the PEP/PDP, global threat level, etc.
+
+== Policy Administration API ==
+The PAP is used by policy administrators to manage the policy repository from which the PDP loads the enforced policies.
+The PAP supports multi-tenancy in the form of generic administration domains that are separate from each other. Each policy administator (except the Superadmin) is in fact a domain administrator, insofar as he is allowed to manage the policy for one or more specific domains. Domains are typically used to support isolation of tenants (one domain per tenant).
+
+=== Policy Management ===
+The PAP provides a RESTful API for creating/updating policies for a specific domain, i.e. the top-level a.k.a. root XACML PolicySet of the domain.
+HTTP requests to this API must be formatted as follows:
+* Method: PUT
+* Path: /domains/{domainId}/pap/policySet
+*Headers:
+** Content-Type: application/xml
+** Accept: application/xml
+* Body: XACML PolicySet as defined in the XACML 2.0 schema.
+
+Example of request given below:
+<pre>
+PUT /domains/3b39dad9-1380-4c5b-8662-50cac998c644/pap/policySet
+HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1
+Accept: application/xml
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Content-Type: application/xml; charset=UTF-8
+Content-Length: 2631
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" PolicySetId="sample-policyset"
+    Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
+    <Description>
+Sample PolicySet
+</Description>
+    <Target />
+    <Policy PolicyId="MissionManagementApp" Version="1.0"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides">
+        <Description>
+Policy for MissionManagementApp
+</Description>
+        <Target>
+            <Resources>
+                <Resource>
+                    <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">MissionManagementApp</AttributeValue>
+                        <ResourceAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </ResourceMatch>
+                </Resource>
+            </Resources>
+        </Target>
+        <Rule RuleId="MissionManager_role_can_manage_team" Effect="Permit">
+            <Description>Only MissionManager role authorized to manage the mission team</Description>
+            <Target>
+                <Resources>
+                    <Resource>
+                        <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Team</AttributeValue>
+                            <ResourceAttributeDesignator AttributeId="urn:thales:xacml:2.0:resource:sub-resource-id"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                        </ResourceMatch>
+                    </Resource>
+                </Resources>
+                <Actions>
+                    <Action>
+                        <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">manage</AttributeValue>
+                            <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                        </ActionMatch>
+                    </Action>
+                </Actions>
+            </Target>
+            <Condition>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:any-of">
+                    <Function FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal" />
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">MissionManager</AttributeValue>
+                    <SubjectAttributeDesignator AttributeId="subject-role"
+                        DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"
+                        SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
+                </Apply>
+            </Condition>
+        </Rule>
+    </Policy>
+</PolicySet>
+</pre>
+
+The HTTP response status is 200 if the policy has been successfully created/updated.
+It is not possible to delete a policy as a minimal policy must always be in place. If you want a ''Permit All'' (resp. ''Deny All''), you have to update with such a policy: Target All, no condition, effect is Permit (resp. Deny).
+Response (body is the PolicySet uploaded in the request):
+
+<pre>
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/xml
+Content-Length: 2631
+Date: Mon, 03 Sep 2012 10:12:43 GMT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PolicySet ...
+...content omitted...
+</PolicySet>
+</pre>
+
+=== Re-usable Policies (e.g. for Hierarchical RBAC) ===
+The PAP provides a RESTful API for creating/updating <PolicySet>s that can be referred to from the root <PolicySet> for inclusion. This allows to include/reuse a given <PolicySet>s from multiple points of the domain's <PolicySet>, by means of XACML <PolicySetIdReference>s. One major application of this is Hierarchical RBAC. You can refer to the ''Core and hierarchical role based access control (RBAC) profile of XACML v2.0'' specification for how to achieve Hierarchical RBAC with <PolicySetIdReference>s.
+HTTP requests to this API must be formatted as follows:
+* Method: PUT
+* Path: /domains/{domainId}/pap/refPolicySets
+* Headers:
+** Content-Type: application/xml
+** Accept: application/xml
+* Body: 0 or more XACML <PolicySet>s in a <policySets> element from XML namespace ''http://thalesgroup.com/authz/model'' ('''this is not a browsable URL''').
+
+Example of request given below:
+<pre>
+PUT /domains/3b39dad9-1380-4c5b-8662-50cac998c644/pap/refPolicySets
+HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1
+Accept: application/xml
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Content-Type: application/xml; charset=UTF-8
+Content-Length: 2631
+
+<?xml version="1.0" encoding="UTF-8"?>
+<az:policySets xmlns:az="http://thalesgroup.com/authz/model" xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os">
+	<PolicySet PolicySetId="PPS:Employee"
+		PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.1:policy-combining-algorithm:ordered-permit-overrides">
+		<Description>Permissions specific to the Employee role</Description>
+		<Target />
+		<Policy PolicyId="PP:Employee"
+			RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.1:rule-combining-algorithm:ordered-permit-overrides">
+			<Target />
+			<Rule RuleId="Permission_to_create_issue_ticket" Effect="Permit">
+				<Target>
+					<Resources>
+						<Resource>
+							<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+								<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">https://acme.com/ticketmanagementservice/tickets
+								</AttributeValue>
+								<ResourceAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+									DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+							</ResourceMatch>
+						</Resource>
+					</Resources>
+					<Actions>
+						<Action>
+							<ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+								<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">POST</AttributeValue>
+								<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+									DataType="http://www.w3.org/2001/XMLSchema#string" />
+							</ActionMatch>
+						</Action>
+					</Actions>
+				</Target>
+			</Rule>
+		</Policy>
+	</PolicySet>
+	<PolicySet PolicySetId="PPS:Technician"
+		PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.1:policy-combining-algorithm:ordered-permit-overrides">
+	...content omitted...	
+	</PolicySet>
+	...
+</az:policySets>
+
+</pre>
+
+The HTTP response status is 200 if the policy has been successfully created/updated.
+Response (body is the PolicySet uploaded in the request):
+
+<pre>
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/xml
+Content-Length: 2631
+Date: Mon, 03 Sep 2012 10:12:43 GMT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<az:policySets ...
+...content omitted (same as request body)...
+</az:policySets>
+</pre>
+
+In the example above, ''PPS:Employee_Role'' (as well as ''PPS:Technician_Role'') may be used in a <PolicySetIdReference> within the root <PolicySet> uploaded with the API feature of the previous section of this guide, as illustrated below.
+
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	PolicySetId="root:policyset" Version="1.0"
+	PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.1:policy-combining-algorithm:ordered-permit-overrides">
+	<Description>Root PolicySet</Description>
+	<Target />
+	<PolicySet PolicySetId="RPS:Employee" Version="1.0"
+		PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.1:policy-combining-algorithm:ordered-permit-overrides">
+		<Description>
+			Employee Role PolicySet
+		</Description>
+		<Target>
+			<Subjects>
+				<Subject>
+					<SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+						<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+						<SubjectAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+							DataType="http://www.w3.org/2001/XMLSchema#string" />
+					</SubjectMatch>
+				</Subject>
+			</Subjects>
+		</Target>
+		<PolicySetIdReference>PPS:Employee</PolicySetIdReference>
+	</PolicySet>
+	<PolicySet PolicySetId="RPS:Manager" Version="1.0"
+		PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.1:policy-combining-algorithm:ordered-permit-overrides">
+		<Description>
+			Manager Role PolicySet
+		</Description>
+		<Target>
+			<Subjects>
+				<Subject>
+					<SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+						<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Manager</AttributeValue>
+						<SubjectAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+							DataType="http://www.w3.org/2001/XMLSchema#string" />
+					</SubjectMatch>
+				</Subject>
+			</Subjects>
+		</Target>
+		<Policy PolicyId="PP1:Manager"
+			RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.1:rule-combining-algorithm:ordered-permit-overrides">
+			<Description>Permissions specific to Manager Role</Description>
+			<Target />
+			<Rule RuleId="Permission_to_create_new_project" Effect="Permit">
+				<Target>
+					<Resources>
+						<Resource>
+							<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+								<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">https://acme.com/ticketmanagementservice/projects
+								</AttributeValue>
+								<ResourceAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+									DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+							</ResourceMatch>
+						</Resource>
+					</Resources>
+					<Actions>
+						<Action>
+							<ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+								<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">POST</AttributeValue>
+								<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+									DataType="http://www.w3.org/2001/XMLSchema#string" />
+							</ActionMatch>
+						</Action>
+					</Actions>
+				</Target>
+			</Rule>
+		</Policy>
+		<!-- This role is senior to the Employee role, therefore includes the Employee role Permission PolicySet -->
+		<PolicySetIdReference>PPS:Employee</PolicySetIdReference>
+	</PolicySet>
+</PolicySet>
+</pre>
+
+=== Attribute Finder Management ===
+When the PEP does not provide a particular attribute in the XACML request although it is required by the PDP to evaluate the policy, the PDP is able to get it via so-called ''Attribute Finders''. In particular, attribute finders are useful in the context of OAuth to retrieve attributes from access tokens, and in general to get information from Identity Management GEs. The PAP API allows you to configure such attribute finders. The following example illustrates the configuration of attribute finders for integration with OAuth Authorization Server/Identity Management GE such as the GCP from Deutsche Telekom. Read the inline XML comments for deeper understanding.
+
+
+<pre>
+PUT /domains/3b39dad9-1380-4c5b-8662-50cac998c644/pap/attributeFinders
+<?xml version="1.0" encoding="UTF-8"?>
+<az:attributeFinders xmlns:az="http://thalesgroup.com/authz/model" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:taz="http://thalesgroup.com/authzforce/model" xmlns:xacml="urn:oasis:names:tc:xacml:2.0:policy:schema:os">
+    <!--
+    Attribute Finder that validates and extracts attributes from a signed JSON Web Token (JWT). For example, the GCP IdM GE issues signed JWTs as OAuth access tokens.
+    If your PEP is in charge of validating the OAuth/JWT token and providing the JWT-contained attributes to the PDP, you DO NOT need this attribute finder.
+    Whether this job should be done by the PEP or the PDP mostlyt depends on the use case project requirements and the project team's preferences.
+   
+    clockSkew: clock skew (in minutes) for checking current time against token validity interval:
+        issuedAt-clockSkew <= currenTime <= expiration+clockSkew
+    -->
+    <attributeFinder xsi:type="taz:JwtAttributeFinder" clockSkew="600">
+        <!-- XACML Attributes provided by the attribute finder -->
+        <taz:providedAttribute>
+            <!-- Designator of the XACML attribute to be assigned -->
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string" />
+            <!-- JSONPath applied to the JWT payload for getting the attribute value -->
+            <taz:fromJwtPayloadPath>$['http://gcp.telekom.de/axschema/gcpid']</taz:fromJwtPayloadPath>
+        </taz:providedAttribute>
+        <taz:providedAttribute>
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:thalesgroup:xacml:subject:tenant-id" DataType="http://www.w3.org/2001/XMLSchema#string" />
+            <taz:fromJwtPayloadPath>$['http://gcp.telekom.de/axschema/tenant']['http://gcp.telekom.de/axschema/tenantId']</taz:fromJwtPayloadPath>
+        </taz:providedAttribute>
+        <!-- Input XACML attribute set with the signed JWT, to be provided by the PEP in the XACML request -->
+        <taz:jwtAttribute>
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:thalesgroup:xacml:oauth:token" DataType="http://www.w3.org/2001/XMLSchema#string" />
+        </taz:jwtAttribute>
+        <!-- (Optional) Audience match rule: XACML attribute to be matched against the 'aud' claim of the JWT (values must be equal). -->
+        <taz:audienceMatch>
+            <xacml:ResourceAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+                DataType="http://www.w3.org/2001/XMLSchema#string" />
+        </taz:audienceMatch>
+        <!-- Key for verifying the JWT HMAC-256 signature. Multiple keyEntry tags allowed.
+        The keyEntry is selected by 'ID' = JWT header "kid"; or above "audienceMatch" value if "kid" undefined.
+        The 'value" secret string from which the HMAC key is computed, provided as 'appSecret' when registering the application in the GCP Admin UI for example.
+        -->
+        <taz:keyEntry ID="https://acme.com/mytargetservice" value="d8b2e4fc-bfe9-4bdb-b838-ce422e14457e" />
+    </attributeFinder>
+   
+    <!--
+    AttributeFinder that gets attributes from the response to a HTTP GET request on a REST API, such as the GCP IdM GE's attribute management API.
+    The REST API must support JSON as representation format and HTTP Basic or client certificate as authentication scheme.
+    NB: In this example, the attribute finder depends on attributes (subject ID and tenant ID) provided by the previous finder.
+    But these attributes could be provided by the PEP in the XACML request as well, in which case you would NOT need the previous finder and could use this one alone.
+   
+    apiUserID: user ID used for HTTP Basic authentication in API requests.
+        For example, if using the GCP IdM API, this is the AppID of a service registered in the GCP tenant and authorized to get attributes of users registered in that tenant.
+    apiPassword: user password for HTTP Basic authentication in API requests.
+    -->
+    <attributeFinder xsi:type="taz:RESTfulAttributeFinder" apiUserID="pNLC8LRLJg"
+        apiPassword="d8b2e4fc-bfe9-4bdb-b838-ce422e14457e">
+        <!-- XACML Attributes provided by the attribute finder -->
+        <taz:providedAttribute>
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role" DataType="http://www.w3.org/2001/XMLSchema#string" />
+            <!-- JSONPath applied to the API response body for getting the attribute value -->
+            <taz:fromResponseBodyPath>$[?(@.attributeType == 'role')].attributeValue</taz:fromResponseBodyPath>
+        </taz:providedAttribute>
+        <!--
+        REST API endpoint URL. Template parameters in this URL will be replaced with values of XACML attributes declared in 'urlTemplateParams', in the order of declaration.
+        Therefore, in this example, 'mandantid' template parameter is replaced with 'tenant-id' attribute value, and 'gcpid' with 'subject-id' attribute value.
+        -->
+        <taz:url>https://logint2.idm.toon.sul.t-online.de/gcp-web-api/{mandantid}/customers/{gcpid}/accountAttributes</taz:url>
+        <taz:urlTemplateParams>
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:thalesgroup:xacml:subject:tenant-id" DataType="http://www.w3.org/2001/XMLSchema#string" />
+            <xacml:SubjectAttributeDesignator SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string" />
+        </taz:urlTemplateParams>
+    </attributeFinder>
+</az:attributeFinders>
+</pre>
+
+== Policy Decision API ==
+The PDP API returns an authorization decision based on the currently enforced policy, access control attributes provided in the request and possibly other attributes resolved by the PDP itself. The Authorization decision is typically Permit or Deny. The PDP is able to resolve extra attributes not provided directly in the request, such as the current time environment attribute) or attributes from an OAuth access token in the request for example.
+
+The PDP provides an HTTP RESTful API for requesting authorization decisions.
+The HTTP request must be formatted as follows:
+* Method: POST
+* Path: /domains/{domainId}/pdp
+* Headers:
+** Content-Type: application/xml
+** Accept: application/xml
+* Body: XACML Request as defined in the XACML 2.0 schema.
+The HTTP response body is a XACMl Response as defined in the XACML 2.0 schema.
+
+Example of request given below:
+
+<pre>
+POST /domains/3b39dad9-1380-4c5b-8662-50cac998c644/pdp
+HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1
+Accept: application/xml
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Content-Type: application/xml; charset=UTF-8
+Content-Length: 954
+
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<Request xmlns:ns2='urn:oasis:names:tc:xacml:2.0:policy:schema:os' xmlns='urn:oasis:names:tc:xacml:2.0:context:schema:os'>
+    <Subject SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+        <Attribute AttributeId='urn:oasis:names:tc:xacml:1.0:subject:subject-id' DataType='http://www.w3.org/2001/XMLSchema#string'>
+            <AttributeValue>joe</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:thalesgroup:xacml:oauth:token" DataType="http://www.w3.org/2001/XMLSchema#string">
+      <AttributeValue>eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnY3AiLCJhdWQiOiJodHRwczovL2FjbWUuY29tL215dGFyZ2V0c2VydmljZSIsImlhdCI6MTM2MzM0NDczOSwibmJmIjoxMzYzMzQ0Njc5LCJleHAiOjEzNjMzNzM1MzksImp0aSI6IjdiOWMzODlhLWQ2NDktNGY4ZC04MzQzLTg3ZDJlNDZmYWNiMSIsImh0dHA6Ly9nY3AudGVsZWtvbS5kZS9heHNjaGVtYS9nY3BpZCI6IjIwMTAxMDAwMDA5NTAxNTY3NTY5MTY3NjcxNzQiLCJodHRwOi8vZ2NwLnRlbGVrb20uZGUvYXhzY2hlbWEvZW1haWwiOiJjeXJpbC5kYW5nZXJ2aWxsZSsxQGdtYWlsLmNvbSIsImh0dHA6Ly9nY3AudGVsZWtvbS5kZS9heHNjaGVtYS9maXJzdG5hbWUiOiJDeXJpbCIsImh0dHA6Ly9nY3AudGVsZWtvbS5kZS9heHNjaGVtYS9sYXN0bmFtZSI6IkRhbmdlcnZpbGxlIE9uZSJ9._GHiRmq1g7vp8MgetsjHWRfUOPJfW47-K_QZCiGzKbw</AttributeValue>
+        </Attribute>
+    </Subject>
+    <Resource>
+        <Attribute AttributeId='urn:oasis:names:tc:xacml:1.0:resource:resource-id' DataType='http://www.w3.org/2001/XMLSchema#string'>
+            <AttributeValue>MissionManagementApp</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId='urn:thales:xacml:2.0:resource:sub-resource-id' DataType='http://www.w3.org/2001/XMLSchema#string'>
+            <AttributeValue>Team</AttributeValue>
+        </Attribute>
+    </Resource>
+    <Action>
+        <Attribute AttributeId='urn:oasis:names:tc:xacml:1.0:action:action-id' DataType='http://www.w3.org/2001/XMLSchema#string'>
+            <AttributeValue>manage</AttributeValue>
+        </Attribute>
+    </Action>
+    <Environment />
+</Request>
+</pre>
+
+Response:
+
+<pre>
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/xml
+Content-Length: 355
+Date: Mon, 03 Sep 2012 14:06:26 GMT
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Response xmlns="urn:oasis:names:tc:xacml:2.0:context:schema:os" xmlns:ns2="urn:oasis:names:tc:xacml:2.0:policy:schema:os">
+    <Result ResourceId="MissionManagementService">
+        <Decision>Permit</Decision>
+        <Status>
+            <StatusCode Value="urn:oasis:names:tc:xacml:1.0:status:ok" />
+        </Status>
+    </Result>
+</Response>
+</pre>
+
+== Integration with the IdM GE (e.g. for OAuth) ==
+There are two ways of integrating with IdM:
+# Delegate the integration to the PEP up-front, i.e. we assume the PEP got all the required IdM-related info and forwards it to the Access Control GE's PDP in the XACML request;
+# The PDP gets the required info from the IdM (API) on its own by means of [[#Attribute_Finder_Management|Attribute Finders]].
+You can have a mix of both methods as well. Please refer to the IdM GEs' User and Programmers Guide for more details about the IdM APIs (RESTful) to use.
+
+== Software Libraries for clients of the Access Control GEi ==
+The full API is RESTful API and is described by the [[FIWARE.OpenSpecification.Security.AccessControlGE.Authorization.Open RESTful API Specification|Access Control GE's RESTful API Specification]] document. Therefore, you can use any REST framework for clients; for instance in Java: Jersey, Apache CXF. Moreover, on the Open API Specification page, you will find a download link to the API specification written in the Web Application Description Language format (WADL). From that, you can use WADL-to-code generators to generate your client code. For example in Java, 'wadl2java' allows to generate code for JAX-RS compatible frameworks such as Apache CXF and Jersey. Actually, we provide a CXF-based Java library created with this tool to facilitate the development of clients.

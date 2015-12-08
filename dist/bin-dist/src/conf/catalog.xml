@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+	<systemSuffix systemIdSuffix="xml.xsd" uri="classpath:xml.xsd"/>
+	<uri name="http://www.w3.org/2005/Atom" uri="classpath:atom.xsd"/>
+	<uri name="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" uri="classpath:xacml-core-v3-schema-wd-17.xsd"/>
+	<uri name="http://thalesgroup.com/authz/model/ext/3.0" uri="classpath:authz-ext-base.xsd"/>
+	<system systemId="authzforce-ext.xsd" uri="classpath:authzforce-ext.xsd"/>
+	
+	<!-- PDP Extensions -->
+</catalog>
+

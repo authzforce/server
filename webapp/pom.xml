@@ -1,0 +1,103 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.thalesgroup.authzforce</groupId>
+		<artifactId>authzforce-parent</artifactId>
+		<version>3.0.6</version>
+	</parent>
+	<artifactId>authzforce-webapp</artifactId>
+	<version>4.1.2-fiware-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>AuthZForce Webapp</name>
+	<organization>
+		<name>Thales Services SAS</name>
+	</organization>
+	<inceptionYear>2012</inceptionYear>
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.2.6</version>
+			<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: com.sun.xml.bind.v2.ClassFactory 
+				has memory leak (upon webapp undeployment/redeployment). Therefore, jaxb RI from JDK >= 7 must be used so 
+				no need to ship it with webapp; or jaxb-impl must be only in Tomcat lib directory to be loaded by common 
+				classloader (shared libraries) -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<!-- Replaced by jcl-over-slf4j dependency, see http://www.slf4j.org/legacy.html -->
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.logback-extensions</groupId>
+			<artifactId>logback-ext-spring</artifactId>
+			<version>0.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.thalesgroup.authzforce</groupId>
+			<artifactId>authzforce-rest-service</artifactId>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects 
+				Property ${currentYear} is defined in parent POM. -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<properties>
+						<!-- Values to be substituted in template -->
+						<inceptionYear>${project.inceptionYear}</inceptionYear>
+						<currentYear>${currentYear}</currentYear>
+						<copyrightOwner>${project.organization.name}</copyrightOwner>
+						<projectName>AuthZForce</projectName>
+					</properties>
+					<!-- <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header> -->
+					<header>license/thales-gpl.txt</header>
+					<strictCheck>true</strictCheck>
+					<includes>
+						<include>src/**</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-license</id>
+						<goals>
+							<!-- attached to verify phase -->
+							<goal>check</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>add-license-headers</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<packagingExcludes>META-INF/context.xml</packagingExcludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
