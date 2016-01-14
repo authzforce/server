@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>4.3.0</version>
+		<version>4.4.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-webapp</artifactId>
@@ -49,6 +49,11 @@
 		<dependency>
 			<groupId>org.logback-extensions</groupId>
 			<artifactId>logback-ext-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.xebia.extras</groupId>
+			<artifactId>xebia-logfilter-extras</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

@@ -62,6 +62,14 @@
 	<!-- <description>ServletContextListener that shuts down Ehcache CacheManager. Use this to shutdown Ehcache automatically when the web application is shutdown.</description> -->
 	<!-- <listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class> -->
 	<!-- </listener> -->
+<!-- 	<filter> -->
+<!-- 		<filter-name>requestLoggerFilter</filter-name> -->
+<!-- 		<filter-class>fr.xebia.extras.filters.logfilters.RequestLoggerFilter</filter-class> -->
+<!-- 		<init-param> -->
+<!-- 			<param-name>maxDumpSizeInKB</param-name> -->
+<!-- 			<param-value>500</param-value> -->
+<!-- 		</init-param> -->
+<!-- 	</filter> -->
 	<filter>
 		<description>Filter hiding certain exceptions, internal server errors in particular</description>
 		<filter-name>exceptionFilter</filter-name>
@@ -76,6 +84,10 @@
 		<servlet-name>CXFServlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
+<!-- 	<filter-mapping> -->
+<!-- 		<filter-name>requestLoggerFilter</filter-name> -->
+<!-- 		<servlet-name>CXFServlet</servlet-name> -->
+<!-- 	</filter-mapping> -->
 	<filter-mapping>
 		<filter-name>exceptionFilter</filter-name>
 		<servlet-name>CXFServlet</servlet-name>
