@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file following the [K
   1. OR: If at least 1 True arg, then True regardless of Indeterminate args; else if at least 1 Indeterminate, return Indeterminate; else false.
   1. AND: If at least 1 False arg, then False regardless of Indeterminate args; else if at least 1 Indeterminate, then Indeterminate; else True.
   1. N-OF: similar to OR but checking whether at least N args are True instead of 1, in the remaining arguments; else there is/are n True(s) with n < N; if there are at least (N-n) Indeterminate, return Indeterminate; else return false.
+- Global configuration properties: max number of policies per domain, max number of versions per domain
 - Distribution as WAR
 
 ### Changed
