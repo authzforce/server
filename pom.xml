@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>authzforce-ce-server</artifactId>
 	<!-- FIWARE Versioning -->
-	<version>4.3.0-SNAPSHOT</version>
+	<version>4.4.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>AuthZForce CE Server</description>
