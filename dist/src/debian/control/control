@@ -1,0 +1,10 @@
+Package: [[productName]]
+Version: [[version]]
+Section: web
+Priority: optional
+Architecture: all
+Depends: debconf (>= 0.2.26), java7-jdk, tomcat7
+Maintainer: [[productMaintainer]] 
+Description: AuthForce CE Server.
+ Reference Implementation of FIWARE Authorization PDP Generic Enabler
+Homepage: https://github.com/authzforce

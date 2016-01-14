@@ -1,0 +1,33 @@
+#!/bin/sh
+ 
+# Exit on error
+set -e
+ 
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_get [[productName]]/keepSamples
+if [ "$RET" = false ]; then
+	rm -rf /opt/[[productName]]/data/domains/*
+fi
+
+db_get [[productName]]/restartTomcat
+if [ "$RET" = true ]; then
+	service tomcat7 restart
+fi
+
+echo "If Tomcat fails to restart, check for any Tomcat high-level error in Tomcat log directory: /var/log/tomcat7"
+echo "One common reason for failure is Tomcat default configuration may specify a very low value for the Java Xmx flag. Make sure Tomcat is configured with Xmx at 1GB or more, 2 GB recommended. For example, in the official Tomcat package for Ubuntu 12.04, Xmx used to be 128m. You can fix this parameter as follows:"
+echo "    $ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat"
+echo "    $ sudo service tomcat7 restart"
+echo "If Tomcat is started but AuthZForce webapp deployment fails, check for any webapp-specific error in file: /var/log/tomcat7/authzforce-ce/error.log"
+echo "When the webapp is up and running, you should get a HTTP response with status code 200 to this HTTP request with curl tool (replace 8080 with the port Tomcat is listening to):"
+printf "$ curl --verbose --show-error --write-out '%b\\%bn' --request GET http://localhost:8080/authzforce-ce/domains\n"
+echo "Now you can start playing with the REST API as defined by the WADL document that you can retrieve with a wget command (will save the wadl to local file 'authzforce.wadl'):"
+echo "$ wget -v -O authzforce.wadl http://localhost:8080/authzforce-ce/?_wadl"
+echo "Reminder: Tomcat default setup is not suitable for production! We strongly recommend reading and applying - when relevant - the guidelines from the following links:"
+echo "Performance tuning best practices for VMware Apache Tomcat: http://kb.vmware.com/kb/2013486"
+echo "How to optimize tomcat performance in production: http://www.genericarticles.com/mediawiki/index.php?title=How_to_optimize_tomcat_performance_in_production"
+echo "Apache Tomcat Tuning Guide for REST/HTTP APIs: https://javamaster.wordpress.com/2013/03/13/apache-tomcat-tuning-guide/"
+
+

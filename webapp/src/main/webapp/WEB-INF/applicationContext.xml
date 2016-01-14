@@ -32,25 +32,22 @@
 
 	<!-- <cxf:bus> <cxf:features> <cxf:logging/> </cxf:features> </cxf:bus> -->
 
-	<bean id="jaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
-		<property name="singleJaxbContext" value="true" />
-		<property name="extraClass" ref="extensionJaxbClassArray" />
-		<property name="schemaHandler" ref="apiSchemaHandler" />
-	</bean>
-
-	<jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api.wadl">
+	<jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api.wadl" staticSubresourceResolution="true">
 		<jaxrs:providers>
 			<ref bean="jaxbProvider" />
-			<bean class="com.thalesgroup.authzforce.rest.jaxrs.BadRequestExceptionMapper" />
-			<bean class="com.thalesgroup.authzforce.rest.jaxrs.ClientErrorExceptionMapper" />
-			<bean class="com.thalesgroup.authzforce.rest.jaxrs.NotFoundExceptionMapper" />
-			<bean class="com.thalesgroup.authzforce.rest.jaxrs.ServerErrorExceptionMapper" />
+			<bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
+			<bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
+			<bean class="org.ow2.authzforce.rest.service.jaxrs.NotFoundExceptionMapper" />
+			<bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
 		</jaxrs:providers>
 		<jaxrs:properties>
 			<entry key="org.apache.cxf.propagate.exception" value="false" />
 			<!-- See http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate 
 				XML DoS attacks (since CXF 2.7.4). Example below with controlling max child elements. -->
-			<!-- <entry key="org.apache.cxf.stax.maxChildElements" value="10"/> -->
+<!-- 			<entry key="org.apache.cxf.stax.maxChildElements" value="100"/> -->
+<!-- 			<entry key="org.apache.cxf.stax.maxElementDepth" value="10"/> -->
+<!-- 			<entry key="org.apache.cxf.stax.maxAttributeSize" value="500"/> -->
+<!-- 			<entry key="org.apache.cxf.stax.maxTextLength" value="1000"/> -->
 		</jaxrs:properties>
 		<jaxrs:serviceBeans>
 			<ref bean="domainsResourceBean" />
@@ -63,7 +60,7 @@
 		<!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
 		<!-- </jaxrs:outInterceptors> -->
 		<jaxrs:outFaultInterceptors>
-			<bean class="com.thalesgroup.authzforce.rest.jaxrs.ErrorHandlerInterceptor" />
+			<bean class="org.ow2.authzforce.rest.service.jaxrs.ErrorHandlerInterceptor" />
 		</jaxrs:outFaultInterceptors>
 	</jaxrs:server>
 </beans>

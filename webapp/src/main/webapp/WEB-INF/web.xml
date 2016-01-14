@@ -1,70 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-    Copyright (C) 2012-2015 Thales Services SAS.
-
-    This file is part of AuthZForce.
-
-    AuthZForce is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    AuthZForce is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with AuthZForce.  If not, see <http://www.gnu.org/licenses/>.
-
--->
-<!-- Copyright (C) 2012-2014 Thales Services SAS. This file is part of ${projectName}. ${projectName} 
-	is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
-	License as published by the Free Software Foundation, either version 3 of the License, or (at your option) 
-	any later version. ${projectName} is distributed in the hope that it will be useful, but WITHOUT ANY 
-	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See 
-	the GNU General Public License for more details. You should have received a copy of the GNU General Public 
-	License along with ${projectName}. If not, see <http://www.gnu.org/licenses/>. -->
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
 	<display-name>Thales AuthzForce Web Application</display-name>
-	<!-- In Tomcat, any customization of the environment entry value should go into one of possible locations 
-		of context.xml defined by: http://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Defining_a_context: 
-		typically in the global context.xml (not recommended) or application-specific (recommended): ${catalina.base}/conf/[enginename]/[hostname]/[webappname].xml 
-		(see file META-INF/context.xml.sample as example of possible context.xml). -->
 	<env-entry>
-		<description>If and only if Authzforce deployed in dev environment that is disconnected from the network, 
+		<description>Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
+		<env-entry-name>org.ow2.authzforce.config.dir</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<description>Data (e.g. data of domains created and managed by the API) directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
+		<env-entry-name>org.ow2.authzforce.data.dir</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<description>UUID generator option for domain IDs, set to true if and only if Authzforce deployed in dev environment that is disconnected from the network, 
 			i.e. no 'real' Ethernet address to use, set this JNDI variable to 'true' to initialize the UUID (variant 
 			1) generator with a random multicast address instead.</description>
-		<env-entry-name>com.thalesgroup.theresis.useRandomAddressBasedUUID</env-entry-name>
+		<env-entry-name>org.ow2.authzforce.uuid.gen.randomMulticastAddressBased</env-entry-name>
 		<env-entry-type>java.lang.Boolean</env-entry-type>
 		<env-entry-value>false</env-entry-value>
 	</env-entry>
 	<env-entry>
-		<description>Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ":" separator between key and value (see org.springframework.util.SystemPropertyUtils class)</description>
-		<env-entry-name>com.thalesgroup.authzforce.config.dir</env-entry-name>
-		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<description>Max number of policies per domain. -1 or any negative value means no max (unlimited).</description>
+		<env-entry-name>org.ow2.authzforce.domain.maxPolicyCount</env-entry-name>
+		<env-entry-type>java.lang.Integer</env-entry-type>
+		<env-entry-value>-1</env-entry-value>
 	</env-entry>
 	<env-entry>
-		<description>Data (e.g. domains created and managed by the API) directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ":" separator between key and value (see org.springframework.util.SystemPropertyUtils class)</description>
-		<env-entry-name>com.thalesgroup.authzforce.data.dir</env-entry-name>
-		<env-entry-type>java.lang.String</env-entry-type>
-		<!-- Default: same as config.dir (development/testing only). On Linux/Unix production systems, it should be something like file:/var/lib/authzforce -->
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<description>Max number of versions per policy. -1 or any negative value means no max (unlimited).</description>
+		<env-entry-name>org.ow2.authzforce.domain.policy.maxVersionCount</env-entry-name>
+		<env-entry-type>java.lang.Integer</env-entry-type>
+		<env-entry-value>-1</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature.</description>
-		<env-entry-name>com.thalesgroup.authzforce.domains.sync.interval</env-entry-name>
+		<env-entry-name>org.ow2.authzforce.domains.sync.interval</env-entry-name>
 		<env-entry-type>java.lang.Integer</env-entry-type>
 		<env-entry-value>0</env-entry-value>
 	</env-entry>
-	<!-- To override context parameters below without changing this file, use context.xml for Tomcat: http://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Context_Parameters 
-		For Glassfish, use asadmin set-web-context-param. -->
 	<context-param>
-		<description>Location of logging configuration file (any Spring resource path allowed) loaded by SSPG LogConfServletContextListener or LogbackConfigListener (if SSPG disabled) below</description>
+		<description>Location of logging configuration file (any Spring resource path allowed) loaded by SSPG LogConfServletContextListener or LogbackConfigListener (if SSPG disabled) below. Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<param-name>logbackConfigLocation</param-name>
 		<param-value>file:///${catalina.base}/conf/authzforce/logback.xml</param-value>
 	</context-param>
@@ -78,10 +58,15 @@
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
-	<listener>
-		<description>ServletContextListener that shuts down Ehcache CacheManager. Use this to shutdown Ehcache automatically when the web application is shutdown.</description>
-		<listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class>
-	</listener>
+	<!-- <listener> -->
+	<!-- <description>ServletContextListener that shuts down Ehcache CacheManager. Use this to shutdown Ehcache automatically when the web application is shutdown.</description> -->
+	<!-- <listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class> -->
+	<!-- </listener> -->
+	<filter>
+		<description>Filter hiding certain exceptions, internal server errors in particular</description>
+		<filter-name>exceptionFilter</filter-name>
+		<filter-class>org.ow2.authzforce.webapp.ExceptionFilter</filter-class>
+	</filter>
 	<servlet>
 		<servlet-name>CXFServlet</servlet-name>
 		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
@@ -91,6 +76,8 @@
 		<servlet-name>CXFServlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
-
-
+	<filter-mapping>
+		<filter-name>exceptionFilter</filter-name>
+		<servlet-name>CXFServlet</servlet-name>
+	</filter-mapping>
 </web-app>

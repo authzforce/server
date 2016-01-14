@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicySetId="Basic"
+	Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+	<Description>Basic PolicySet</Description>
+	<Target />
+	<Policy PolicyId="MissionManagementApp" Version="1.0"
+		RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit">
+		<Description>Policy for MissionManagementApp</Description>
+		<Target>
+			<AnyOf>
+				<AllOf>
+					<Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+						<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">MissionManagementApp</AttributeValue>
+						<AttributeDesignator Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource"
+							AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" DataType="http://www.w3.org/2001/XMLSchema#string"
+							MustBePresent="true" />
+					</Match>
+				</AllOf>
+			</AnyOf>
+		</Target>
+		<Rule RuleId="MissionManager_role_can_manage_team" Effect="Permit">
+			<Description>Only MissionManager role authorized to manage the mission team</Description>
+			<Target>
+				<AnyOf>
+					<AllOf>
+						<Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+							<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">MissionManager</AttributeValue>
+							<AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+								DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"
+								Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
+						</Match>
+					</AllOf>
+				</AnyOf>
+				<AnyOf>
+					<AllOf>
+						<Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+							<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Team</AttributeValue>
+							<AttributeDesignator Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource"
+								AttributeId="urn:thales:xacml:2.0:resource:sub-resource-id" DataType="http://www.w3.org/2001/XMLSchema#string"
+								MustBePresent="true" />
+						</Match>
+					</AllOf>
+				</AnyOf>
+				<AnyOf>
+					<AllOf>
+						<Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+							<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">manage</AttributeValue>
+							<AttributeDesignator Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action"
+								AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"
+								MustBePresent="true" />
+						</Match>
+					</AllOf>
+				</AnyOf>
+			</Target>
+		</Rule>
+	</Policy>
+</PolicySet>

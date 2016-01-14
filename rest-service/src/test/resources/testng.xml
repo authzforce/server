@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="AuthZForce.PDP.REST.API.TestSuite" parallel="false" verbose="1">
+	<!-- If you uncomment the <parameter>s below left here as a reminder, it overrides any JVM argument with same name passed on the command-line (e.g. -Dapp.base.url for parameter 'app.base.url'). So leave 
+		it commented out with you want to pass the parameter on the command-line. -->
+	<!-- Base URL of the AuthZForce webapp to be tested (up to the context root) -->
+<!-- 	<parameter name="app.base.url" value="http://localhost/authzforce-ce" /> -->
+	<!-- If the tested server is remote, set this to false to avoid starting the embedded server. -->
+<!-- 	<parameter name="start.server" value="false" /> -->
+	<test name="Conformance" preserve-order="true" enabled="true">
+		<classes>
+			<class name="org.ow2.authzforce.rest.service.test.DomainSetTest">
+				<methods>
+					<!-- invocation-numbers not working as expected: https://github.com/cbeust/testng/issues/613 <include name="addDomain" invocation-numbers="3" /> -->
+					<include name="getWADL" />
+					<include name="addAndGetDomain" />
+					<include name="getDomains" />
+					<include name="getDomain" />
+					<include name="getDomainByExternalId" />
+					<include name="addDomainWithTooBigDescription" />
+					<include name="addDomainWithTooBigExternalId" />
+					<include name="deleteDomains" />
+				</methods>
+			</class>
+			<!-- Domain-specific testing -->
+			<class name="org.ow2.authzforce.rest.service.test.DomainTest" />
+		</classes>
+	</test>
+</suite> 
+

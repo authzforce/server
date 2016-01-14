@@ -1,0 +1,3 @@
+authzforce-ce-server (4.3.0) trusty; urgency=low
+  * See https://github.com/authzforce/server/CHANGELOG.md
+ -- Thales Services <http://www.thalesgroup.com>  Fri, 16 October 2015 12:00:00 +0100

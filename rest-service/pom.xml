@@ -1,19 +1,27 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
-		<artifactId>authzforce-ce-parent</artifactId>
-		<version>3.3.6</version>
+		<artifactId>authzforce-ce-server</artifactId>
+		<version>4.3.0-SNAPSHOT</version>
+		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>${artifactId.prefix}-rest-service</artifactId>
-	<version>4.1.2-SNAPSHOT</version>
-	<name>AuthZForce REST service</name>
-	<description>Implementation of RESTful API defined by authzforce-rest-api-model package</description>
-	<organization>
-		<name>Thales Services SAS</name>
-	</organization>
-	<inceptionYear>2012</inceptionYear>
+	<artifactId>authzforce-ce-server-rest-service</artifactId>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Implementation of RESTful API defined by authzforce-ce-rest-api-model package</description>
+	<url>https://github.com/authzforce/server/rest-service</url>
+	<properties>
+		<authzforce-ce-core.version>3.7.0</authzforce-ce-core.version>
+	</properties>
+	<scm>
+		<connection>scm:git:${git.url.base}.git</connection>
+		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>${git.url.base}/rest-service</url>
+	</scm>
 	<dependencies>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -21,74 +29,186 @@
 			<version>3.0.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 , item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-service-description</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>${artifactId.prefix}-rest-api-model</artifactId>
+			<version>4.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.9.8</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+			<artifactId>cxf-rt-transports-http-jetty</artifactId>
+			<version>${cxf.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.authzforce</groupId>
-			<artifactId>authzforce-rest-api-model</artifactId>
-			<version>4.4.0-SNAPSHOT</version>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-client</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.authzforce</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-core</artifactId>
-			<version>3.6.0</version>
+			<version>${authzforce-ce-core.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.5</version>
+				<!-- target JDK already set by parent project's maven.compiler.target property -->
 				<configuration>
-					<properties>
-						<!-- Values to be substituted in template -->
-						<inceptionYear>${project.inceptionYear}</inceptionYear>
-						<currentYear>${currentYear}</currentYear>
-						<copyrightOwner>${project.organization.name}</copyrightOwner>
-						<projectName>AuthZForce</projectName>
-					</properties>
-					<!-- <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header> -->
-					<header>license/thales-gpl.txt</header>
-					<strictCheck>true</strictCheck>
-					<includes>
-						<include>src/**</include>
-					</includes>
+					<verbose>true</verbose>
 				</configuration>
 				<executions>
 					<execution>
-						<id>check-license</id>
+						<phase>verify</phase>
 						<goals>
-							<!-- attached to verify phase -->
+							<goal>check</goal>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
+					<effort>Max</effort>
+					<!-- Reports all bugs (other values are medium and max) -->
+					<threshold>Low</threshold>
+					<failOnError>true</failOnError>
+					<plugins>
+						<plugin>
+							<groupId>com.h3xstream.findsecbugs</groupId>
+							<artifactId>findsecbugs-plugin</artifactId>
+							<!-- Auto-update to the latest stable -->
+							<version>LATEST</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
 							<goal>check</goal>
 						</goals>
 					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<header>license/thales-gpl.header.txt</header>
+					<skipExistingHeaders>true</skipExistingHeaders>
+					<includes>
+						<include>src/**</include>
+					</includes>
+					<excludes>
+						<exclude>src/test/resources/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
 					<execution>
-						<id>add-license-headers</id>
+						<id>format-sources-license</id>
 						<phase>process-sources</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>format-test-sources-license</id>
+						<phase>process-test-sources</phase>
 						<goals>
 							<goal>format</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Create folder for authzforce server data (domains) -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
 				<executions>
 					<execution>
-						<id>attach-sources</id>
+						<id>copy-resources</id>
+						<phase>validate</phase>
 						<goals>
-							<goal>jar-no-fork</goal>
+							<goal>copy-resources</goal>
 						</goals>
+						<configuration>
+							<includeEmptyDirs>true</includeEmptyDirs>
+							<outputDirectory>${basedir}/target/server.data/domains</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/test/server.data/domains</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugin</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.14.1</version>
+				<configuration>
+					<properties>
+						<property>
+							<name>surefire.testng.verbose</name>
+							<value>10</value>
+						</property>
+					</properties>
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

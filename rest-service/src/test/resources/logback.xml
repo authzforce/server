@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!-- Copyright (C) 2012-2016 Thales Services SAS. This file is part of AuthZForce CE. AuthZForce CE is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+	License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthZForce CE is distributed in the hope that it will be useful, but WITHOUT 
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General 
+	Public License along with AuthZForce CE. If not, see <http://www.gnu.org/licenses/>. -->
+<!-- For assistance related to logback-translator or configuration -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user -->
+<!-- -->
+<!-- For professional support please see -->
+<!-- http://www.qos.ch/shop/products/professionalSupport -->
+<!-- -->
+<!-- More information: http://logback.qos.ch/faq.html#sharedConfiguration -->
+<!-- - RollingAppender: http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+<configuration>
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date{ISO8601} %-5level [%thread] %logger:%line: %msg%n</pattern>
+		</encoder>
+	</appender>
+	<!-- Change log directory according to your deployment container. Examples below for Tomcat. For Glassfish: ${com.sun.aas.instanceRoot}/logs -->
+	<appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+		<File>target/logs/authzforce/error.log</File>
+		<encoder>
+			<pattern>%date{ISO8601}|%-5level|%thread|%logger:%line|%msg|%n
+			</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<maxIndex>1</maxIndex>
+			<FileNamePattern>target/logs/authzforce/error.log.%i</FileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>100KB</MaxFileSize>
+		</triggeringPolicy>
+	</appender>
+	<appender name="access" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>target/logs/authzforce/access.log</File>
+		<encoder>
+			<pattern>%date{ISO8601}|%msg|%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<maxIndex>1</maxIndex>
+			<FileNamePattern>${catalina.base}/logs/authzforce/access.log.%i</FileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>100KB</MaxFileSize>
+		</triggeringPolicy>
+	</appender>
+	<!-- <appender name="accessAsync" class="ch.qos.logback.classic.AsyncAppender"> <appender-ref ref="access" /> </appender> -->
+	<!-- For access logging, see http://blog.xebia.fr/2013/10/10/logs-daudit-pour-les-services-rest/ -->
+	<logger name="access" additivity="false" level="INFO">
+		<!-- Use "accessAsync" appender for better performance (asynchronous logging) -->
+		<appender-ref ref="stdout" />
+	</logger>
+	<logger name="com.sun.xacml" additivity="false" level="WARN">
+		<!--<appender-ref ref="error" /> -->
+		<appender-ref ref="stdout" />
+	</logger>
+	<logger name="com.thalesgroup" additivity="false" level="WARN">
+		<!--<appender-ref ref="error" /> -->
+		<appender-ref ref="stdout" />
+	</logger>
+	<!-- HTTP/JAX-RS/SOAP request/response debugging -->
+	<!-- For logging request/response to/from webapp, only logger "org.apache.cxf" in level INFO is required, and you must add CXF org.apache.cxf.interceptor.LoggingInInterceptor/LoggingOutInterceptor to 
+		JAX-RS server's in/outInterceptors -->
+	<logger name="org.apache.cxf" additivity="false" level="INFO"> <appender-ref ref="stdout" /> </logger>
+	<!-- <logger name="org.apache.http" additivity="false" level="DEBUG"> <appender-ref ref="error" /> </logger> <logger name="org.apache.http.wire" level="ERROR"> <appender-ref ref="error" /> </logger> -->
+	<root level="WARN">
+		<!--<appender-ref ref="error" /> -->
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>
