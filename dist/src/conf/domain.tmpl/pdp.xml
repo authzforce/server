@@ -15,6 +15,6 @@
 	<rootPolicyProvider
 		id="rootPolicyProvider"
 		xsi:type="StaticRefBasedRootPolicyProvider">
-		<policyRef Version="0.1.0">root</policyRef>
+		<policyRef>root</policyRef>
 	</rootPolicyProvider>
 </pdp>

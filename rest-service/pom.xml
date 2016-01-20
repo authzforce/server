@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
-			<version>3.6.0</version>
+			<version>3.6.1-SNAPSHOT</version>
 		</dependency>
 		<!-- Test dependencies -->
 		<dependency>
