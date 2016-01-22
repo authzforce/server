@@ -65,7 +65,7 @@ Let's go!
     		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
     		-->
 
-		<xslt in="MyInput.xml" out="MyOutput.xml" style="MyTransform.xslt" classpathref="lib.path.id">
+		<xslt in="pdp.xml.old" out="pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
 			<factory name="net.sf.saxon.TransformerFactoryImpl">
 				<!-- 
 				For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
