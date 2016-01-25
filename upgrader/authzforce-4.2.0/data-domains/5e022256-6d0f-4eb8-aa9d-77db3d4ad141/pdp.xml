@@ -1,0 +1,69 @@
+<pdps xmlns="http://thalesgroup.com/authzforce/pdp/model/2014/12"
+	xmlns:ext="http://thalesgroup.com/authz/model/ext/3.0"
+	defaultAttributeFactory="attr" defaultCombiningAlgFactory="comb"
+	defaultFunctionFactory="func" defaultPDP="domain-root-policy"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:test="http://example.com/test/attribute-finder">
+	<pdp name="somePdp">
+		<attributeFinder xsi:type="CurrentDateTimeFinder" />
+		<attributeFinder xsi:type="AttributeSelectorXPathFinder" />
+	</pdp>
+	<pdp name="domain-root-policy">
+		<attributeFinder xsi:type="CurrentDateTimeFinder" />
+		<attributeFinder xsi:type="test:TestAttributeFinder" />
+		<cache timeToLiveSec="10" timeToIdleSec="10" />
+		<policyFinder xsi:type="StaticRefPolicyFinder">
+			<policyLocation>myLocation1</policyLocation>
+			<policyLocation>myLocation2</policyLocation>
+		</policyFinder>
+		<policyFinder xsi:type="StaticPolicyFinder"
+			combiningAlgId="myAlg">
+			<policyLocation>myLocation1</policyLocation>
+			<policyLocation>myLocation2</policyLocation>
+		</policyFinder>
+		<resourceFinder xsi:type="test:TestResourceFinder"/>
+	</pdp>
+	<attributeFactory name="attr" useStandardDatatypes="true">
+		<datatype class="com.example.AttrFinder1" id="attrfinder1" />
+		<datatype class="com.example.AttrFinder2" id="attrfinder2" />
+	</attributeFactory>
+	<attributeFactory name="attr2" useStandardDatatypes="false"></attributeFactory>
+	<combiningAlgFactory name="comb"
+		useStandardAlgorithms="true">
+		<algorithm class="com.example.CombiningAlg1" />
+	</combiningAlgFactory>
+	<combiningAlgFactory name="comb2"
+		useStandardAlgorithms="true" />
+	<functionFactory name="func" useStandardFunctions="true">
+		<target>
+			<function class="com.example.Func5" />
+			<function class="com.example.Func6" />
+			<functionCluster class="com.example.AbstractFuncCluster5" />
+			<functionCluster class="com.example.AbstractFuncCluster6" />
+			<abstractFunction class="com.example.AbstractFunc5"
+				id="abstractfunc5" />
+			<abstractFunction class="com.example.AbstractFunc6"
+				id="abstractfunc6" />
+		</target>
+		<condition>
+			<function class="com.example.Func1" />
+			<function class="com.example.Func2" />
+			<functionCluster class="com.example.AbstractFuncCluster" />
+			<functionCluster class="com.example.AbstractFuncCluster2" />
+			<abstractFunction class="com.example.AbstractFunc1"
+				id="abstractfunc1" />
+			<abstractFunction class="com.example.AbstractFunc2"
+				id="abstractfunc2" />
+		</condition>
+		<general>
+			<function class="com.example.Func3" />
+			<function class="com.example.Func4" />
+			<functionCluster class="com.example.AbstractFuncCluster3" />
+			<functionCluster class="com.example.AbstractFuncCluster4" />
+			<abstractFunction class="com.example.AbstractFunc3"
+				id="abstractfunc3" />
+			<abstractFunction class="com.example.AbstractFunc4"
+				id="abstractfunc4" />
+		</general>
+	</functionFactory>
+	<functionFactory name="func2" useStandardFunctions="false" />
+</pdps>

@@ -1,102 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2015 Thales Services SAS. The contents of this file are subject to the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, 
-	or (at your option) any later version. This file is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-	PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
-<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be used with Saxon XSLT processor.  -->
+<!-- Copyright (C) 2015 Thales Services SAS. The contents of this file are 
+	subject to the terms of the GNU General Public License as published by the 
+	Free Software Foundation, either version 3 of the License, or (at your option) 
+	any later version. This file is distributed in the hope that it will be useful, 
+	but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for 
+	more details. You should have received a copy of the GNU General Public License 
+	along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
+<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be 
+	used with Saxon XSLT processor. -->
 <!-- Author: Cyril DANGERVILLE -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xacml2="urn:oasis:names:tc:xacml:2.0:policy:schema:os" xmlns:xacml3="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
-	<xsl:output encoding="UTF-8" indent="yes" method="xml"/>
-	<!-- Parameters -->
-	<!-- Parameter description -->
-	<!-- 
-	<xsl:param name="AttributeSelector.Category.default">urn:oasis:names:tc:xacml:3.0:attribute-category:resource</xsl:param>
-	-->
-	<xsl:template match="xacml2:Subjects | xacml2:Actions | xacml2:Resources | xacml2:Environments">
-		<xsl:element name="xacml3:AnyOf">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:Subject | xacml2:Action | xacml2:Resource | xacml2:Environment">
-		<xsl:element name="xacml3:AllOf">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:SubjectMatch | xacml2:ActionMatch | xacml2:ResourceMatch | xacml2:EnvironmentMatch">
-		<xsl:element name="xacml3:Match">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:SubjectAttributeDesignator | xacml2:ActionAttributeDesignator | xacml2:ResourceAttributeDesignator | xacml2:EnvironmentAttributeDesignator">
-		<xsl:element name="xacml3:AttributeDesignator">
-			<xsl:attribute name="Category">
-				<xsl:choose>
-					<xsl:when test="local-name() = 'SubjectAttributeDesignator'">
-						<xsl:choose>
-							<xsl:when test="@SubjectCategory"><xsl:value-of select="@SubjectCategory"/></xsl:when>
-							<xsl:otherwise>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</xsl:otherwise>
-						</xsl:choose>
-					</xsl:when>
-					<xsl:when test="local-name() = 'ActionAttributeDesignator'">urn:oasis:names:tc:xacml:3.0:attribute-category:action</xsl:when>
-					<xsl:when test="local-name() = 'ResourceAttributeDesignator'">urn:oasis:names:tc:xacml:3.0:attribute-category:resource</xsl:when>
-					<xsl:when test="local-name() = 'EnvironmentAttributeDesignator'">urn:oasis:names:tc:xacml:3.0:attribute-category:environment</xsl:when>
-				</xsl:choose>
-			</xsl:attribute>
-			<xsl:if test="not(@MustBePresent)">
-				<xsl:attribute name="MustBePresent">false</xsl:attribute>
-			</xsl:if>
-			<xsl:apply-templates select="@*[not(local-name() = 'SubjectCategory')] | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:AttributeSelector">
-		<xsl:element name="xacml3:{local-name()}">
-			<xsl:attribute name="Category">
-				<xsl:choose>
-					<xsl:when test="local-name(parent::*) = 'SubjectMatch'"><xsl:value-of select="$AttributeSelector.SubjectCategory.default"/></xsl:when>
-					<xsl:when test="local-name(parent::*) = 'ActionMatch'">urn:oasis:names:tc:xacml:3.0:attribute-category:action</xsl:when>
-					<xsl:when test="local-name(parent::*) = 'ResourceMatch'">urn:oasis:names:tc:xacml:3.0:attribute-category:resource</xsl:when>
-					<xsl:when test="local-name(parent::*) = 'EnvironmentMatch'">urn:oasis:names:tc:xacml:3.0:attribute-category:environment</xsl:when>
-					<xsl:otherwise><xsl:value-of select="$AttributeSelector.Category.default"/></xsl:otherwise>
-				</xsl:choose>
-			</xsl:attribute>
-			<xsl:attribute name="Path"><xsl:value-of select="@RequestContextPath"/></xsl:attribute>
-			<xsl:if test="not(@MustBePresent)">
-				<xsl:attribute name="MustBePresent">false</xsl:attribute>
-			</xsl:if>
-			<xsl:apply-templates select="@*[not(local-name() = 'RequestContextPath')] | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:Obligations">
-		<xsl:element name="xacml3:ObligationExpressions">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:Obligation">
-		<xsl:element name="xacml3:ObligationExpression">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:AttributeAssignment">
-		<xsl:element name="xacml3:AttributeAssignmentExpression">
-			<xsl:apply-templates select="@AttributeId"/>
-			<xsl:element name="xacml3:AttributeValue">
-				<xsl:apply-templates select="@*[not(local-name() = 'AttributeId')] | child::node()"/>
-			</xsl:element>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="xacml2:PolicySet | xacml2:Policy">
-		<xsl:element name="xacml3:{local-name()}">
-			<xsl:if test="not(@Version)">
-				<xsl:attribute name="Version">1.0</xsl:attribute>
-			</xsl:if>
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="child::*">
-		<xsl:element name="xacml3:{local-name()}">
-			<xsl:apply-templates select="@* | child::node()"/>
-		</xsl:element>
-	</xsl:template>
-	<xsl:template match="@* | comment()">
-		<xsl:copy/>
+<xsl:stylesheet version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12"
+	xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6"
+	xmlns:pap-dao="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6">
+	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
+	<!-- Parameters - default values -->
+	<xsl:param name="maxVariableRefDepth">1</xsl:param>
+	<xsl:param name="maxPolicyRefDepth">10</xsl:param>
+	<xsl:param name="requestFilter">urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax</xsl:param>
+	<!-- WARNING 1: policyFinder, resourceFinder, cache elements not supported. 
+		WARNING 2: if you use custom attribute finders, i.e. other than native CurrentDateTimeFinder 
+		or AttributeSelectorXPathFinder (in 'old' namespace), or if you use NON-standard 
+		datatypes / combining algorithms / functions, you have to add transformation 
+		rules to handle each of those. Ignore useStandard* attributes (assume it 
+		is true always) -->
+	<xsl:template match="old:pdps">
+		<pdp version="3.6.1">
+			<xsl:attribute name="maxVariableRefDepth"><xsl:value-of select="$maxVariableRefDepth"/></xsl:attribute>
+			<xsl:attribute name="maxPolicyRefDepth"><xsl:value-of select="$maxPolicyRefDepth"/></xsl:attribute>
+			<xsl:attribute name="requestFilter"><xsl:value-of select="$requestFilter"/></xsl:attribute>
+			<refPolicyProvider id="refPolicyProvider" xsi:type="pap-dao:StaticFileBasedDAORefPolicyProvider" policyLocationPattern="${PARENT_DIR}/policies/*.xml" />
+			<rootPolicyProvider	id="rootPolicyProvider" xsi:type="StaticRefBasedRootPolicyProvider">
+				<policyRef>root</policyRef>
+			</rootPolicyProvider>
+		</pdp>
 	</xsl:template>
 </xsl:stylesheet>

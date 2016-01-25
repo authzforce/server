@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Copyright (C) 2012-2015 Thales Services SAS. This file is part of AuthZForce CE. AuthZForce CE is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+	as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthZForce is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+	without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public 
+	License along with AuthZForce CE. If not, see <http://www.gnu.org/licenses/>. -->
+<xs:schema xmlns:tns="http://authzforce.github.io/xmlns/pdp/ext/3" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/xmlns/pdp/ext/3"
+	version="3.3">
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			Base data model for Authorization PDP extensions such as
+			attribute providers.
+			Extend data types defined here to provide XML
+			definitions for such extensions.
+			(NB: schema version must match Maven project's Major and Minor versions.)
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexType abstract="true" name="AbstractPdpExtension">
+		<xs:annotation>
+			<xs:documentation>PDP extension base type to identify all types of PDP extensions.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="id" use="required" type="xs:ID">
+			<xs:annotation>
+				<xs:documentation>Instance ID, i.e. uniquely identifies the XML element of this extension type
+					in the PDP configuration; especially to distinguish from other elements/instances of the same
+					type.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType abstract="true" name="AbstractAttributeProvider">
+		<xs:annotation>
+			<xs:documentation>
+				Attribute Provider base type. All 'Attribute Provider Modules' should extend this
+				type.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tns:AbstractPdpExtension" />
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType abstract="true" name="AbstractPolicyProvider">
+		<xs:annotation>
+			<xs:documentation>
+				Attribute Provider base type. All 'Policy Provider Modules' should extend this
+				type.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tns:AbstractPdpExtension" />
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="CacheMemoryStoreEvictionPolicy">
+		<xs:annotation>
+			<xs:documentation>
+				Policy to be enforced when reaching the maximum allowed number of cached
+				elements in memory.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="LRU">
+				<xs:annotation>
+					<xs:documentation>Least Recently Used</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="FIFO">
+				<xs:annotation>
+					<xs:documentation>First In First Out</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="LFU">
+				<xs:annotation>
+					<xs:documentation>Less Frequently Used</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType abstract="true" name="AbstractDecisionCache">
+		<xs:annotation>
+			<xs:documentation>
+				PDP decision cache base type. All decision caches should extend this
+				type.
+				For
+				infinite/eternal lifetype of cached elements, set: timeToLiveSec = timeToIdleSec = 0.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tns:AbstractPdpExtension">
+				<xs:attribute name="timeToLiveSec" use="required">
+					<xs:annotation>
+						<xs:documentation>The maximum number of seconds an element can exist in the cache regardless
+							of use. The element expires at this limit and will no longer be returned from the cache. The
+							default
+							value is 0, which means no timeToLive (TTL) eviction takes place (infinite lifetime).
+						</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:nonNegativeInteger">
+							<xs:maxInclusive value="1800" />
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="timeToIdleSec" use="required">
+					<xs:annotation>
+						<xs:documentation>The maximum number of seconds an element can exist in the cache without
+							being accessed. The element expires at this limit and will no longer be returned from the
+							cache. The
+							default value is 0, which means no timeToIdle (TTI) eviction takes place (infinite
+							lifetime).
+						</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:nonNegativeInteger">
+							<xs:maxInclusive value="1800" />
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute default="100" name="maxElementsInMemory" type="xs:nonNegativeInteger" use="optional">
+					<xs:annotation>
+						<xs:documentation>the maximum number of elements in memory, before they are evicted. Value
+							zero means unlimited.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute default="LRU" name="memoryStoreEvictionPolicy" type="tns:CacheMemoryStoreEvictionPolicy" use="optional">
+					<xs:annotation>
+						<xs:documentation>
+							Policy that will be enforced upon reaching the maxElementsInMemory limit.
+							Default policy is LRU.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

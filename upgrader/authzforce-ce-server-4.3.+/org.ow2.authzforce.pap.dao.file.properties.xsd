@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!-- Copyright (C) 2012-2016 Thales Services SAS. This file is part of AuthZForce CE. AuthZForce CE is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+	License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthZForce CE is distributed in the hope that it will be useful, but WITHOUT 
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General 
+	Public License along with AuthZForce CE. If not, see <http://www.gnu.org/licenses/>. -->
+<!-- Schema major version is same as VERSION in PDP extension schema namespace http://authzforce.github.io/xmlns/pdp/ext/VERSION. Patch version changes with fixes of errors in the schema. Minor version 
+	changes with other backwards-compatible changes (like Semantic Versioning). -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6" xmlns="http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6"
+	elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.6.0">
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			Data Model for policy domain properties used by the file-based AuthZForce PAP DAO.
+			<p>
+				XML schema versioning: the 'version' attribute of the root 'schema' element identifies the Major.Minor.Patch version of this schema. The Major.Minor part must match the Major.Minor part of the
+				first compatible version of authzforce-ce-pap-dao-file library. The Patch version is used for any backwards-compatible change. The Minor version is incremented after any change that is NOT
+				backwards-compatible. (As a result, the authzforce-ce-pap-dao-file library's minor version is incremented as well.)
+				The Major.Minor version part must be part of the target namespace - but not the
+				Patch
+				version - to separate namespaces that are not backwards-compatible.
+			</p>
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="DomainProperties">
+		<xs:sequence>
+			<xs:element name="description" type="xs:string" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="externalId" type="xs:NMTOKEN" use="optional">
+			<xs:annotation>
+				<xs:documentation xml:lang="en">
+					Same function as in SCIM schema:
+					An identifier for the Resource as defined by the Service Consumer. The externalId may simplify identification of the
+					Resource between Service Consumer and Service
+					provider by allowing the Consumer
+					to refer to the Resource with its own identifier, obviating the need to store a local mapping between the local
+					identifier of the Resource and the identifier
+					used by the Service Provider. Each
+					Resource MAY include a non-empty externalId value. The value of the externalId attribute is always issued be the
+					Service Consumer and can never be specified by
+					the Service Provider. The Service
+					Provider MUST always interpret the externalId as scoped to the Service Consumer's tenant.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:element name="domainProperties" type="DomainProperties" />
+</xs:schema>

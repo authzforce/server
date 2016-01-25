@@ -65,7 +65,15 @@ Let's go!
     		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
     		-->
 
-		<xslt in="pdp.xml.old" out="pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
+		<!-- for each domain, create domain directory, then 'policies' subdirectory,
+		- policySet.xml -> policies/base64url(policySetId)/policySet.version.xml
+		- refpolicySets.xml/PolicySet -> policies/base64utl(PolicySetId)/PolicySet.version.xml
+		- attributeFinders.xml -> pdp.xml/attributeProvider*
+		- policySet.xml/PolicySetId -> pdp.xml/rootPolicyFinder/policyRef
+		- properties/name element converted to properties/externalId (description unchanged)	
+		 -->
+		
+		<xslt in="authzforce-4.2.0-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" out="authzforce-ce-server-4.3.+-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
 			<factory name="net.sf.saxon.TransformerFactoryImpl">
 				<!-- 
 				For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html

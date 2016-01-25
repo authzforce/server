@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!-- Schema major version is same as VERSION in PDP extension schema namespace http://authzforce.github.io/xmlns/pdp/ext/VERSION. Patch version changes with fixes of errors in the schema. Minor version 
+	changes with other backwards-compatible changes (like Semantic Versioning). -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6" xmlns="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6" xmlns:authz-ext="http://authzforce.github.io/xmlns/pdp/ext/3"
+	xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.6.0">
+	<xs:import namespace="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" />
+	<xs:import namespace="http://authzforce.github.io/xmlns/pdp/ext/3" />
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			Data Model for PDP extensions provided by the file-based AuthZForce PAP DAO.
+			<p>
+				XML schema versioning: the 'version' attribute of the root 'schema' element identifies the Major.Minor.Patch version of this schema. The Major.Minor part must match the Major.Minor part of the
+				first compatible version of authzforce-ce-pap-dao-file library. The Patch version is used for any backwards-compatible change. The Minor version is incremented after any change that is NOT
+				backwards-compatible. (As a result, the authzforce-ce-pap-dao-file library's minor version is incremented as well.)
+				The Major.Minor version part must be part of the target namespace - but not the Patch
+				version - to separate namespaces that are not backwards-compatible.
+			</p>
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="StaticFileBasedDAORefPolicyProvider">
+		<xs:annotation>
+			<xs:documentation>
+				Static Ref Policy Provider for the File-based PAP DAO. This provider expects to find a XACML PolicySet file at ROOT_DIRECTORY/base64url(${PolicySetId})/${Version}SUFFIX.
+				PolicySetId and
+				Version are the respective XACML attributes of the PolicySet. ROOT_DIRECTORY is the root directory where all policies are located, as defined by the 'policyLocation' attribute.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="authz-ext:AbstractPolicyProvider">
+				<xs:attribute name="policyLocationPattern" use="required">
+					<xs:annotation>
+						<xs:documentation>
+							Pattern of locations of XML files, each expected to contain a XACML PolicySet. Must contain the wildcard character '*' that will be expanded to the following expression:
+							base64url($PolicySetId)/$Version; 
+							where $PolicySetId and $Version are the respective values of the XACML PolicySet 'PolicySetId' and 'Version'. Example: file:/path/to/policies/*.xml
+						</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:anyURI">
+							<xs:pattern value="[^\*]*/\*[^/\*]*"></xs:pattern>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>
