@@ -1,4 +1,4 @@
-<project name="authzforce-upgrader" default="upgrade" xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="authzforce-upgrader" default="upgrade" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:ac="antlib:net.sf.antcontrib">
 
 	<!-- here is the version of ivy we will use. change this property to try a newer 
          version if you want -->
@@ -8,6 +8,7 @@
 
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
+	<property name="old.domains.dir" value="${src.dir}/authzforce-4.2.0/data/domains" />
 
 
 	<target name="download-ivy" unless="skip.download">
@@ -37,14 +38,24 @@
 	<!-- ================================= 
           Main target
          ================================= -->
+	<!--
 	<target name="upgrade" depends="install-ivy, generate-src" 
-            description=" --> resolve dependencies and run the project: upgrade">
-		<echo message="using ivy to resolve Saxon HE..."/>
-		<!-- here comes the magic line: asks ivy to resolve a dependency on 
-             Saxon HE and to build an ant path with it from its cache  -->
-    	<ivy:cachepath organisation="net.sf.saxon" module="Saxon-HE" revision="9.7.0-2" 
-                       pathid="lib.path.id" inline="true"/>
-        
+            description=" resolve dependencies and run the project: upgrade">-->
+	<target name="upgrade" depends="install-ivy" description=" --> resolve dependencies and run the project: upgrade">
+		<echo message="using ivy to resolve Saxon HE..." />
+		<!--
+		http://www.codetab.org/apache-ivy-tutorial/apache-ivy-cachepath-and-retrieve/
+		Default ivy settings:  
+		ivy.project.dir = ${basedir}
+		ivy.lib.dir = ${ivy.project.dir}/lib
+		ivy.retrieve.pattern = ${ivy.lib.dir}/[artifact]-[revision].[ext]
+		
+		 ivy retrieve - default pattern = ${ivy.retrieve.pattern}
+    Sync set to true will ensure that any extra files in the lib directory is deleted.
+    Type set to jar tells ivy to copy only jar artifacts. Source and javadoc artifacts are ignored.
+		-->
+		<ivy:retrieve sync="true" type="jar" pathId="lib.path.id" />
+
 		<!--
 		<echo message="compiling..."/>
         <mkdir dir="${build.dir}" />
@@ -61,49 +72,118 @@ Let's go!
             </classpath>
         </java>
         -->
-		<!--
-    		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
-    		-->
 
-		<!-- for each domain, create domain directory, then 'policies' subdirectory,
-		- policySet.xml -> policies/base64url(policySetId)/policySet.version.xml
-		- refpolicySets.xml/PolicySet -> policies/base64utl(PolicySetId)/PolicySet.version.xml
-		- attributeFinders.xml -> pdp.xml/attributeProvider*
-		- policySet.xml/PolicySetId -> pdp.xml/rootPolicyFinder/policyRef
-		- properties/name element converted to properties/externalId (description unchanged)	
-		 -->
+		<ac:foreach target="upgrade-domain" param="domain.dir.name">
+			<path>
+				<dirset dir="${old.domains.dir}" />
+			</path>
+		</ac:foreach>
+	</target>
+	
+	<!-- Upgrade domain at ${domain.dir.name} -->
+	<target name="upgrade-domain" depends="upgrade">
+		<property name="old.domain.dir.path" value="${build.dir}/${domain.dir.name}" />
+		<property name="new.domain.dir.path" value="${build.dir}/${domain.dir.name}" />
 		
-		<xslt in="authzforce-4.2.0-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" out="authzforce-ce-server-4.3.+-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
-			<factory name="net.sf.saxon.TransformerFactoryImpl">
-				<!-- 
+		<mkdir dir="${new.domain.dir.path}"/>
+		<!-- Upgrade domain properties -->
+		<!-- TODO: Use a macrodef as special type of xslt ant task to be reused for pdp-upgrade as well -->
+		<xslt in="${old.domain.dir.path}/properties.xml" out="${new.domain.dir.path}/properties.xml" style="properties-upgrade.xslt" classpathref="lib.path.id">
+			<!--
+		    		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
+		    		-->
+				<factory name="net.sf.saxon.TransformerFactoryImpl">
+					<!-- 
+						For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
+						-->
+					<!-- Using a SAXON configuration file
+						<attribute name="http://saxon.sf.net/feature/configuration-file" 
+						               value="config-de.xml"/>
+						               -->
+					<attribute name="http://saxon.sf.net/feature/traceListenerClass" value="net.sf.saxon.trace.XSLTTraceListener" />
+					<attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true" />
+					<attribute name="http://saxon.sf.net/feature/schema-validation-mode" value="strict" />
+					<attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1" />
+					<!--ignoreSAXSourceParser is necessary so parsers defined below are used
+						            instead of ones passed by ant-->
+					<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
+				</factory>
+				<!--Passing ant parameter:
+					<param name="MyParameter" expression="ANT AND XSLT ROCK"/>
+					Then declare this to reuse it in the XSLT:
+					<xsl:param name="MyParameter"/>
+					-->
+			</xslt>
+		
+		<mkdir dir="${new.domain.dir.path}/policies"/>
+		
+		<!-- 
+		refPolicySets.xml: each top-level PolicySet -> policies/base64url(PolicySetId)/${PolicySet.version}.xml
+		-->
+		<xslt in="${old.domain.dir.path}/refPolicySets.xml" destdir="${new.domain.dir.path}/policies" style="refPolicySets-upgrade.xslt" classpathref="lib.path.id">
+				<factory name="net.sf.saxon.TransformerFactoryImpl">
+					<!-- 
+						For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
+						-->
+					<!-- Using a SAXON configuration file
+						<attribute name="http://saxon.sf.net/feature/configuration-file" 
+						               value="config-de.xml"/>
+						               -->
+					<attribute name="http://saxon.sf.net/feature/traceListenerClass" value="net.sf.saxon.trace.XSLTTraceListener" />
+					<attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true" />
+					<attribute name="http://saxon.sf.net/feature/schema-validation-mode" value="strict" />
+					<attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1" />
+					<!--ignoreSAXSourceParser is necessary so parsers defined below are used
+						            instead of ones passed by ant-->
+					<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
+				</factory>
+				<!--Passing ant parameter:
+					<param name="MyParameter" expression="ANT AND XSLT ROCK"/>
+					Then declare this to reuse it in the XSLT:
+					<xsl:param name="MyParameter"/>
+					-->
+			</xslt>
+		
+		
+		<!--
+		TODO: 
+			- policySet.xml -> policies/base64url(policySetId)/policySet.version.xml
+			- attributeFinders.xml -> pdp.xml/attributeProvider*
+			- policySet.xml/PolicySetId -> pdp.xml/rootPolicyFinder/policyRef
+			 -->
+		
+	<xslt in="authzforce-4.2.0-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" out="authzforce-ce-server-4.3.+-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
+		<factory name="net.sf.saxon.TransformerFactoryImpl">
+			<!-- 
 				For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
 				-->
-				<!-- Using a SAXON configuration file
+			<!-- Using a SAXON configuration file
 				<attribute name="http://saxon.sf.net/feature/configuration-file" 
 				               value="config-de.xml"/>
 				               -->
-				<attribute name="http://saxon.sf.net/feature/traceListenerClass" value="net.sf.saxon.trace.XSLTTraceListener" />
-				<attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true" />
-				<attribute name="http://saxon.sf.net/feature/schema-validation-mode" value="strict" />
-				<attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1" />
-				<!--ignoreSAXSourceParser is necessary so parsers defined below are used
+			<attribute name="http://saxon.sf.net/feature/traceListenerClass" value="net.sf.saxon.trace.XSLTTraceListener" />
+			<attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true" />
+			<attribute name="http://saxon.sf.net/feature/schema-validation-mode" value="strict" />
+			<attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1" />
+			<!--ignoreSAXSourceParser is necessary so parsers defined below are used
 				            instead of ones passed by ant-->
-				<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
-			</factory>
-			<!--Passing ant parameter:
+			<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
+		</factory>
+		<!--Passing ant parameter:
 			<param name="MyParameter" expression="ANT AND XSLT ROCK"/>
 			Then declare this to reuse it in the XSLT:
 			<xsl:param name="MyParameter"/>
 			-->
-		</xslt>
-	</target>
+	</xslt>
+</target>
 
-	<!-- ================================= 
+<!-- ================================= 
           target: generate-src
             'Generates' the class source. It actually just echo a simple java 
             source code to a file. In real life this file would already be
             present on your file system, and this target wouldn't be necessary.
          ================================= -->
+<!--
 	<target name="generate-src">
 		<mkdir dir="${src.dir}/example" />
 		<echo file="${src.dir}/example/Hello.java">
@@ -121,28 +201,29 @@ public class Hello {
 }
         </echo>
 	</target>
+-->
 
-	<!-- ================================= 
+<!-- ================================= 
           target: clean              
          ================================= -->
-	<target name="clean" description="--> clean the project">
-		<delete includeemptydirs="true" quiet="true">
-			<fileset dir="${src.dir}" />
-			<fileset dir="${build.dir}" />
-		</delete>
-	</target>
+<target name="clean" description="--> clean the project">
+	<delete includeemptydirs="true" quiet="true">
+		<fileset dir="${src.dir}" />
+		<fileset dir="${build.dir}" />
+	</delete>
+</target>
 
-	<!-- ================================= 
+<!-- ================================= 
           target: clean-ivy              
          ================================= -->
-	<target name="clean-ivy" description="--> clean the ivy installation">
-		<delete dir="${ivy.jar.dir}" />
-	</target>
+<target name="clean-ivy" description="--> clean the ivy installation">
+	<delete dir="${ivy.jar.dir}" />
+</target>
 
-	<!-- ================================= 
+<!-- ================================= 
           target: clean-cache              
          ================================= -->
-	<target name="clean-cache" depends="install-ivy" description="--> clean the ivy cache">
-		<ivy:cleancache />
-	</target>
+<target name="clean-cache" depends="install-ivy" description="--> clean the ivy cache">
+	<ivy:cleancache />
+</target>
 </project>

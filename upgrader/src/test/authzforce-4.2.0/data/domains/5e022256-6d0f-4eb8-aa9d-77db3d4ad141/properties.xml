@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns4:properties xmlns:ns4="http://thalesgroup.com/authz/model/3.0/resource">
+	<name>TestDomain</name>
+	<description>This is the test domain.</description>
+</ns4:properties>

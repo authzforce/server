@@ -6,4 +6,8 @@
         module="authzforce-ce-server"
         status="integration">
 	</info>
+	<dependencies >
+	<dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" transitive="false" />
+	<dependency org="net.sf.saxon" name="Saxon-HE" rev="9.7.0-2" transitive="false" />
+	</dependencies>
 </ivy-module>
