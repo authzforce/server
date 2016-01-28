@@ -1,2 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<az:attributeFinders xmlns:az="http://thalesgroup.com/authz/model/3.0" />
+<az:attributeFinders xmlns:az="http://thalesgroup.com/authz/model/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:test="http://example.com/test/attribute-finder">
+	<attributeFinder xsi:type="test:TestAttributeFinder">
+		<test:param1 attr1="val1" />
+		<test:param2>val2</test:param2>
+	</attributeFinder>
+	<attributeFinder xsi:type="test:TestAttributeFinder">
+		<test:param1 attr1="val3" />
+		<test:param2>val4</test:param2>
+	</attributeFinder>
+</az:attributeFinders>

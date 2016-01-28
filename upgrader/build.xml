@@ -9,6 +9,7 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 	<property name="old.domains.dir" value="${src.dir}/authzforce-4.2.0/data/domains" />
+	<property name="new.domains.dir" value="${build.dir}" />
 
 
 	<target name="download-ivy" unless="skip.download">
@@ -82,8 +83,9 @@ Let's go!
 	
 	<!-- Upgrade domain at ${domain.dir.name} -->
 	<target name="upgrade-domain" depends="upgrade">
-		<property name="old.domain.dir.path" value="${build.dir}/${domain.dir.name}" />
-		<property name="new.domain.dir.path" value="${build.dir}/${domain.dir.name}" />
+		<property name="old.domain.dir.path" value="${old.domains.dir}/${domain.dir.name}" />
+		<property name="new.domain.dir.path" value="${new.domains.dir}/${domain.dir.name}" />
+		<echo level="error" message="Processing directory ${old.domain.dir.path} -> output: ${new.domain.dir.path}"/>
 		
 		<mkdir dir="${new.domain.dir.path}"/>
 		<!-- Upgrade domain properties -->
@@ -144,15 +146,16 @@ Let's go!
 					-->
 			</xslt>
 		
-		
-		<!--
-		TODO: 
-			- policySet.xml -> policies/base64url(policySetId)/policySet.version.xml
-			- attributeFinders.xml -> pdp.xml/attributeProvider*
-			- policySet.xml/PolicySetId -> pdp.xml/rootPolicyFinder/policyRef
-			 -->
-		
-	<xslt in="authzforce-4.2.0-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" out="authzforce-ce-server-4.3.+-data-domains/5e022256-6d0f-4eb8-aa9d-77db3d4ad141/pdp.xml" style="pdp-upgrade.xslt" classpathref="lib.path.id">
+		<!-- Handle root policy, attribute providers and PDP configuration using them -->
+		<!--Passing ant parameter for PDP's request filter (set by Java system property): 
+		Possible values:
+				urn:thalesgroup:xacml:request-filter:default-lax (default value)
+				urn:thalesgroup:xacml:request-filter:default-strict
+				urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax
+				urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-strict
+		-->
+			<param name="requestFilter" expression="${requestFilter}"/>
+	<xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" style="pdp-upgrade.xslt" classpathref="lib.path.id">
 		<factory name="net.sf.saxon.TransformerFactoryImpl">
 			<!-- 
 				For a full list of feature names, see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
@@ -169,11 +172,6 @@ Let's go!
 				            instead of ones passed by ant-->
 			<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
 		</factory>
-		<!--Passing ant parameter:
-			<param name="MyParameter" expression="ANT AND XSLT ROCK"/>
-			Then declare this to reuse it in the XSLT:
-			<xsl:param name="MyParameter"/>
-			-->
 	</xslt>
 </target>
 
