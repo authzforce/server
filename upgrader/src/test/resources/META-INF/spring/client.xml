@@ -1,0 +1,62 @@
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security" xmlns:http="http://cxf.apache.org/transports/http/configuration"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xsi:schemaLocation="
+      http://cxf.apache.org/configuration/security
+      http://cxf.apache.org/schemas/configuration/security.xsd
+      http://cxf.apache.org/transports/http/configuration
+      http://cxf.apache.org/schemas/configuration/http-conf.xsd
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/util 
+      http://www.springframework.org/schema/util/spring-util.xsd
+      http://cxf.apache.org/jaxrs 
+      http://cxf.apache.org/schemas/jaxrs.xsd">
+
+	<bean id="xacmlSamplesDirResource" class="org.springframework.core.io.ClassPathResource">
+		<!-- Doc ref: http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html -->
+		<constructor-arg value="/xacml.samples" />
+	</bean>
+
+	<util:list id="clientApiSchemaLocations">
+		<value>classpath:/xml.xsd</value>
+		<value>classpath:/atom.xsd</value>
+		<value>classpath:/xacml-core-v3-schema-wd-17.xsd</value>
+		<value>classpath:/pdp-ext-base.xsd</value>
+		<value>classpath:/org.ow2.authzforce.core.test.xsd</value>
+		<value>classpath:/xsd/authz-rest-api.xsd</value>
+	</util:list>
+
+	<bean id="clientApiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+		<!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder type undefined -->
+		<!-- <property name="catalogLocation" value="classpath:/catalog.xml" /> -->
+		<property name="schemaLocations" ref="clientApiSchemaLocations" />
+	</bean>
+
+	<util:list id="extraJaxbClasses" value-type="java.lang.Class">
+		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
+	</util:list>
+
+	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+		<property name="singleJaxbContext" value="true" />
+		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
+		<property name="schemaHandler" ref="clientApiSchemaHandler" />
+	</bean>
+
+	<!-- More info: http://cxf.apache.org/docs/client-http-transport-including-ssl-support.html -->
+	<http:conduit name="*.http-conduit">
+		<http:tlsClientParameters>
+			<!-- <sec:keyManagers keyPassword="changeit"> <sec:keyStore type="JKS" password="password" file="D:\users\XXX\john.doe-taz-client-keystore.jks"/> </sec:keyManagers> -->
+			<sec:trustManagers>
+				<sec:keyStore type="JKS" password="password" resource="taz-client-truststore.jks" />
+			</sec:trustManagers>
+			<sec:cipherSuitesFilter>
+				<sec:include>.*_WITH_RC4_.*</sec:include>
+				<sec:include>.*_WITH_AES_.*</sec:include>
+				<sec:exclude>.*_MD5</sec:exclude>
+				<sec:exclude>.*_anon_.*</sec:exclude>
+			</sec:cipherSuitesFilter>
+		</http:tlsClientParameters>
+		<!-- HTTP Proxy configuration if needed -->
+		<!-- <http:client AutoRedirect="true" Connection="Keep-Alive" BrowserType="Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0" ProxyServer="myproxy.acme.com" ProxyServerPort="3128" ProxyServerType="HTTP"/> -->
+	</http:conduit>
+</beans>

@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<az:attributeFinders xmlns:az="http://thalesgroup.com/authz/model/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:test="http://example.com/test/attribute-finder">
-	<attributeFinder xsi:type="test:TestAttributeFinder">
-		<test:param1 attr1="val1" />
-		<test:param2>val2</test:param2>
-	</attributeFinder>
-	<attributeFinder xsi:type="test:TestAttributeFinder">
-		<test:param1 attr1="val3" />
-		<test:param2>val4</test:param2>
-	</attributeFinder>
+<az:attributeFinders xmlns:az="http://thalesgroup.com/authz/model/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:az-ext="http://thalesgroup.com/authz/model/ext/3.0">
+	<az-ext:attributeFinder xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:test="http://example.com/test/attribute-finder" xsi:type="test:TestAttributeFinder">
+		<xacml:Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+			<xacml:Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:example:attribute:role" IncludeInResult="false">
+				<xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Physician</xacml:AttributeValue>
+			</xacml:Attribute>
+		</xacml:Attributes>
+	</az-ext:attributeFinder>
+	<az-ext:attributeFinder xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:test="http://example.com/test/attribute-finder" xsi:type="test:TestAttributeFinder">
+		<xacml:Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+			<xacml:Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:example:attribute:organization" IncludeInResult="false">
+				<xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Acme</xacml:AttributeValue>
+			</xacml:Attribute>
+		</xacml:Attributes>
+	</az-ext:attributeFinder>
 </az:attributeFinders>

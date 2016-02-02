@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info
+        organisation="Thales Services"
+        module="authzforce-ce-server"
+        status="integration">
+	</info>
+	<dependencies >
+	<!-- ant-contrib for foreach task -->
+	<dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" transitive="false" />
+	<!-- XSLT processor -->
+	<!--<dependency org="net.sf.saxon" name="Saxon-HE" rev="9.7.0-2" transitive="false" />-->
+	<!-- 9.1 B is last free/open source version of Saxon supporting Java calls from XSLT, but 9.0 only is the last version available on Maven repositories <= 9.1 -->
+	<dependency org="net.sf.saxon" name="Saxon-B" rev="9.0" transitive="false" />
+	<!-- For base64Url encoding of policy IDs -->
+	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-file" rev="3.6.1" transitive="false" />
+			<!-- authzforce-ce-pap-dao-file's dependency necessary for base64 encoding 
+			WARNING: guava's packaging is bundle! So you have to add bundle in ivy:retrieve type attribute, e.g. "jar,bundle".
+			-->
+	<dependency org="com.google.guava" name="guava" rev="18.0" transitive="false" />
+	</dependencies>
+</ivy-module>

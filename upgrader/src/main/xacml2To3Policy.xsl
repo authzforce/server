@@ -2,15 +2,26 @@
 <!-- Copyright (C) 2015 Thales Services SAS. The contents of this file are subject to the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, 
 	or (at your option) any later version. This file is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
 	PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
-<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be used with Saxon XSLT processor.  -->
+<!-- XACML 2.0-to-3.0 Policy Conversion XSL Sheet  -->
 <!-- Author: Cyril DANGERVILLE -->
+<!-- Suggestion for improvement: replace deprecated identifiers (XACML 3.0 Core Specification, §A.4) with new ones. -->
+<!-- WARNING: This XSLT does not convert XACML 2.0 AttributeSelectors to their strict equivalent in XACML 3.0: 1) it converts XACML 2.0 RequestContextPath to XACML 3.0 Path although they have different 
+	meaning as they do not apply to the same XML node, so please be aware. 2) It cannot determine the required Category in XACML 3.0 from XACML 2.0 input in some cases, so it has to use some default value 
+	that you can set with XSLT parameter 'AttributeSelector.SubjectCategory.default' for AttrbuteSelectors coming from SubjectMatches, and 'AttributeSelector.Category.default' for the ones coming from Conditions. -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xacml2="urn:oasis:names:tc:xacml:2.0:policy:schema:os" xmlns:xacml3="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
 	<xsl:output encoding="UTF-8" indent="yes" method="xml"/>
+
+	<!-- This element removes indentation with Xalan 2.7.1 (indentation preserved with Saxon 9.6.0.4). -->
+	<!-- <xsl:strip-space elements="*" /> -->
+
 	<!-- Parameters -->
-	<!-- Parameter description -->
-	<!-- 
+	<!-- Default value of <AttributeSelector>'s Category to be used in XACML 3.0 output when converting from <AttributeSelector> in XACML 2.0 <SubjectMatch>. Author's note: there does not seem to be any automatic 
+		way to guess this. -->
+	<xsl:param name="AttributeSelector.SubjectCategory.default">urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</xsl:param>
+	<!-- Default value of <AttributeSelector>'s Category to be used in XACML 3.0 output when converting from <AttributeSelector> in XACML 2.0 <Condition>. Author's note: there does not seem to be any automatic 
+		way to guess this. -->
 	<xsl:param name="AttributeSelector.Category.default">urn:oasis:names:tc:xacml:3.0:attribute-category:resource</xsl:param>
-	-->
+
 	<xsl:template match="xacml2:Subjects | xacml2:Actions | xacml2:Resources | xacml2:Environments">
 		<xsl:element name="xacml3:AnyOf">
 			<xsl:apply-templates select="@* | child::node()"/>

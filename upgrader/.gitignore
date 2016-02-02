@@ -1,1 +1,7 @@
+/.classpath
+/.project
+/.settings/
 /ivy/
+/build/
+/lib/
+/test-output/
