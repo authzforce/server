@@ -126,11 +126,8 @@
 					<header>license/thales-gpl.header.txt</header>
 					<skipExistingHeaders>true</skipExistingHeaders>
 					<includes>
-						<include>src/**</include>
+						<include>src/test/java</include>
 					</includes>
-					<excludes>
-						<exclude>src/test/resources/**</exclude>
-					</excludes>
 				</configuration>
 				<executions>
 					<execution>
@@ -151,38 +148,65 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version>
+				<dependencies>
+					<dependency>
+						<groupId>net.sf.saxon</groupId>
+						<artifactId>Saxon-B</artifactId>
+						<version>9.0</version>
+					</dependency>
+					<dependency>
+						<groupId>${project.groupId}</groupId>
+						<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
+						<version>3.6.1</version>
+					</dependency>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<!-- depends on ant 1.5 -->
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
-						<phase>test</phase>
+						<phase>generate-test-resources</phase>
 						<goals>
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<target>
-								<copy todir="${project.basedir}/target/server">
+							<tasks>
+								<copy todir="${project.basedir}/target/server/conf">
 									<fileset dir="${project.basedir}/src/test/authzforce-ce-server-current/conf" />
 								</copy>
-								<ant antfile="build.xml" inheritAll="false" inheritRefs="false" />
-								<property name="old.install.dir" value="${project.basedir}/src/authzforce-4.2.0" />
-								<property name="new.install.dir" value="${project.basedir}/target/server" />
-							</target>
+								<taskdef resource="net/sf/antcontrib/antlib.xml" />
+								<ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
+									<property name="old.install.dir" value="${project.basedir}/src/test/authzforce-4.2.0" />
+									<property name="new.install.dir" value="${project.basedir}/target/server" />
+								</ant>
+							</tasks>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugin</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.14.1</version>
-				<configuration>
-					<properties>
-						<property>
-							<name>surefire.testng.verbose</name>
-							<value>10</value>
-						</property>
-					</properties>
-				</configuration>
-			</plugin>
+			<!-- <plugin> -->
+			<!-- <groupId>org.apache.maven.plugin</groupId> -->
+			<!-- <artifactId>maven-surefire-plugin</artifactId> -->
+			<!-- <version>2.14.1</version> -->
+			<!-- <configuration> -->
+			<!-- <properties> -->
+			<!-- <property> -->
+			<!-- <name>surefire.testng.verbose</name> -->
+			<!-- <value>10</value> -->
+			<!-- </property> -->
+			<!-- </properties> -->
+			<!-- </configuration> -->
+			<!-- </plugin> -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>

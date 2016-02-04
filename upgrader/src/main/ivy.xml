@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
 <ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
     <info
         organisation="Thales Services"
-        module="authzforce-ce-server"
+        module="authzforce-ce-server-upgrader"
         status="integration">
 	</info>
 	<dependencies >
-	<!-- ant-contrib for foreach task -->
-	<dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" transitive="false" />
 	<!-- XSLT processor -->
 	<!--<dependency org="net.sf.saxon" name="Saxon-HE" rev="9.7.0-2" transitive="false" />-->
 	<!-- 9.1 B is last free/open source version of Saxon supporting Java calls from XSLT, but 9.0 only is the last version available on Maven repositories <= 9.1 -->

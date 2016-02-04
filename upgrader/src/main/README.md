@@ -1,7 +1,10 @@
 # AuthZForce Upgrader
 
 To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
-1. Install Apache Ant on your system.
+1. Install Ivy and Ant-Contrib on your system:
+	```shell
+	$ sudo apt-get install ivy ant-contrib
+	```
 2. If you have custom attribute finders, for each one, you have to adapt it to the new PDP AttributeProvider's Java interface, and change the parent XML type in the XML schema to the AttributeProvider XML type from the new PDP extension model, then you have to add a new `xsl:when` element in the following form in the XSL template named *attribute-finders-upgrade* in XSL stylesheet `pdp-upgrade.xsl`, where you defined the transformation rules to upgrade the attribute finder configuration to the new model (the TestAttributeProvider below is just an example and may be ignored):
 
 ```xml
@@ -18,7 +21,8 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
 ```
 
 3. Run in this directory (only `new.data.dir` and `old.data.dir` properties are mandatory; `pdp.max.var.ref.depth` is required only if you want to set a specific maximum for VariableReference depth in XACML Policies, default is 10; `pdp.max.policy.ref.depth` is required only if you want to set a specific maximum for policy reference depth in XACML policies, default is 10; `pdp.request.filter` is required only if you want to enable support for the Multiple Decision Profile scheme based on repeated attribute categories, other schemes of this profile are not supported):
-*WARNING: for each domain, the property 'name' is replaced with the new 'externalId' property (the value is copied from one to the other during the upgrade).*
+*WARNING 1: for each domain, the following command will replace the property 'name' with the new 'externalId' property (the value is copied from one to the other during the upgrade).*
+*WARNING 2: the following command will replace all standard XACML identifiers planned for deprecation in Appendix A.4 of XACML 3.0 Core specification with the new XACML 3.0 identifiers.*
   
 ```shell
 $ ant -Dold.data.dir=/path/to/old/opt/authzforce-4.2.0 \
