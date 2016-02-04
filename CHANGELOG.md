@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file following the [K
 - Default domain rootPolicyRef no longer has 'Version' specified so that the root policy is always the latest version added via the PAP (by default).
 
 ### Fixed
-- Hidding file paths from error messages returned by the REST API  
+- Hiding file paths from error messages returned by the REST API  
 
 
 ## 4.4.0
