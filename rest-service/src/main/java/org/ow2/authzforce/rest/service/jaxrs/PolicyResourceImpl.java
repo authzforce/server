@@ -34,14 +34,18 @@ import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
 
 /**
- * Policy Resource implementation. Each policy managed by {@link DomainResourceImpl} is an instance of this class.
+ * Policy Resource implementation. Each policy managed by
+ * {@link DomainResourceImpl} is an instance of this class.
  *
  */
 public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 {
+	private static final String LATEST_VERSION_ID = "latest";
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
-	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy ID for policy resource undefined");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
+			"Invalid argument");
+	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException(
+			"Policy ID for policy resource undefined");
 
 	private static final IllegalArgumentException ILLEGAL_POLICY_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException(
 			"Policy DAO for policy resource undefined");
@@ -54,7 +58,8 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 	{
 
 		@Override
-		public PolicyResourceImpl getInstance(String policyId, DomainDAO<PolicyVersionResourceImpl, ?> policyDAO)
+		public PolicyResourceImpl getInstance(String policyId,
+				DomainDAO<PolicyVersionResourceImpl, ?> policyDAO)
 		{
 			if (policyId == null)
 			{
@@ -80,18 +85,21 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 	private final DomainDAO<PolicyVersionResourceImpl, ?> domainDAO;
 	private final String policyId;
 
-	private PolicyResourceImpl(String policyId, DomainDAO<PolicyVersionResourceImpl, ?> domainDAO)
+	private PolicyResourceImpl(String policyId,
+			DomainDAO<PolicyVersionResourceImpl, ?> domainDAO)
 	{
 		assert domainDAO != null;
 		this.policyId = policyId;
 		this.domainDAO = domainDAO;
 	}
 
-	private static Resources getVersionResources(NavigableSet<PolicyVersion> versions)
+	private static Resources getVersionResources(
+			NavigableSet<PolicyVersion> versions)
 	{
 		final List<Link> policyVersionLinks = new ArrayList<>(versions.size());
 		// Iterate from last version to oldest
-		final Iterator<PolicyVersion> versionIterator = versions.descendingIterator();
+		final Iterator<PolicyVersion> versionIterator = versions
+				.descendingIterator();
 		while (versionIterator.hasNext())
 		{
 			final Link link = new Link();
@@ -112,7 +120,8 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			removedPolicyVersions = domainDAO.removePolicy(policyId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error removing policy '" + policyId + "' (all versions)", e);
+			throw new InternalServerErrorException("Error removing policy '"
+					+ policyId + "' (all versions)", e);
 		}
 
 		if (removedPolicyVersions.isEmpty())
@@ -132,7 +141,9 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			policyVersions = domainDAO.getPolicyVersions(policyId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error getting all versions of policy '" + policyId + "'", e);
+			throw new InternalServerErrorException(
+					"Error getting all versions of policy '" + policyId + "'",
+					e);
 		}
 
 		if (policyVersions.isEmpty())
@@ -151,7 +162,31 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PolicyVersionResource versionResource = domainDAO.getVersionDAOClient(policyId, version);
+		final PolicyVersion policyVersion;
+		if (version.equals(LATEST_VERSION_ID))
+		{
+			try
+			{
+				policyVersion = domainDAO.getLatestPolicyVersionId(policyId);
+			} catch (IOException e)
+			{
+				throw new InternalServerErrorException(
+						"Error getting latest version of policy '" + policyId
+								+ "'", e);
+			}
+		} else
+		{
+			try
+			{
+				policyVersion = new PolicyVersion(version);
+			} catch (IllegalArgumentException e)
+			{
+				throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
+			}
+		}
+
+		final PolicyVersionResource versionResource = domainDAO
+				.getVersionDAOClient(policyId, policyVersion);
 		if (versionResource == null)
 		{
 			throw NOT_FOUND_EXCEPTION;
@@ -159,11 +194,5 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 
 		return versionResource;
 	}
-
-	// @Override
-	// public DAO getDAO()
-	// {
-	// return domainDAO;
-	// }
 
 }

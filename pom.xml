@@ -25,6 +25,7 @@
 	<modules>
 		<module>rest-service</module>
 		<module>webapp</module>
+		<module>upgrader</module>
 		<module>dist</module>
 	</modules>
 </project>

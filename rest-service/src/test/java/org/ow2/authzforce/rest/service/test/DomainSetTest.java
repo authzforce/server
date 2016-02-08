@@ -159,16 +159,6 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 		clientConf.getOutInterceptors().add(new LoggingOutInterceptor());
 
 		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, client);
-
-		// Retrieve WADL
-		// FIXME: find a way to test WADL location. Code below does not work as of writing (response HTTP 404 Not Found for /?_wadl, same with /services)
-		// WebTarget target = ClientBuilder.newClient().target(serverURL).queryParam("_wadl", "");
-		// Invocation.Builder builder = target.request();
-		// final ClientConfiguration builderConf = WebClient.getConfig(builder);
-		// builderConf.getInInterceptors().add(new LoggingInInterceptor());
-		// builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
-		// Response response = builder.get();
-		// LOGGER.error("WADL request response: {}", response);
 	}
 
 	@AfterSuite
@@ -215,7 +205,7 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 		assertNotNull(domainResources, "No domain found");
 		for (final Link link : domainResources.getLinks())
 		{
-			final String href = domainLink.getHref();
+			final String href = link.getHref();
 			if (domainId.equals(href))
 			{
 				return;

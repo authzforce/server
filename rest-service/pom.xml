@@ -40,12 +40,12 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-			<version>4.3.0</version>
+			<version>4.4.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
-			<version>3.6.1</version>
+			<version>4.0.0-SNAPSHOT</version>
 		</dependency>
 		<!-- Test dependencies -->
 		<dependency>
