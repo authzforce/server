@@ -67,13 +67,15 @@ import org.w3._2005.atom.Link;
 public class DomainSetTest extends AbstractTestNGSpringContextTests
 {
 	/**
-	 * Test context attribute set by the beforeSuite() to the initialized value of class member 'client'
+	 * Test context attribute set by the beforeSuite() to the initialized value
+	 * of class member 'client'
 	 */
 	public static final String REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.rest.client";
 
 	private static final String WADL_LOCATION = "classpath:/authz-api.wadl";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DomainSetTest.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DomainSetTest.class);
 
 	private static final String DEFAULT_APP_BASE_URL = "http://localhost:9080/";
 
@@ -96,12 +98,16 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 
 	@Parameters({ "app.base.url", "start.server" })
 	@BeforeSuite
-	public void beforeSuite(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl, @Optional("true") boolean startServer, ITestContext testCtx) throws Exception
+	public void beforeSuite(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl,
+			@Optional("true") boolean startServer, ITestContext testCtx)
+			throws Exception
 	{
 
 		if (startServer)
 		{
-			// Create the directory target/domains if does not exist (see src/test/resources/META-INF/spring/server.xml for actual domains directory path)
+			// Create the directory target/domains if does not exist (see
+			// src/test/resources/META-INF/spring/server.xml for actual domains
+			// directory path)
 			final File domainsDir = new File("target/server.data/domains");
 			if (!domainsDir.exists())
 			{
@@ -109,11 +115,15 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 			}
 
 			/*
-			 * Workaround for: http://stackoverflow.com/questions/10184602/accessing-spring-context-in-testngs -beforetest
-			 * https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404 (duplicate of previous issue)
-			 * springTestContextPrepareTestInstance() happens in
+			 * Workaround for:
+			 * http://stackoverflow.com/questions/10184602/accessing
+			 * -spring-context-in-testngs -beforetest
+			 * https://jira.spring.io/browse/SPR-4072
+			 * https://jira.spring.io/browse/SPR-5404 (duplicate of previous
+			 * issue) springTestContextPrepareTestInstance() happens in
 			 * 
-			 * @BeforeClass before no access to Autowired beans by default in @BeforeTest
+			 * @BeforeClass before no access to Autowired beans by default in
+			 * @BeforeTest
 			 */
 			super.springTestContextPrepareTestInstance();
 			// For SSL debugging
@@ -126,30 +136,40 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 			sf.setAddress(appBaseUrl);
 			sf.setDocLocation(WADL_LOCATION);
 			sf.setStaticSubresourceResolution(true);
-			sf.setProviders(Arrays.asList(serverJaxbProvider, new BadRequestExceptionMapper(), new ClientErrorExceptionMapper(), new NotFoundExceptionMapper(),
+			sf.setProviders(Arrays.asList(serverJaxbProvider,
+					new BadRequestExceptionMapper(),
+					new ClientErrorExceptionMapper(),
+					new NotFoundExceptionMapper(),
 					new ServerErrorExceptionMapper()));
 			sf.setServiceBean(domainsResourceBean);
 			final Map<String, Object> jaxRsServerProperties = new HashMap<>();
-			jaxRsServerProperties.put("org.apache.cxf.propagate.exception", "false");
+			jaxRsServerProperties.put("org.apache.cxf.propagate.exception",
+					"false");
 			// XML security properties
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxChildElements", "10");
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxElementDepth", "10");
+			jaxRsServerProperties.put("org.apache.cxf.stax.maxChildElements",
+					"10");
+			jaxRsServerProperties.put("org.apache.cxf.stax.maxElementDepth",
+					"10");
 
 			// Maximum size of a single attribute
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxAttributeSize", "500");
+			jaxRsServerProperties.put("org.apache.cxf.stax.maxAttributeSize",
+					"500");
 
 			// Maximum size of an elements text value
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxTextLength", "1000");
+			jaxRsServerProperties.put("org.apache.cxf.stax.maxTextLength",
+					"1000");
 
 			sf.setProperties(jaxRsServerProperties);
-			sf.setOutFaultInterceptors(Collections.<Interceptor<? extends Message>> singletonList(new ErrorHandlerInterceptor()));
+			sf.setOutFaultInterceptors(Collections
+					.<Interceptor<? extends Message>> singletonList(new ErrorHandlerInterceptor()));
 			server = sf.create();
 		}
 
 		/**
 		 * Create the REST (JAX-RS) client
 		 */
-		client = JAXRSClientFactory.create(appBaseUrl, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
+		client = JAXRSClientFactory.create(appBaseUrl, DomainsResource.class,
+				Collections.singletonList(clientJaxbProvider));
 
 		/**
 		 * Request/response logging (for debugging).
@@ -176,7 +196,8 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 	@Test
 	public void getWADL(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl)
 	{
-		WebTarget target = ClientBuilder.newClient().target(appBaseUrl).queryParam("_wadl", "");
+		WebTarget target = ClientBuilder.newClient().target(appBaseUrl)
+				.queryParam("_wadl", "");
 		Invocation.Builder builder = target.request();
 		final ClientConfiguration builderConf = WebClient.getConfig(builder);
 		builderConf.getInInterceptors().add(new LoggingInInterceptor());
@@ -190,7 +211,8 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 	public void addAndGetDomain()
 	{
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties("Test domain", "external" + Integer.toString(domainExternalId), null);
+		final DomainProperties domainProperties = new DomainProperties(
+				"Test domain", "external" + Integer.toString(domainExternalId));
 		domainExternalId += 1;
 		final Link domainLink = client.addDomain(domainProperties);
 		assertNotNull(domainLink, "Domain creation failure");
@@ -198,7 +220,9 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 		// The link href gives the new domain ID
 		final String domainId = domainLink.getHref();
 		LOGGER.debug("Added domain ID={}", domainId);
-		assertTrue(createdDomainIds.add(domainId), "Domain ID uniqueness violation: Conflict on domain ID=" + domainId);
+		assertTrue(createdDomainIds.add(domainId),
+				"Domain ID uniqueness violation: Conflict on domain ID="
+						+ domainId);
 
 		// verify link appears on GET /domains
 		final Resources domainResources = client.getDomains(null);
@@ -222,7 +246,8 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 		Arrays.fill(chars, 'a');
 		String description = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(domainExternalId), null);
+		final DomainProperties domainProperties = new DomainProperties(
+				description, "external" + Integer.toString(domainExternalId));
 		domainExternalId += 1;
 		client.addDomain(domainProperties);
 	}
@@ -230,13 +255,15 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 	@Test(expectedExceptions = BadRequestException.class)
 	public void addDomainWithTooBigExternalId()
 	{
-		// for maxAttributeSize = 500, exception raised only when chars.length > 910! WHY? Possible issue with woodstox library.
+		// for maxAttributeSize = 500, exception raised only when chars.length >
+		// 910! WHY? Possible issue with woodstox library.
 		// FIXME: report this issue to CXF/Woodstox
 		char[] chars = new char[911];
 		Arrays.fill(chars, 'a');
 		String externalId = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties("test", externalId, null);
+		final DomainProperties domainProperties = new DomainProperties("test",
+				externalId);
 		domainExternalId += 1;
 		client.addDomain(domainProperties);
 	}
@@ -257,29 +284,37 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 			}
 		}
 
-		assertEquals(matchedDomainCount, createdDomainIds.size(), "Test domains added by 'addDomain' not all found by getDomains");
+		assertEquals(matchedDomainCount, createdDomainIds.size(),
+				"Test domains added by 'addDomain' not all found by getDomains");
 	}
 
 	@Test(dependsOnMethods = { "addAndGetDomain" })
 	public void getDomain()
 	{
 		final String testDomainId = createdDomainIds.iterator().next();
-		Domain testDomainResource = client.getDomainResource(testDomainId).getDomain();
-		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
+		Domain testDomainResource = client.getDomainResource(testDomainId)
+				.getDomain();
+		assertNotNull(testDomainResource,
+				String.format("Error retrieving domain ID=%s", testDomainId));
 	}
 
 	@Test(dependsOnMethods = { "getDomain" })
 	public void getDomainByExternalId()
 	{
 		String createdDomainId = createdDomainIds.iterator().next();
-		String externalId = client.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+		String externalId = client.getDomainResource(createdDomainId)
+				.getDomain().getProperties().getExternalId();
 
 		final List<Link> domainLinks = client.getDomains(externalId).getLinks();
-		// verify that there is only one domain resource link and it is the one we are looking for
+		// verify that there is only one domain resource link and it is the one
+		// we are looking for
 		assertEquals(domainLinks.size(), 1);
 
 		String matchedDomainId = domainLinks.get(0).getHref();
-		assertEquals(matchedDomainId, createdDomainId, "getDomains(externalId) returned wrong result, i.e. linked domainId does not have the same externalId");
+		assertEquals(
+				matchedDomainId,
+				createdDomainId,
+				"getDomains(externalId) returned wrong result, i.e. linked domainId does not have the same externalId");
 	}
 
 	@Test(dependsOnMethods = { "getDomainByExternalId" })
@@ -288,21 +323,26 @@ public class DomainSetTest extends AbstractTestNGSpringContextTests
 		for (final String domainId : createdDomainIds)
 		{
 			LOGGER.debug("Deleting domain ID={}", domainId);
-			final DomainResource domainResource = client.getDomainResource(domainId);
-			final DomainProperties domainProperties = domainResource.deleteDomain();
-			assertNotNull(domainProperties, String.format("Error deleting domain ID=%s", domainId));
+			final DomainResource domainResource = client
+					.getDomainResource(domainId);
+			final DomainProperties domainProperties = domainResource
+					.deleteDomain();
+			assertNotNull(domainProperties,
+					String.format("Error deleting domain ID=%s", domainId));
 
 			boolean isDeleted = false;
 			try
 			{
-				// try to do something on the domain expected to be deleted -> MUST fail
+				// try to do something on the domain expected to be deleted ->
+				// MUST fail
 				domainResource.getDomain();
 			} catch (NotFoundException nfe)
 			{
 				isDeleted = true;
 			}
 
-			assertTrue(isDeleted, String.format("Error deleting domain ID=%s", domainId));
+			assertTrue(isDeleted,
+					String.format("Error deleting domain ID=%s", domainId));
 		}
 	}
 

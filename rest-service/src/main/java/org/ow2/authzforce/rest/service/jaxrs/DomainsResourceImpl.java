@@ -48,9 +48,11 @@ public class DomainsResourceImpl implements DomainsResource
 {
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
+			"Invalid argument");
 
-	private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
+	private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers
+			.urlPathSegmentEscaper();
 
 	@Context
 	private MessageContext messageContext;
@@ -67,12 +69,16 @@ public class DomainsResourceImpl implements DomainsResource
 	 * @param domainsDAO
 	 *            domain repository
 	 * @param authorizedResourceAttribute
-	 *            name of ServletRequest attribute expected to give the list of authorized resource (<code>java.util.List</code>) IDs for the current user
+	 *            name of ServletRequest attribute expected to give the list of
+	 *            authorized resource (<code>java.util.List</code>) IDs for the
+	 *            current user
 	 * @param anyResourceId
 	 *            identifier for "any resource" (access to any one)
 	 */
-	@ConstructorProperties({ "domainsDAO", "authorizedResourceAttribute", "anyResourceId" })
-	public DomainsResourceImpl(DomainsDAO<DomainResourceImpl<?>> domainsDAO, String authorizedResourceAttribute, String anyResourceId)
+	@ConstructorProperties({ "domainsDAO", "authorizedResourceAttribute",
+			"anyResourceId" })
+	public DomainsResourceImpl(DomainsDAO<DomainResourceImpl<?>> domainsDAO,
+			String authorizedResourceAttribute, String anyResourceId)
 	{
 		this.domainRepo = domainsDAO;
 		this.authorizedResourceAttrId = authorizedResourceAttribute;
@@ -82,7 +88,8 @@ public class DomainsResourceImpl implements DomainsResource
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#addDomain(com.thalesgroup.authzforce .model.Metadata)
+	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#addDomain(com.
+	 * thalesgroup.authzforce .model.Metadata)
 	 */
 	@Override
 	public Link addDomain(DomainProperties props)
@@ -93,16 +100,21 @@ public class DomainsResourceImpl implements DomainsResource
 		}
 
 		/*
-		 * If the 'rootPolicyRef' element is missing, a default root policy must be automatically created for the domain by the domainsDAO and a corresponding
-		 * rootPolicyRef set by the Service Provider of this API in the domain properties. If the 'rootPolicyRef' element is present, it assumes that the
-		 * Service Provider of this API initializes the domain with a fixed set of policies, and the client knows about those policies and therefore how to set
-		 * the 'rootPolicyRef' properly to match one of those pre-set policies. If the 'rootPolicyRef' does not match any, the domain creation request will be
-		 * rejected.
+		 * If the 'rootPolicyRef' element is missing, a default root policy must
+		 * be automatically created for the domain by the domainsDAO and a
+		 * corresponding rootPolicyRef set by the Service Provider of this API
+		 * in the domain properties. If the 'rootPolicyRef' element is present,
+		 * it assumes that the Service Provider of this API initializes the
+		 * domain with a fixed set of policies, and the client knows about those
+		 * policies and therefore how to set the 'rootPolicyRef' properly to
+		 * match one of those pre-set policies. If the 'rootPolicyRef' does not
+		 * match any, the domain creation request will be rejected.
 		 */
 		final String domainId;
 		try
 		{
-			domainId = domainRepo.addDomain(new WritableDomainPropertiesImpl(props));
+			domainId = domainRepo.addDomain(new WritableDomainPropertiesImpl(
+					props));
 		} catch (IOException e)
 		{
 			throw new InternalServerErrorException(e);
@@ -111,7 +123,8 @@ public class DomainsResourceImpl implements DomainsResource
 			throw new BadRequestException(e);
 		}
 
-		final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(domainId);
+		final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER
+				.escape(domainId);
 		final Link link = new Link();
 		link.setHref(encodedUrlPathSegment);
 		link.setRel(Relation.ITEM);
@@ -131,13 +144,25 @@ public class DomainsResourceImpl implements DomainsResource
 		// add domain on the fly
 		// rename to resourceCollection
 		final Set<String> authorizedDomainIDs = new HashSet<>();
-		final Object attrVal = messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
+		final Object attrVal = messageContext.getHttpServletRequest()
+				.getAttribute(authorizedResourceAttrId);
 		// attrVal may be null
 		if (attrVal == null)
 		{
 			if (anyResourceId == null)
 			{ // attrVal == anyResourceId
-				authorizedDomainIDs.addAll(domainRepo.getDomainIDs(externalId));
+				final Set<String> domainIDs;
+				try
+				{
+					domainIDs = domainRepo.getDomainIDs(externalId);
+				} catch (IOException e)
+				{
+					throw new InternalServerErrorException(
+							"Error getting domain info from domain repository",
+							e);
+				}
+
+				authorizedDomainIDs.addAll(domainIDs);
 			}
 		} else
 		{
@@ -146,7 +171,18 @@ public class DomainsResourceImpl implements DomainsResource
 				final List<?> resourceIds = (List<?>) attrVal;
 				if (resourceIds.contains(anyResourceId))
 				{
-					authorizedDomainIDs.addAll(domainRepo.getDomainIDs(externalId));
+					final Set<String> domainIDs;
+					try
+					{
+						domainIDs = domainRepo.getDomainIDs(externalId);
+					} catch (IOException e)
+					{
+						throw new InternalServerErrorException(
+								"Error getting domain info from domain repository",
+								e);
+					}
+
+					authorizedDomainIDs.addAll(domainIDs);
 				} else
 				{
 					for (final Object resourceId : resourceIds)
@@ -160,15 +196,22 @@ public class DomainsResourceImpl implements DomainsResource
 				}
 			} else
 			{
-				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '"
-						+ authorizedResourceAttrId + "' = " + attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
+				throw new InternalServerErrorException(
+						new IllegalArgumentException(
+								"Invalid type of value for ServletRequest attribute '"
+										+ authorizedResourceAttrId
+										+ "' = "
+										+ attrVal
+										+ " used to specify autorized resource. Expected: java.util.List<String>"));
 			}
 		}
 
-		final List<Link> domainResourceLinks = new ArrayList<>(authorizedDomainIDs.size());
+		final List<Link> domainResourceLinks = new ArrayList<>(
+				authorizedDomainIDs.size());
 		for (final String domainId : authorizedDomainIDs)
 		{
-			final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(domainId);
+			final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER
+					.escape(domainId);
 			final Link link = new Link();
 			link.setHref(encodedUrlPathSegment);
 			link.setRel(Relation.ITEM);
@@ -182,7 +225,9 @@ public class DomainsResourceImpl implements DomainsResource
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#getEndUserDomain(java.lang.String)
+	 * @see
+	 * com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#getEndUserDomain
+	 * (java.lang.String)
 	 */
 	@Override
 	public DomainResource getDomainResource(String domainId)
@@ -192,7 +237,8 @@ public class DomainsResourceImpl implements DomainsResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final DomainResource domainRes = domainRepo.getDomainDAOClient(domainId);
+		final DomainResource domainRes = domainRepo
+				.getDomainDAOClient(domainId);
 		if (domainRes == null)
 		{
 			throw NOT_FOUND_EXCEPTION;

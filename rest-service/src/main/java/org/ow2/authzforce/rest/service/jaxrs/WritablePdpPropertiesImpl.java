@@ -18,28 +18,24 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
-import org.ow2.authzforce.core.pap.api.dao.WritableDomainProperties;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
-class WritableDomainPropertiesImpl implements WritableDomainProperties
+import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
+import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
+
+class WritablePdpPropertiesImpl implements WritablePdpProperties
 {
-	private final DomainProperties props;
+	private final PdpPropertiesUpdate props;
 
-	WritableDomainPropertiesImpl(DomainProperties props)
+	WritablePdpPropertiesImpl(PdpPropertiesUpdate props)
 	{
 		this.props = props;
 	}
 
 	@Override
-	public String getExternalId()
+	public IdReferenceType getRootPolicyRef()
 	{
-		return props.getExternalId();
-	}
-
-	@Override
-	public String getDescription()
-	{
-		return props.getDescription();
+		return props.getRootPolicyRef();
 	}
 
 }
