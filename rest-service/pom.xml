@@ -11,7 +11,7 @@
 	<description>Implementation of RESTful API defined by authzforce-ce-rest-api-model package</description>
 	<url>https://github.com/authzforce/server/rest-service</url>
 	<properties>
-		<authzforce-ce-core.version>3.7.0</authzforce-ce-core.version>
+		<authzforce-ce-core.version>3.8.0-SNAPSHOT</authzforce-ce-core.version>
 	</properties>
 	<scm>
 		<connection>scm:git:${git.url.base}.git</connection>
@@ -44,7 +44,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
+			<artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
 		</dependency>
 		<!-- Test dependencies -->
