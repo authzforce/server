@@ -237,8 +237,16 @@ public class DomainsResourceImpl implements DomainsResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final DomainResource domainRes = domainRepo
-				.getDomainDAOClient(domainId);
+		final DomainResource domainRes;
+		try
+		{
+			domainRes = domainRepo.getDomainDAOClient(domainId);
+		} catch (IOException e)
+		{
+			throw new InternalServerErrorException(
+					"Error getting domain info from domain repository", e);
+		}
+
 		if (domainRes == null)
 		{
 			throw NOT_FOUND_EXCEPTION;

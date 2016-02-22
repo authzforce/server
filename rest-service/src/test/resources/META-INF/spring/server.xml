@@ -42,7 +42,7 @@
 
 	<bean id="domainDAOClientFactoryBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
 
-	<bean id="domainsDAOBean" class="org.ow2.authzforce.pap.dao.file.FileBasedDomainsDAO" destroy-method="stopDomainsSync">
+	<bean id="domainsDAOBean" class="org.ow2.authzforce.pap.dao.file.FileBasedDomainsDAO" destroy-method="closeDomains">
 		<!-- root directory of domain folders; a domain folder contains all configuration data of a specific domain, and is named after the domain ID encoded with base64url. -->
 		<constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
 		<!-- domain template directory for domain creation -->
