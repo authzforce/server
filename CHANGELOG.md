@@ -4,12 +4,27 @@ All notable changes to this project are documented in this file following the [K
 ## Unreleased
 ### Added
 - Distribution upgrader: tool to upgrade from Authzforce 4.2.0 to later versions
+- Support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
+- Manual synchronization of domain cache with data directory via REST API, allows to force reloading domains' PDPs and externalIDs without restarting the webapp or server:
+	- GET /domains forces re-synchronization of all domains
+	- GET /domain/{domainId}/properties forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
+	- GET /domain/{domainId}/pap/properties forces re-synchronization of PDP with configuration file (pdp.xml) in the domain directory
+	- GET /domain/{domainId}/pap/policies forces re-synchronization of PDP with policy files in subfolder 'policies' of the domain directory
+	- DELETE /domain/{domainId} forces removal of the domain from cache, and the domain directory if it still exists (removes from cache only if directory already removed)
 
 ### Changed
-- Implemented REST API model v5.0.0. Main changes:
+- Strategy for synchronizing cached domain's PDP and externalId-to-domain mapping with configuration files: no longer using Java WatchService, but each domain has a specific thread polling files in the domain directory's and checking their lastModifiedTime attribute for change:
+	- If a given domain ID is requested and no matching domain in cache, but a matching domain directory is found, the domain is automatically synced to cache and the synchronizing thread created;
+	- If the domain's directory found missing by the synchronizing thread, the thread deletes the domain from cache.
+	- If any change to properties.xml (domain description, externalId) detected, externalId updated in cache
+	- If any change to pdp.xml or the file of any policy used by the PDP, the PDP is reloaded.
+- Support of REST API model v5.0.0: 
   - Root policy reference no longer set via path /domains/{domainId}/properties but via /domains/{domainId}/pap/properties
   - API allows the special keyword "latest" as version ID to get the latest version of a given policy (in addition to XACML version IDs like before), e.g. URL path /domains/{domainId}/pap/policies/P1/latest represents the latest version of policy "P1"
-  - Path /domains/{domainId}/pap/status giving the status of the PDP (date/time of last modification, active policies...)
+  - Path /domains/{domainId}/pap/properties gives the status of the PDP (date/time of last modification and active policies)
+
+### Removed
+- Dependency on commons-io, replaced with Java 7 java.nio.file API for recursive directory copy/deletion
 
 ### Fixed
 - Debian/Ubuntu package dependencies: java7-jdk replaced with 'openjdk-7-jdk | oracle-java7-installer' to fix issues with APT installation of virtual packages (e.g. java7-jdk)
