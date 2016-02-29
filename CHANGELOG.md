@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file following the [K
 ### Added
 - Distribution upgrader: tool to upgrade from Authzforce 4.2.0 to later versions
 - Support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
+- Option to enable automatic removal of oldest unused version(s) of any updated policy if max number of versions is exceeded (specified by a global property 'org.ow2.authzforce.domain.policy.maxVersionCount')
 - Manual synchronization of domain cache with data directory via REST API, allows to force reloading domains' PDPs and externalIDs without restarting the webapp or server:
 	- GET /domains forces re-synchronization of all domains
 	- GET /domain/{domainId}/properties forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
@@ -57,7 +58,7 @@ All notable changes to this project are documented in this file following the [K
   1. OR: If at least 1 True arg, then True regardless of Indeterminate args; else if at least 1 Indeterminate, return Indeterminate; else false.
   1. AND: If at least 1 False arg, then False regardless of Indeterminate args; else if at least 1 Indeterminate, then Indeterminate; else True.
   1. N-OF: similar to OR but checking whether at least N args are True instead of 1, in the remaining arguments; else there is/are n True(s) with n < N; if there are at least (N-n) Indeterminate, return Indeterminate; else return false.
-- Global configuration properties: max number of policies per domain, max number of versions per domain
+- Global configuration properties: max number of policies per domain, max number of versions per policy
 - Distribution as WAR
 
 ### Changed
