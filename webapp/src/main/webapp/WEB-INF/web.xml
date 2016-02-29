@@ -29,13 +29,19 @@
 		<description>Max number of policies per domain. -1 or any negative value means no max (unlimited).</description>
 		<env-entry-name>org.ow2.authzforce.domain.maxPolicyCount</env-entry-name>
 		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>-1</env-entry-value>
+		<env-entry-value>10</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>Max number of versions per policy. -1 or any negative value means no max (unlimited).</description>
 		<env-entry-name>org.ow2.authzforce.domain.policy.maxVersionCount</env-entry-name>
 		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>-1</env-entry-value>
+		<env-entry-value>10</env-entry-value>
+	</env-entry>
+	<env-entry>
+		<description>When the value of above property 'org.ow2.authzforce.domain.policy.maxVersionCount' is reached, then: if this environment entry is 'true', oldest unused policies versions are automatically removed to make sure that is not exceeded; else an HTTP status 400 Bad Request is returned whenever trying to add a version too many</description>
+		<env-entry-name>org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany</env-entry-name>
+		<env-entry-type>java.lang.Boolean</env-entry-type>
+		<env-entry-value>true</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature.</description>

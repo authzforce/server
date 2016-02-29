@@ -35,17 +35,24 @@
 
 	<Environment
 		name="org.ow2.authzforce.domain.maxPolicyCount"
-		value="-1"
+		value="10"
 		type="java.lang.Integer"
 		override="false"
 		description="Max number of policies per domain. -1 or any negative value means no max (unlimited)." />
 
 	<Environment
 		name="org.ow2.authzforce.domain.policy.maxVersionCount"
-		value="-1"
+		value="10"
 		type="java.lang.Integer"
 		override="false"
 		description="Max number of versions per policy. -1 or any negative value means no max (unlimited)." />
+	
+	<Environment
+		name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany"
+		value="true"
+		type="java.lang.Boolean"
+		override="false"
+		description="this property applies when the value of above property 'org.ow2.authzforce.domain.policy.maxVersionCount' has been reached; in this case, if this property is 'true', oldest unused policies versions are automatically removed to make sure that is not exceeded; else an HTTP status 400 Bad Request is returned whenever trying to add a version too many" />
 
 	<Environment
 		name="org.ow2.authzforce.domains.sync.interval"

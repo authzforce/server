@@ -8,8 +8,8 @@ All notable changes to this project are documented in this file following the [K
 - Manual synchronization of domain cache with data directory via REST API, allows to force reloading domains' PDPs and externalIDs without restarting the webapp or server:
 	- GET /domains forces re-synchronization of all domains
 	- GET /domain/{domainId}/properties forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
-	- GET /domain/{domainId}/pap/properties forces re-synchronization of PDP with configuration file (pdp.xml) in the domain directory
-	- GET /domain/{domainId}/pap/policies forces re-synchronization of PDP with policy files in subfolder 'policies' of the domain directory
+	- GET /domain/{domainId}/pap/properties forces re-synchronization of PDP with configuration file (pdp.xml) and policy files in subfolder 'policies' of the domain directory
+	- GET /domain/{domainId}/pap/policies forces re-synchronization of PDP with configuration file (pdp.xml) and policy files in subfolder 'policies' of the domain directory
 	- DELETE /domain/{domainId} forces removal of the domain from cache, and the domain directory if it still exists (removes from cache only if directory already removed)
 
 ### Changed

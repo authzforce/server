@@ -46,6 +46,7 @@
 				XML DoS attacks (since CXF 2.7.4). Example below with controlling max child elements. -->
 <!-- 			<entry key="org.apache.cxf.stax.maxChildElements" value="100"/> -->
 <!-- 			<entry key="org.apache.cxf.stax.maxElementDepth" value="10"/> -->
+<!-- 			<entry key="org.apache.cxf.stax.maxAttributeCount" value="100"/> -->
 <!-- 			<entry key="org.apache.cxf.stax.maxAttributeSize" value="500"/> -->
 <!-- 			<entry key="org.apache.cxf.stax.maxTextLength" value="1000"/> -->
 		</jaxrs:properties>

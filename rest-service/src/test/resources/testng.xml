@@ -7,7 +7,11 @@
 <!-- 	<parameter name="app.base.url" value="http://localhost/authzforce-ce" /> -->
 	<!-- If the tested server is remote, set this to false to avoid starting the embedded server. -->
 <!-- 	<parameter name="start.server" value="false" /> -->
-	<test name="Conformance" preserve-order="true" enabled="true">
+	<test name="WithoutAutoSyncOrVersionRemovalIfTooMany" preserve-order="true" enabled="true">
+		<parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="10" />
+		<parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="10" />
+		<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="false" />
+		<parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
 		<classes>
 			<class name="org.ow2.authzforce.rest.service.test.DomainSetTest">
 				<methods>
@@ -23,7 +27,17 @@
 				</methods>
 			</class>
 			<!-- Domain-specific testing -->
-			<class name="org.ow2.authzforce.rest.service.test.DomainTest" />
+			<class name="org.ow2.authzforce.rest.service.test.DomainMainTestWithoutAutoSyncOrVersionRemoval" />
+		</classes>
+	</test>
+	<test name="WithAutoSyncAndVersionRemovalIfTooMany" preserve-order="true" enabled="true">
+		<parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="10" />
+		<parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="10" />
+		<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="true" />
+		<parameter name="org.ow2.authzforce.domains.sync.interval" value="4" />
+		<classes>
+			<!-- Domain-specific testing -->
+			<class name="org.ow2.authzforce.rest.service.test.DomainTestWithAutoSyncAndVersionRemoval" />
 		</classes>
 	</test>
 </suite> 

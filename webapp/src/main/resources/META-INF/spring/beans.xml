@@ -33,8 +33,9 @@
 	<!-- If no "real" Ethernet address to use (host disconnected from the network), use random multicast address. -->
 	<jee:jndi-lookup id="jndi_useRandomAddressBasedUUID" jndi-name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
 	<!-- -1 or any negative value means no max (unlimited) -->
-	<jee:jndi-lookup id="jndi_maxNumOfPoliciesPerDomain" jndi-name="org.ow2.authzforce.domain.maxPolicyCount" expected-type="java.lang.Integer" default-value="#{new Integer(-1)}" />
-	<jee:jndi-lookup id="jndi_maxNumOfVersionsPerPolicy" jndi-name="org.ow2.authzforce.domain.policy.maxVersionCount" expected-type="java.lang.Integer" default-value="#{new Integer(-1)}" />
+	<jee:jndi-lookup id="jndi_maxNumOfPoliciesPerDomain" jndi-name="org.ow2.authzforce.domain.maxPolicyCount" expected-type="java.lang.Integer" default-value="#{new Integer(10)}" />
+	<jee:jndi-lookup id="jndi_maxNumOfVersionsPerPolicy" jndi-name="org.ow2.authzforce.domain.policy.maxVersionCount" expected-type="java.lang.Integer" default-value="#{new Integer(10)}" />
+	<jee:jndi-lookup id="jndi_removeOldestVersionsIfMaxExceeded" jndi-name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
 	<!-- 0 means no sync -->
 	<jee:jndi-lookup id="jndi_syncIntervalSec" jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer" default-value="#{new Integer(0)}" />
 
@@ -74,6 +75,7 @@
 		<constructor-arg name="useRandomAddressBasedUUID" value="#{jndi_useRandomAddressBasedUUID}" />
 		<constructor-arg name="maxNumOfPoliciesPerDomain" value="#{jndi_maxNumOfPoliciesPerDomain}" />
 		<constructor-arg name="maxNumOfVersionsPerPolicy" value="#{jndi_maxNumOfVersionsPerPolicy}" />
+		<constructor-arg name="removeOldestVersionsIfMaxExceeded" value="#{jndi_removeOldestVersionsIfMaxExceeded}" />
 		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
 	</bean>
 
