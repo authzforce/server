@@ -218,10 +218,11 @@ public class DomainSetTest extends RestServiceTest
 		File deleteSrcDir = new File(DOMAINS_DIR, deletedDomainId);
 		FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 3);
 
-		final Resources domainResources = client.getDomains(null);
+		// Manual sync of files-to-cache with getDomains()
+		final List<Link> linksToDomains = client.getDomains(null).getLinks();
 		// match retrieved domains against created ones in addDomain test
 		Set<String> newDomainIds = new HashSet<>();
-		for (final Link domainLink : domainResources.getLinks())
+		for (final Link domainLink : linksToDomains)
 		{
 			newDomainIds.add(domainLink.getHref());
 		}
@@ -240,15 +241,10 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// test externalId on deleted domain
-		try
-		{
-			client.getDomains(deletedDomainExternalId).getLinks();
-			fail("Sync from disk with getDomains() failed: getDomains(externalId = " + deletedDomainExternalId
-					+ ") on REST API succeeds although domain directory deleted on disk");
-		} catch (NotFoundException e)
-		{
-			// OK
-		}
+
+		final List<Link> links = client.getDomains(deletedDomainExternalId).getLinks();
+		assertTrue(links.isEmpty(), "Sync from disk with getDomains() failed: getDomains(externalId = "
+				+ deletedDomainExternalId + ") on REST API succeeds although domain directory deleted on disk");
 
 		createdDomainIds.remove(deletedDomainId);
 
@@ -261,6 +257,13 @@ public class DomainSetTest extends RestServiceTest
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
 
 		String externalId = testDomainResource.getProperties().getExternalId();
+		if (externalId == null)
+		{
+			fail("Bad test data: test domain in directory '"
+					+ SAMPLE_DOMAIN_DIR
+					+ "' must have an externalId (modify the properties.xml file to add an externalId before running this test)");
+		}
+
 		// test externalId
 		final List<Link> domainLinks = client.getDomains(externalId).getLinks();
 		// verify that there is only one domain resource link and it is the one
@@ -285,7 +288,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// delete on disk
-		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_DIR, 3);
+		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_COPY_DIR, 3);
 
 		// sync API cache
 		DomainResource domainRes = client.getDomainResource(SAMPLE_DOMAIN_ID);
@@ -308,6 +311,7 @@ public class DomainSetTest extends RestServiceTest
 				links.isEmpty(),
 				"Error deleting domain with API deleteDomain() after deleting directory on disk: getDomains(externalId) still returns link to domain");
 
+		createdDomainIds.remove(SAMPLE_DOMAIN_ID);
 	}
 
 	@Parameters({ "start.server" })
