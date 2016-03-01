@@ -1,7 +1,7 @@
 <pdp
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6"
-	xmlns:pap-dao="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6"
+	xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	version="3.6.1"
 	maxVariableRefDepth="1"
 	maxPolicyRefDepth="10"
@@ -10,7 +10,7 @@
 	<!-- policyLocation must start with ${PARENT_DIR}/ and end with: /*SUFFIX (* is expanded to base64url(policyId)/policyVersion) -->
 	<refPolicyProvider
 		id="refPolicyProvider"
-		xsi:type="pap-dao:StaticFileBasedDAORefPolicyProvider"
+		xsi:type="pap-dao:StaticFileDAORefPolicyProvider"
 		policyLocationPattern="${PARENT_DIR}/policies/*.xml" />
 	<rootPolicyProvider
 		id="rootPolicyProvider"

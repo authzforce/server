@@ -25,11 +25,11 @@
 	Public License along with AuthZForce CE. If not, see <http://www.gnu.org/licenses/>. -->
 <!-- Schema major version is same as VERSION in PDP extension schema namespace http://authzforce.github.io/xmlns/pdp/ext/VERSION. Patch version changes with fixes of errors in the schema. Minor version 
 	changes with other backwards-compatible changes (like Semantic Versioning). -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6" xmlns="http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6"
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6" xmlns="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6"
 	elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.6.0">
 	<xs:annotation>
 		<xs:documentation xml:lang="en">
-			Data Model for policy domain properties used by the file-based AuthZForce PAP DAO.
+			Data Model for policy domain properties used by the AuthZForce PAP DAO based on flat file database.
 			<p>
 				XML schema versioning: the 'version' attribute of the root 'schema' element identifies the Major.Minor.Patch version of this schema. The Major.Minor part must match the Major.Minor part of the
 				first compatible version of authzforce-ce-pap-dao-file library. The Patch version is used for any backwards-compatible change. The Minor version is incremented after any change that is NOT

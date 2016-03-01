@@ -6,5 +6,5 @@
 		</xs:documentation>
 	</xs:annotation>
 	<!-- Extension for file-based PAP DAO root/ref policy providers -->
-	<xs:import namespace="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6" />
+	<xs:import namespace="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6" />
 </xs:schema>

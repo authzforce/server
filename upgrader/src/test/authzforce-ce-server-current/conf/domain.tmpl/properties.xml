@@ -19,4 +19,4 @@
     along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<domainProperties xmlns="http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6" />
+<domainProperties xmlns="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6" />

@@ -615,7 +615,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		return setRootPolicy(policySet.getPolicySetId(), policySet.getVersion());
 	}
 
-	@Test(dependsOnMethods = { "addAndGetPolicy", "deleteRootPolicy", "updateDomainPropertiesExceptRootPolicyRef" })
+	@Test(dependsOnMethods = { "addAndGetPolicy", "deleteRootPolicy", "updateDomainProperties" })
 	public void updateRootPolicyRefToValidPolicy() throws JAXBException
 	{
 		PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();

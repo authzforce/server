@@ -56,10 +56,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestContext;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/applicationContext.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
@@ -167,13 +163,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
 	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
-	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
-			"org.ow2.authzforce.domain.policy.maxVersionCount",
-			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
-	@BeforeTest
-	public final void beforeTest(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl,
-			@Optional("true") boolean startServer, int maxPolicyCountPerDomain, int maxVersionCountPerPolicy,
-			boolean removeOldVersionsTooMany, int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	protected void startServerAndInitCLient(String appBaseUrl, boolean startServer, int maxPolicyCountPerDomain,
+			int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany, int domainSyncIntervalSec,
+			ITestContext testCtx) throws Exception
 	{
 
 		if (startServer)
@@ -280,8 +272,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, client);
 	}
 
-	@AfterTest
-	public final void destroy() throws Exception
+	protected void destroyServer() throws Exception
 	{
 		// server != null only if test suite property start.server = true
 		if (server != null)

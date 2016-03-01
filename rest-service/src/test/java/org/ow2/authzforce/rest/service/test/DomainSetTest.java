@@ -27,7 +27,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
@@ -44,6 +43,9 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.ITestContext;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
@@ -52,10 +54,29 @@ import org.w3._2005.atom.Link;
 @ContextConfiguration(locations = { "classpath:META-INF/spring/applicationContext.xml" })
 public class DomainSetTest extends RestServiceTest
 {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainSetTest.class);
 
 	private int domainExternalId = 0;
 	private Set<String> createdDomainIds = new HashSet<>();
+
+	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
+			"org.ow2.authzforce.domain.policy.maxVersionCount",
+			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
+	@BeforeTest
+	public void beforeTest(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl, @Optional("true") boolean startServer,
+			int maxPolicyCountPerDomain, int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany,
+			int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	{
+		super.startServerAndInitCLient(appBaseUrl, startServer, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
+	}
+
+	@AfterTest
+	public void afterTest() throws Exception
+	{
+		super.destroyServer();
+	}
 
 	@Parameters({ "app.base.url" })
 	@Test
@@ -188,15 +209,14 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// we add one domain directory and delete another existing one on disk
-
-		FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 2);
+		FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
 
 		// delete existing domain on disk, but first get its externalId for later testing
 		String deletedDomainId = createdDomainIds.iterator().next();
 		String deletedDomainExternalId = client.getDomainResource(deletedDomainId).getDomain().getProperties()
 				.getExternalId();
 		File deleteSrcDir = new File(DOMAINS_DIR, deletedDomainId);
-		FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 2);
+		FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 3);
 
 		final Resources domainResources = client.getDomains(null);
 		// match retrieved domains against created ones in addDomain test
@@ -265,7 +285,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// delete on disk
-		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_DIR, 2);
+		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_DIR, 3);
 
 		// sync API cache
 		DomainResource domainRes = client.getDomainResource(SAMPLE_DOMAIN_ID);
@@ -304,7 +324,6 @@ public class DomainSetTest extends RestServiceTest
 		// verify domain does not exist by trying the PDP
 		DomainResource testDomainRes = client.getDomainResource(SAMPLE_DOMAIN_ID);
 		File testDir = new File(XACML_SAMPLES_DIR, "IIIG301");
-		Unmarshaller unmarshaller = JAXB_CTX.createUnmarshaller();
 		final Request request = (Request) unmarshaller.unmarshal(new File(testDir, REQUEST_FILENAME));
 		try
 		{
@@ -316,7 +335,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// create domain directory on disk
-		FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 2);
+		FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
 		// check PDP returned policy identifier
 		final Response actualResponse = testDomainRes.getPdpResource().requestPolicyDecision(request);
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);

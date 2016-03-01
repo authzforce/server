@@ -82,6 +82,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-jndi</artifactId>
+			<version>9.2.9.v20150224</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-core</artifactId>
 			<version>${authzforce-ce-core.version}</version>

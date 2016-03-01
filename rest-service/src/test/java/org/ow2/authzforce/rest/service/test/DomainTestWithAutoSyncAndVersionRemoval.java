@@ -35,7 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
@@ -60,6 +62,18 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 	private File testDomainPDPConfFile;
 
 	private String testDomainExternalId = "test" + PRNG.nextInt(100);
+
+	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
+			"org.ow2.authzforce.domain.policy.maxVersionCount",
+			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
+	@BeforeTest
+	public void beforeTest(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl, @Optional("true") boolean startServer,
+			int maxPolicyCountPerDomain, int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany,
+			int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	{
+		super.startServerAndInitCLient(appBaseUrl, startServer, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
+	}
 
 	@Parameters("start.server")
 	@BeforeClass
@@ -87,6 +101,12 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 	public void deleteDomain()
 	{
 		assertNotNull(testDomain.deleteDomain(), String.format("Error deleting domain ID=%s", testDomainId));
+	}
+
+	@AfterTest
+	public void afterTest() throws Exception
+	{
+		super.destroyServer();
 	}
 
 	private static final int TEST_TIMEOUT_MS = 1000;
@@ -413,7 +433,7 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 		}
 
 		// delete on disk
-		FlatFileDAOUtils.deleteDirectory(testDomainDir.toPath(), 2);
+		FlatFileDAOUtils.deleteDirectory(testDomainDir.toPath(), 3);
 
 		// wait for sync
 		Thread.sleep(syncIntervalSec * 1000);
