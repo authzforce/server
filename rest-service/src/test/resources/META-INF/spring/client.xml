@@ -12,11 +12,6 @@
       http://cxf.apache.org/jaxrs 
       http://cxf.apache.org/schemas/jaxrs.xsd">
 
-	<bean id="xacmlSamplesDirResource" class="org.springframework.core.io.ClassPathResource">
-		<!-- Doc ref: http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html -->
-		<constructor-arg value="/xacml.samples" />
-	</bean>
-
 	<util:list id="clientApiSchemaLocations">
 		<value>classpath:/xml.xsd</value>
 		<value>classpath:/atom.xsd</value>

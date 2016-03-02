@@ -13,6 +13,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,7 +65,6 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -100,7 +102,14 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	private Unmarshaller unmarshaller = null;
 
-	private Resource xacmlSamplesDirResource;
+	private static final Path XACML_SAMPLES_DIR = Paths.get("src/test/resources/xacml.samples");
+	static
+	{
+		if (!Files.exists(XACML_SAMPLES_DIR))
+		{
+			throw new RuntimeException("Test data directory '" + XACML_SAMPLES_DIR + "' does not exist");
+		}
+	}
 
 	private PdpModelHandler pdpModelHandler = null;
 
@@ -142,12 +151,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		testDomainPropertiesFile = new File(testDomainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
 		testDomainPoliciesDirName = new File(testDomainDir, RestServiceTest.DOMAIN_POLICIES_DIRNAME);
 		testDomainPDPConfFile = new File(testDomainDir, RestServiceTest.DOMAIN_PDP_CONF_FILENAME);
-
-		// Unmarshall test XACML PolicySet
-		if (!xacmlSamplesDirResource.exists())
-		{
-			throw new RuntimeException("Test data directory '" + xacmlSamplesDirResource + "' does not exist");
-		}
 
 		final Schema apiSchema = (Schema) testCtx
 				.getAttribute(RestServiceTest.REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID);

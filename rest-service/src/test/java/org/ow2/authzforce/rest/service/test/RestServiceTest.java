@@ -9,7 +9,9 @@ package org.ow2.authzforce.rest.service.test;
  */
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,7 +54,6 @@ import org.ow2.authzforce.rest.service.jaxrs.NotFoundExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestContext;
@@ -76,20 +77,34 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * Test context attribute set by the beforeSuite() to the XML schema of all XML data sent/received by the API
 	 * client. To be reused in other test classes of the same test suite. Attribute value type: {@link Schema}
 	 */
-	public static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.pdp.model.handler";
+	public static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.rest.client.api.schema";
 
 	protected static final int MAX_XML_TEXT_LENGTH = 1000;
 
-	protected static final File DOMAINS_DIR = new File("target/server.data/domains");
-
 	private static final String WADL_LOCATION = "classpath:/authz-api.wadl";
+
+	protected static final File DOMAINS_DIR = new File("target/server.data/domains");
 
 	protected static final String DEFAULT_APP_BASE_URL = "http://localhost:9080/";
 
 	protected static final File XACML_SAMPLES_DIR = new File("src/test/resources/xacml.samples");
+	static
+	{
+		if (!XACML_SAMPLES_DIR.exists())
+		{
+			throw new RuntimeException("XACML SAMPLES DIRECTORY NOT FOUND: " + XACML_SAMPLES_DIR);
+		}
+	}
 
-	protected static final Path SAMPLE_DOMAIN_DIR = new File("src/test/resources/domain.samples/A0bdIbmGEeWhFwcKrC9gSQ")
-			.toPath();
+	protected static final Path SAMPLE_DOMAIN_DIR = Paths
+			.get("src/test/resources/domain.samples/A0bdIbmGEeWhFwcKrC9gSQ");
+	static
+	{
+		if (!Files.exists(SAMPLE_DOMAIN_DIR))
+		{
+			throw new RuntimeException("SAMPLE DOMAIN DIRECTORY NOT FOUND: " + SAMPLE_DOMAIN_DIR);
+		}
+	}
 
 	/*
 	 * JAXB context for (un)marshalling XACML
@@ -145,9 +160,6 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	@Autowired
 	private SchemaHandler clientApiSchemaHandler;
-
-	@Autowired
-	protected Resource xacmlSamplesDirResource;
 
 	private Server server;
 
@@ -240,12 +252,6 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			testCtx.setAttribute(PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID, pdpModelHandler);
 		}
 
-		// Unmarshall test XACML PolicySet
-		if (!xacmlSamplesDirResource.exists())
-		{
-			throw new RuntimeException("Test data directory '" + xacmlSamplesDirResource + "' does not exist");
-		}
-
 		/**
 		 * Create the REST (JAX-RS) client
 		 */
@@ -257,7 +263,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				Collections.singletonList(clientJaxbProvider));
 
 		final Schema apiSchema = this.clientApiSchemaHandler.getSchema();
-		testCtx.setAttribute(REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID, pdpModelHandler);
+		testCtx.setAttribute(REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID, apiSchema);
 
 		unmarshaller = DomainSetTest.JAXB_CTX.createUnmarshaller();
 		unmarshaller.setSchema(apiSchema);
