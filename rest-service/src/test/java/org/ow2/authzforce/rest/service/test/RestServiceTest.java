@@ -12,11 +12,14 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.TimeZone;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -43,8 +46,9 @@ import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
 import org.apache.cxf.message.Message;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
+import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
+import org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper;
@@ -141,6 +145,13 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected static final Random PRNG = new Random();
 
+	protected static final DateFormat UTC_DATE_WITH_MILLIS_FORMATTER = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss.SSS ('UTC')");
+	static
+	{
+		UTC_DATE_WITH_MILLIS_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+	}
+
 	protected static PolicySet createDumbPolicySet(String policyId, String version)
 	{
 		return new PolicySet(null, null, null, new Target(null), null, null, null, policyId, version,
@@ -182,13 +193,17 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 		if (startServer)
 		{
-			// Create the directory target/domains if does not exist (see
-			// src/test/resources/META-INF/spring/server.xml for actual domains
-			// directory path)
-			if (!DOMAINS_DIR.exists())
+			/*
+			 * Make sure the directory target/domains exists and is empty (see
+			 * src/test/resources/META-INF/spring/server.xml for actual domains directory path)
+			 */
+			if (DOMAINS_DIR.exists())
 			{
-				DOMAINS_DIR.mkdirs();
+				// delete to start clean
+				FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
 			}
+
+			DOMAINS_DIR.mkdirs();
 
 			// Override some server properties via JNDI
 			try

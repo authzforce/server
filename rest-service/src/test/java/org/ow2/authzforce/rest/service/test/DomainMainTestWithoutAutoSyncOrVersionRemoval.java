@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -234,8 +235,28 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// test sync with properties file
 		final DomainProperties props = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String newExternalId = testDomainExternalId + "bis";
-		final DomainProperties newProps = new DomainProperties(props.getDescription(), newExternalId);
+		final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(
+				props.getDescription(), newExternalId);
 		RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, testDomainPropertiesFile);
+		if (LOGGER.isDebugEnabled())
+		{
+			LOGGER.debug("Updated externalId in file '{}' - lastModifiedTime = {}", testDomainPropertiesFile,
+					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(testDomainPropertiesFile
+							.lastModified())));
+		}
+
+		/*
+		 * FIXME: BIG ISSUE! ext3 filesystem's date resolution is 1s, therefore milliseconds are rounded to zero always.
+		 * Therefore, in this unit tests, the file modification is undetected because the it occurs in less than 1 sec
+		 * after the last PDP sync/reload. See also:
+		 * http://www.coderanch.com/t/384700/java/java/File-lastModified-windows-linux
+		 * 
+		 * SHORT TERM FIX: wait at least 1 sec before updating the file
+		 * 
+		 * LONG-TERM FIX: require that the filesystem's date resolution is up to the millisecond, e.g. ext4 (precision
+		 * up to nanosec), AND JAVA 8 is required: http://bugs.java.com/view_bug.do?bug_id=6939260, or record the
+		 * lastmodifiedtime in the file (problem for XACML policies)
+		 */
 
 		// manual sync with GET /domains/{id}/properties
 		final DomainProperties newPropsFromAPI = testDomain.getDomainPropertiesResource().getDomainProperties();
@@ -247,7 +268,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// test the old externalId
 		final List<Link> domainLinks = client.getDomains(testDomainExternalId).getLinks();
 		assertTrue(domainLinks.isEmpty(), "Manual sync of externalId on GET /domains/" + this.testDomainId
-				+ "/properties failed: old externaldId still mapped to the domain");
+				+ "/properties failed: old externaldId still mapped to the domain:");
 
 		testDomainExternalId = newExternalId;
 
