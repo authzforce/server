@@ -254,8 +254,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		 * SHORT TERM FIX: wait at least 1 sec before updating the file
 		 * 
 		 * LONG-TERM FIX: require that the filesystem's date resolution is up to the millisecond, e.g. ext4 (precision
-		 * up to nanosec), AND JAVA 8 is required: http://bugs.java.com/view_bug.do?bug_id=6939260, or record the
-		 * lastmodifiedtime in the file (problem for XACML policies)
+		 * up to nanosec). If you want higher precision (microsec, nanosec), JAVA 8 is required:
+		 * http://bugs.java.com/view_bug.do?bug_id=6939260, or record the lastmodifiedtime in the file (problem for
+		 * XACML policies)
 		 */
 
 		// manual sync with GET /domains/{id}/properties
