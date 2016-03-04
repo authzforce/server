@@ -512,7 +512,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 		final GregorianCalendar cal = new GregorianCalendar(UTC_TZ);
 		cal.setTimeInMillis(props.getLastModified());
-		return new PdpProperties(props.getRootPolicyRef(), props.getEnabledPolicies(),
+		return new PdpProperties(props.getRootPolicyRef(), props.getRefPolicyRefs(),
 				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 
@@ -540,7 +540,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 		final GregorianCalendar cal = new GregorianCalendar(UTC_TZ);
 		cal.setTimeInMillis(allProps.getLastModified());
-		return new PdpProperties(allProps.getRootPolicyRef(), allProps.getEnabledPolicies(),
+		return new PdpProperties(allProps.getRootPolicyRef(), allProps.getRefPolicyRefs(),
 				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 

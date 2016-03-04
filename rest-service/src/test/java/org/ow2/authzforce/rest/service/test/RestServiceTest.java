@@ -54,7 +54,6 @@ import org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl;
 import org.ow2.authzforce.rest.service.jaxrs.ErrorHandlerInterceptor;
-import org.ow2.authzforce.rest.service.jaxrs.NotFoundExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -245,7 +244,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			sf.setDocLocation(WADL_LOCATION);
 			sf.setStaticSubresourceResolution(true);
 			sf.setProviders(Arrays.asList(serverJaxbProvider, new BadRequestExceptionMapper(),
-					new ClientErrorExceptionMapper(), new NotFoundExceptionMapper(), new ServerErrorExceptionMapper()));
+					new ClientErrorExceptionMapper(), new ServerErrorExceptionMapper()));
 			sf.setServiceBean(domainsResourceBean);
 			final Map<String, Object> jaxRsServerProperties = new HashMap<>();
 			jaxRsServerProperties.put("org.apache.cxf.propagate.exception", "false");

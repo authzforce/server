@@ -28,6 +28,7 @@ import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
@@ -222,9 +223,10 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				+ matchedDomainId + " instead of " + testDomainId);
 	}
 
-	@Parameters({ "start.server" })
+	@Parameters({ "start.server", "legacy.fs" })
 	@Test(dependsOnMethods = { "getDomainProperties" })
-	public void getDomainPropertiesAfterFileModification(@Optional("true") boolean startServer) throws JAXBException
+	public void getDomainPropertiesAfterFileModification(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test i f server not started locally
 		if (!startServer)
@@ -232,11 +234,35 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 			return;
 		}
 
+		/*
+		 * If filesystem is legacy, it means here that file timestamp (mtime in particular) resolution is 1 sec, i.e.
+		 * milliseconds are rounded to zero always. Therefore, in this unit test, with such a filesystem, the file
+		 * modification does undetected because it occurs in less than 1 sec after the last PDP sync/reload. See also:
+		 * http://www.coderanch.com/t/384700/java/java/File-lastModified-windows-linux
+		 * 
+		 * So if a legacy filesystem mode is enabled, we wait at least 1 sec before updating the file, so that the
+		 * file's mtime is different and the change detected a result on such legacy.
+		 * 
+		 * NOTE: ext3 has only second resolution (therefore considered legacy), whereas ext4 has nanosecond resolution.
+		 * If you have resolution higher than the millisecond in Java (microsec, nanosec), e.g. with ext4, JAVA 8 is
+		 * also required: http://bugs.java.com/view_bug.do?bug_id=6939260 (A possible workaround would record the
+		 * last-modified-time in all monitored files. We consider it not worth the trouble since ext4 is now the default
+		 * option on modern Linux distributions such Ubuntu.)
+		 */
+
 		// test sync with properties file
 		final DomainProperties props = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String newExternalId = testDomainExternalId + "bis";
 		final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(
 				props.getDescription(), newExternalId);
+		// LOGGER.debug("Time before updating externalId in file '{}': {}", testDomainPropertiesFile,
+		// RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(System.currentTimeMillis())));
+		// wait at least 1 sec before updating the file, if filesystem is "legacy" as explained above
+		if (isFilesystemLegacy)
+		{
+			Thread.sleep(1000);
+		}
+
 		RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, testDomainPropertiesFile);
 		if (LOGGER.isDebugEnabled())
 		{
@@ -244,20 +270,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(testDomainPropertiesFile
 							.lastModified())));
 		}
-
-		/*
-		 * FIXME: BIG ISSUE! ext3 filesystem's date resolution is 1s, therefore milliseconds are rounded to zero always.
-		 * Therefore, in this unit tests, the file modification is undetected because the it occurs in less than 1 sec
-		 * after the last PDP sync/reload. See also:
-		 * http://www.coderanch.com/t/384700/java/java/File-lastModified-windows-linux
-		 * 
-		 * SHORT TERM FIX: wait at least 1 sec before updating the file
-		 * 
-		 * LONG-TERM FIX: require that the filesystem's date resolution is up to the millisecond, e.g. ext4 (precision
-		 * up to nanosec). If you want higher precision (microsec, nanosec), JAVA 8 is required:
-		 * http://bugs.java.com/view_bug.do?bug_id=6939260, or record the lastmodifiedtime in the file (problem for
-		 * XACML policies)
-		 */
 
 		// manual sync with GET /domains/{id}/properties
 		final DomainProperties newPropsFromAPI = testDomain.getDomainPropertiesResource().getDomainProperties();
@@ -388,8 +400,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	 * occurred in the process. 3) Response to getPolicyResources() with same PolicySetId and Version matches.
 	 * <p>
 	 * Returns created policy resource path segment
+	 * 
+	 * @throws ClientErrorException
+	 *             with status code 409 when policy conflicts with existing one (same policy id and version)
 	 */
-	private String testAddAndGetPolicy(PolicySet policySet)
+	private String testAddAndGetPolicy(PolicySet policySet) throws ClientErrorException
 	{
 		// put new policyset
 		final Link link = testDomain.getPapResource().getPoliciesResource().addPolicy(policySet);
@@ -461,20 +476,34 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	@Parameters({ "org.ow2.authzforce.domain.maxPolicyCount" })
 	@Test(dependsOnMethods = { "addAndGetPolicy" })
-	public void addTooManyPolicies(int maxPolicyCountPerDomain)
+	public void addTooManyPolicies(int maxPolicyCountPerDomain) throws JAXBException
 	{
-		for (int i = 0; i < maxPolicyCountPerDomain; i++)
+		// replace all policies with one root policy and this is the only one policy
+		resetPolicies();
+		// So we can only add maxPolicyCountPerDomain-1 more policies before reaching the max
+		for (int i = 0; i < maxPolicyCountPerDomain - 1; i++)
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + i, "1.0");
 			testAddAndGetPolicy(policySet);
 		}
 
+		// verify that all policies are there
+		List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+		Set<Link> policyLinkSet = new HashSet<>(links);
+		assertEquals(links.size(), policyLinkSet.size(), "Duplicate policies returned in links from getPolicies: "
+				+ links);
+
+		assertEquals(policyLinkSet.size(), maxPolicyCountPerDomain,
+				"policies removed before reaching value of property 'org.ow2.authzforce.domain.maxPolicyCount'. Actual versions: "
+						+ links);
+
+		// We should have reached the max, so adding one more should be rejected by the server
 		try
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany", "1.0");
 			testAddAndGetPolicy(policySet);
 			fail("Failed to enforce maxPoliciesPerDomain property: " + maxPolicyCountPerDomain);
-		} catch (BadRequestException e)
+		} catch (ForbiddenException e)
 		{
 			// OK
 		}
@@ -512,7 +541,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 			testAddAndGetPolicy(policySet);
 			fail("Failed to enforce property 'org.ow2.authzforce.domain.policy.maxVersionCount': "
 					+ maxVersionCountPerPolicy);
-		} catch (BadRequestException e)
+		} catch (ForbiddenException e)
 		{
 			// OK
 		}
@@ -537,8 +566,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	}
 
 	@Test(dependsOnMethods = { "addAndGetPolicy" })
-	public void deleteAndTryGetUnusedPolicy()
+	public void deleteAndTryGetUnusedPolicy() throws JAXBException
 	{
+		resetPolicies();
 		PolicySet policySet1 = RestServiceTest.createDumbPolicySet("testPolicyDelete", "1.2.3");
 		testAddAndGetPolicy(policySet1);
 
@@ -635,7 +665,17 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	private IdReferenceType setRootPolicy(PolicySet policySet)
 	{
-		testAddAndGetPolicy(policySet);
+		try
+		{
+			testAddAndGetPolicy(policySet);
+		} catch (ClientErrorException e)
+		{
+			// If this is a conflict, it means it is already added, else something bad happened
+			if (e.getResponse().getStatus() != Status.CONFLICT.getStatusCode())
+			{
+				throw e;
+			}
+		}
 
 		return setRootPolicy(policySet.getPolicySetId(), policySet.getVersion());
 	}
@@ -662,10 +702,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				newProps.getRootPolicyRef(),
 				newRootPolicyRef,
 				"Root PolicyRef returned by getOtherPdpProperties() does not match last set rootPolicyRef via updateOtherPdpProperties()");
-		assertEquals(
-				newProps.getEnabledPolicies().get(0),
-				newRootPolicyRef,
-				"First enabled policy returned by getOtherPdpProperties() does not match last set rootPolicyRef via updateOtherPdpProperties()");
 
 		// delete previous root policy ref to see if it succeeds
 		oldRootPolicyRes.deletePolicy();
@@ -761,25 +797,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	private void resetPolicies() throws JAXBException
 	{
-		final PolicySet rootPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				TEST_DEFAULT_POLICYSET_FILENAME));
+		final JAXBElement<?> jaxbElt = (JAXBElement<?>) unmarshaller.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, TEST_DEFAULT_POLICYSET_FILENAME));
+		final PolicySet newRootPolicySet = (PolicySet) jaxbElt.getValue();
 		final PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
-
-		// If already exists, remove to start from scratch
-		PolicyResource rootPolicyRes = policiesRes.getPolicyResource(rootPolicySet.getPolicySetId());
-		try
-		{
-			rootPolicyRes.deletePolicy();
-			setRootPolicy(rootPolicySet);
-		} catch (NotFoundException e)
-		{
-			// not exists on the server, so add and set as root
-			// start from scratch with one policy version
-			setRootPolicy(rootPolicySet);
-		} catch (BadRequestException e)
-		{
-			// already root (removal rejected), so nothing to do
-		}
+		setRootPolicy(newRootPolicySet);
 
 		// Delete all other policies
 		Resources policiesResources = policiesRes.getPolicies();
@@ -787,7 +809,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		{
 			String policyId = link.getHref();
 			// skip if this is the root policy
-			if (policyId.equals(rootPolicySet.getPolicySetId()))
+			if (policyId.equals(newRootPolicySet.getPolicySetId()))
 			{
 				continue;
 			}
@@ -806,13 +828,15 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		 */
 		resetPolicies();
 
-		final PolicySet refPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
+		final JAXBElement<?> jaxbElement = (JAXBElement<?>) unmarshaller.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
+		final PolicySet refPolicySet = (PolicySet) jaxbElement.getValue();
 		String refPolicyResId = testAddAndGetPolicy(refPolicySet);
 
 		// Set root policy referencing ref policy above
-		final PolicySet policySetWithRef = (PolicySet) unmarshaller.unmarshal(new File(
+		final JAXBElement<?> jaxbElement2 = (JAXBElement<?>) unmarshaller.unmarshal(new File(
 				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"));
+		final PolicySet policySetWithRef = (PolicySet) jaxbElement2.getValue();
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
 		setRootPolicy(policySetWithRef);
@@ -916,8 +940,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final PolicySet badPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"policySetWithTooManyChildElements.xml"));
+		final JAXBElement<?> badPolicySetJaxbObj = (JAXBElement<?>) unmarshaller.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "policySetWithTooManyChildElements.xml"));
+		final PolicySet badPolicySet = (PolicySet) badPolicySetJaxbObj.getValue();
 		try
 		{
 			testAddAndGetPolicy(badPolicySet);
@@ -939,8 +964,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final PolicySet badPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"policySetTooDeep.xml"));
+		final JAXBElement<?> jaxbObj = (JAXBElement<?>) unmarshaller.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "policySetTooDeep.xml"));
+		final PolicySet badPolicySet = (PolicySet) jaxbObj.getValue();
 		try
 		{
 			testAddAndGetPolicy(badPolicySet);
@@ -1083,11 +1109,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				newRootPolicyRef,
 				"Manual sync with API getOtherPdpProperties() failed: returned root policyRef does not match the one in PDP configuration file");
 
-		assertEquals(
-				pdpProps.getEnabledPolicies().get(0),
-				newRootPolicyRef,
-				"Manual sync with API getOtherPdpProperties() failed: returned first enabled policy does not match the root policyRef in PDP configuration file");
-
 		// check PDP returned policy identifier
 		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(testDir, RestServiceTest.REQUEST_FILENAME));
 		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
@@ -1113,13 +1134,15 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	{
 		resetPolicies();
 
-		final PolicySet refPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
+		final JAXBElement<?> jaxbElt = (JAXBElement<?>) unmarshaller.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
+		final PolicySet refPolicySet = (PolicySet) jaxbElt.getValue();
 		testAddAndGetPolicy(refPolicySet);
 
 		// Set root policy referencing ref policy above
-		final PolicySet policySetWithRef = (PolicySet) unmarshaller.unmarshal(new File(
+		final JAXBElement<?> jaxbElt2 = (JAXBElement<?>) unmarshaller.unmarshal(new File(
 				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"));
+		final PolicySet policySetWithRef = (PolicySet) jaxbElt2.getValue();
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
 		setRootPolicy(policySetWithRef);
@@ -1146,13 +1169,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		PdpProperties pdpProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
 		long lastModifiedTime = pdpProps.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
 		assertTrue(
-				lastModifiedTime < timeBeforeGetPolicies && lastModifiedTime > timeAfterGetPolicies,
+				lastModifiedTime > timeBeforeGetPolicies && lastModifiedTime < timeAfterGetPolicies,
 				"Manual sync with API getPolicies() failed: lastModifiedTime returned by getOtherPdpProperties() does not match the time when getPolicies() was called");
 		// check enabled policies
 		IdReferenceType newRefPolicySetRef = new IdReferenceType(newRefPolicySet.getPolicySetId(),
 				newRefPolicySet.getVersion(), null, null);
 		assertTrue(
-				pdpProps.getEnabledPolicies().contains(newRefPolicySetRef),
+				pdpProps.getRefPolicyReves().contains(newRefPolicySetRef),
 				"Manual sync with API getPolicies() failed: enabledPolicies returned by getOtherPdpProperties() does not contain last policy version");
 
 		// Redo the same but updating the root policy version on disk this time
@@ -1181,8 +1204,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// check enabled policies
 		IdReferenceType newRootPolicySetRef = new IdReferenceType(newRootPolicySet.getPolicySetId(),
 				newRootPolicySet.getVersion(), null, null);
-		assertTrue(
-				pdpProps.getEnabledPolicies().contains(newRootPolicySetRef),
+		assertEquals(
+				pdpProps.getRootPolicyRef(),
+				newRootPolicySetRef,
 				"Manual sync with API getPolicies() failed: enabledPolicies returned by getOtherPdpProperties() does not contain last policy version");
 	}
 

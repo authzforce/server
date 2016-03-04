@@ -6,6 +6,10 @@
 	<!-- <parameter name="app.base.url" value="http://localhost/authzforce-ce" /> -->
 	<!-- If the tested server is remote, set this to false to avoid starting the embedded server. -->
 	<!-- <parameter name="start.server" value="false" /> -->
+	<!-- True iff the filesystem local to the server is a "legacy" filesystem, meaning here that millisecond or higher resolution of file timestamps is not supported. This is the case of 'ext3'; whereas 'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the last sync will go undetected (the file's mtime timestamp is not modified in this case). 
+	If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results.
+	-->
+	<parameter name="legacy.fs" value="true" />
 	<parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="false" />
