@@ -13,9 +13,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +20,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
@@ -33,9 +29,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
@@ -43,10 +37,12 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
+import org.apache.cxf.jaxrs.client.ClientConfiguration;
+import org.apache.cxf.jaxrs.client.WebClient;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.test.utils.TestUtils;
-import org.ow2.authzforce.core.xmlns.pdp.Pdp;
-import org.ow2.authzforce.core.xmlns.pdp.StaticRefBasedRootPolicyProvider;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
@@ -81,15 +77,7 @@ import org.w3._2005.atom.Link;
  */
 public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 {
-	private static final String TEST_REF_POLICIES_DIRECTORY_NAME = "refPolicies";
-
-	private static final String TEST_ATTRIBUTE_PROVIDER_FILENAME = "attributeProvider.xml";
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainMainTestWithoutAutoSyncOrVersionRemoval.class);
-
-	private static final Random PRNG = new Random();
-
-	private static final String TEST_DEFAULT_POLICYSET_FILENAME = "policySet.xml";
 
 	private static final FileFilter DIRECTORY_FILTER = new FileFilter()
 	{
@@ -102,62 +90,68 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	};
 
-	private Unmarshaller unmarshaller = null;
+	private DomainsResource domainsAPIClient;
+	private WebClient baseWebClient;
 
-	private static final Path XACML_SAMPLES_DIR = Paths.get("src/test/resources/xacml.samples");
-	static
-	{
-		if (!Files.exists(XACML_SAMPLES_DIR))
-		{
-			throw new RuntimeException("Test data directory '" + XACML_SAMPLES_DIR + "' does not exist");
-		}
-	}
-
-	private PdpModelHandler pdpModelHandler = null;
-
-	private DomainsResource client;
+	private DomainAPIHelper testDomainHelper = null;
 
 	private DomainResource testDomain = null;
 	private String testDomainId = null;
 	private File testDomainPropertiesFile;
-	private File testDomainPoliciesDirName;
-	private File testDomainPDPConfFile;
 
 	private String testDomainExternalId = "test";
 
-	@Parameters("start.server")
+	private boolean enableMDP;
+
+	@Parameters({ "app.base.url", "start.server", "enableMDP" })
 	@BeforeClass
-	public void addDomain(@Optional("true") boolean startServer, ITestContext testCtx) throws JAXBException,
+	public void addDomain(@Optional(RestServiceTest.DEFAULT_APP_BASE_URL) String appBaseUrl,
+			@Optional("true") boolean startServer, boolean enableMDP, ITestContext testCtx) throws JAXBException,
 			IOException
 	{
+		final PdpModelHandler pdpModelHandler;
 		if (startServer)
 		{
 			pdpModelHandler = (PdpModelHandler) testCtx
 					.getAttribute(RestServiceTest.PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID);
+		} else
+		{
+			pdpModelHandler = null;
 		}
 
 		/*
 		 * WARNING: if tests are to be multi-threaded, modify according to Thread-safety section of CXF JAX-RS client
 		 * API documentation http://cxf .apache.org/docs/jax-rs-client-api.html#JAX-RSClientAPI-ThreadSafety
 		 */
-		client = (DomainsResource) testCtx.getAttribute(RestServiceTest.REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID);
-		final Link domainLink = client.addDomain(new DomainProperties("Some description", testDomainExternalId));
+		domainsAPIClient = (DomainsResource) testCtx
+				.getAttribute(RestServiceTest.REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID);
+		final Link domainLink = domainsAPIClient.addDomain(new DomainProperties("Some description",
+				testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
 		testDomainId = domainLink.getHref();
 		LOGGER.debug("Added domain ID={}", testDomainId);
-		testDomain = client.getDomainResource(testDomainId);
+		testDomain = domainsAPIClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 		File testDomainDir = new File(RestServiceTest.DOMAINS_DIR, testDomainId);
 		testDomainPropertiesFile = new File(testDomainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
-		testDomainPoliciesDirName = new File(testDomainDir, RestServiceTest.DOMAIN_POLICIES_DIRNAME);
-		testDomainPDPConfFile = new File(testDomainDir, RestServiceTest.DOMAIN_PDP_CONF_FILENAME);
 
 		final Schema apiSchema = (Schema) testCtx
 				.getAttribute(RestServiceTest.REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID);
-		unmarshaller = RestServiceTest.JAXB_CTX.createUnmarshaller();
+		final Unmarshaller unmarshaller = RestServiceTest.JAXB_CTX.createUnmarshaller();
 		unmarshaller.setSchema(apiSchema);
+		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
+
+		baseWebClient = WebClient.create(appBaseUrl, true);
+		if (LOGGER.isDebugEnabled())
+		{
+			final ClientConfiguration builderConf = WebClient.getConfig(baseWebClient);
+			builderConf.getInInterceptors().add(new LoggingInInterceptor());
+			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
+		}
+
+		this.enableMDP = enableMDP;
 	}
 
 	@AfterClass
@@ -196,10 +190,10 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		assertNotNull(propsResource);
 
 		byte[] randomBytes = new byte[128];
-		PRNG.nextBytes(randomBytes);
+		RestServiceTest.PRNG.nextBytes(randomBytes);
 		String description = FlatFileDAOUtils.base64UrlEncode(randomBytes);
 		byte[] randomBytes2 = new byte[16];
-		PRNG.nextBytes(randomBytes2);
+		RestServiceTest.PRNG.nextBytes(randomBytes2);
 		// externalId must be a xs:NCName, therefore cannot start with a number
 		String newExternalId = "external" + FlatFileDAOUtils.base64UrlEncode(randomBytes2);
 		propsResource.updateDomainProperties(new DomainProperties(description, newExternalId));
@@ -209,18 +203,61 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		assertEquals(newProps.getExternalId(), newExternalId);
 
 		// test old externalID -> should fail
-		final List<Link> domainLinks = client.getDomains(testDomainExternalId).getLinks();
+		final List<Link> domainLinks = domainsAPIClient.getDomains(testDomainExternalId).getLinks();
 		assertTrue(domainLinks.isEmpty(), "Update of externalId on GET /domains/" + this.testDomainId
 				+ "/properties failed: old externaldId still mapped to the domain");
 
 		testDomainExternalId = newExternalId;
 
 		// test the new externalId
-		final List<Link> domainLinks2 = client.getDomains(newExternalId).getLinks();
+		final List<Link> domainLinks2 = domainsAPIClient.getDomains(newExternalId).getLinks();
 		String matchedDomainId = domainLinks2.get(0).getHref();
 		assertEquals(matchedDomainId, testDomainId, "Update of externalId on GET /domains/" + this.testDomainId
 				+ "/properties failed: getDomains(externalId = " + newExternalId + ") returned wrong domainId: "
 				+ matchedDomainId + " instead of " + testDomainId);
+	}
+
+	private void verifySyncAfterDomainPropertiesFileModification(String newExternalId)
+	{
+		// test the old externalId
+		final List<Link> domainLinks = domainsAPIClient.getDomains(testDomainExternalId).getLinks();
+		assertTrue(domainLinks.isEmpty(), "Manual sync of externalId with GET or HEAD /domains/" + this.testDomainId
+				+ "/properties failed: old externaldId still mapped to the domain:");
+
+		testDomainExternalId = newExternalId;
+
+		// test the new externalId
+		// test externalId
+		final List<Link> domainLinks2 = domainsAPIClient.getDomains(newExternalId).getLinks();
+		final String matchedDomainId = domainLinks2.get(0).getHref();
+		assertEquals(matchedDomainId, testDomainId, "Manual sync of externalId with GET or HEAD /domains/"
+				+ this.testDomainId + "/properties failed: getDomains(externalId = " + newExternalId
+				+ ") returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
+	}
+
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "getDomainProperties" })
+	public void headDomainPropertiesAfterFileModification(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFilesystemLegacy) throws InterruptedException, JAXBException
+	{
+
+		// skip test if server not started locally
+		if (!startServer)
+		{
+			return;
+		}
+
+		final String newExternalId = testDomainExternalId + "ter";
+		testDomainHelper.modifyDomainPropertiesFile(newExternalId, isFilesystemLegacy);
+
+		// manual sync with HEAD /domains/{id}/properties
+		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId)
+				.path("properties").head();
+		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
+				+ testDomainId + "/properties failed");
+
+		verifySyncAfterDomainPropertiesFileModification(newExternalId);
+
 	}
 
 	@Parameters({ "start.server", "legacy.fs" })
@@ -228,70 +265,23 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	public void getDomainPropertiesAfterFileModification(@Optional("true") boolean startServer,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
-		// skip test i f server not started locally
+		// skip test if server not started locally
 		if (!startServer)
 		{
 			return;
 		}
 
-		/*
-		 * If filesystem is legacy, it means here that file timestamp (mtime in particular) resolution is 1 sec, i.e.
-		 * milliseconds are rounded to zero always. Therefore, in this unit test, with such a filesystem, the file
-		 * modification does undetected because it occurs in less than 1 sec after the last PDP sync/reload. See also:
-		 * http://www.coderanch.com/t/384700/java/java/File-lastModified-windows-linux
-		 * 
-		 * So if a legacy filesystem mode is enabled, we wait at least 1 sec before updating the file, so that the
-		 * file's mtime is different and the change detected a result on such legacy.
-		 * 
-		 * NOTE: ext3 has only second resolution (therefore considered legacy), whereas ext4 has nanosecond resolution.
-		 * If you have resolution higher than the millisecond in Java (microsec, nanosec), e.g. with ext4, JAVA 8 is
-		 * also required: http://bugs.java.com/view_bug.do?bug_id=6939260 (A possible workaround would record the
-		 * last-modified-time in all monitored files. We consider it not worth the trouble since ext4 is now the default
-		 * option on modern Linux distributions such Ubuntu.)
-		 */
-
-		// test sync with properties file
-		final DomainProperties props = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String newExternalId = testDomainExternalId + "bis";
-		final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(
-				props.getDescription(), newExternalId);
-		// LOGGER.debug("Time before updating externalId in file '{}': {}", testDomainPropertiesFile,
-		// RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(System.currentTimeMillis())));
-		// wait at least 1 sec before updating the file, if filesystem is "legacy" as explained above
-		if (isFilesystemLegacy)
-		{
-			Thread.sleep(1000);
-		}
-
-		RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, testDomainPropertiesFile);
-		if (LOGGER.isDebugEnabled())
-		{
-			LOGGER.debug("Updated externalId in file '{}' - lastModifiedTime = {}", testDomainPropertiesFile,
-					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(testDomainPropertiesFile
-							.lastModified())));
-		}
+		testDomainHelper.modifyDomainPropertiesFile(newExternalId, isFilesystemLegacy);
 
 		// manual sync with GET /domains/{id}/properties
 		final DomainProperties newPropsFromAPI = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String externalIdFromAPI = newPropsFromAPI.getExternalId();
-		assertEquals(externalIdFromAPI, newExternalId, "Manual sync of externalId on GET /domains/" + this.testDomainId
-				+ "/properties failed: externaldId returned (" + externalIdFromAPI
+		assertEquals(externalIdFromAPI, newExternalId, "Manual sync of externalId with GET /domains/"
+				+ this.testDomainId + "/properties failed: externaldId returned (" + externalIdFromAPI
 				+ ") does not match externalId in modified file: " + testDomainPropertiesFile);
 
-		// test the old externalId
-		final List<Link> domainLinks = client.getDomains(testDomainExternalId).getLinks();
-		assertTrue(domainLinks.isEmpty(), "Manual sync of externalId on GET /domains/" + this.testDomainId
-				+ "/properties failed: old externaldId still mapped to the domain:");
-
-		testDomainExternalId = newExternalId;
-
-		// test the new externalId
-		// test externalId
-		final List<Link> domainLinks2 = client.getDomains(newExternalId).getLinks();
-		String matchedDomainId = domainLinks2.get(0).getHref();
-		assertEquals(matchedDomainId, testDomainId, "Manual sync of externalId on GET /domains/" + this.testDomainId
-				+ "/properties failed: getDomains(externalId = " + newExternalId + ") returned wrong domainId: "
-				+ matchedDomainId + " instead of " + testDomainId);
+		verifySyncAfterDomainPropertiesFileModification(newExternalId);
 	}
 
 	@Test(dependsOnMethods = { "getDomain" })
@@ -314,8 +304,9 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	{
 		final AttributeProvidersResource attributeProvidersResource = testDomain.getPapResource()
 				.getAttributeProvidersResource();
-		JAXBElement<TestAttributeProvider> jaxbElt = (JAXBElement<TestAttributeProvider>) unmarshaller
-				.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/IIA002(PolicySet)/attributeProvider.xml"));
+		JAXBElement<TestAttributeProvider> jaxbElt = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "pdp/IIA002(PolicySet)/attributeProvider.xml"),
+				TestAttributeProvider.class);
 		TestAttributeProvider testAttrProvider = jaxbElt.getValue();
 		AttributeProviders updateAttrProvidersResult = attributeProvidersResource
 				.updateAttributeProviderList(new AttributeProviders(Collections
@@ -368,85 +359,19 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		assertTrue(links.size() > 0, "No root policy version found");
 	}
 
-	private static void matchPolicySets(PolicySet actual, PolicySet expected, String testedMethodId)
-	{
-		assertEquals(
-				actual.getPolicySetId(),
-				expected.getPolicySetId(),
-				String.format("Actual PolicySetId (='%s') from %s() != expected PolicySetId (='%s')",
-						actual.getPolicySetId(), testedMethodId, expected.getPolicySetId()));
-		assertEquals(actual.getVersion(), expected.getVersion(), String.format(
-				"Actual PolicySet Version (='%s') from %s() != expected PolicySet Version (='%s')",
-				actual.getVersion(), testedMethodId, expected.getVersion()));
-	}
-
-	private static boolean isHrefMatched(String href, List<Link> links)
-	{
-		for (Link link : links)
-		{
-			if (link.getHref().equals(href))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Adds a given PolicySet and returns allocated resource ID. It also checks 2 things: 1) The response's PolicySet
-	 * matches the input PolicySet (simply checking PolicySet IDs and versions) 2) The reponse to a getPolicySet() also
-	 * matches the input PolicySet, to make sure the new PolicySet was actually committed succesfully and no error
-	 * occurred in the process. 3) Response to getPolicyResources() with same PolicySetId and Version matches.
-	 * <p>
-	 * Returns created policy resource path segment
-	 * 
-	 * @throws ClientErrorException
-	 *             with status code 409 when policy conflicts with existing one (same policy id and version)
-	 */
-	private String testAddAndGetPolicy(PolicySet policySet) throws ClientErrorException
-	{
-		// put new policyset
-		final Link link = testDomain.getPapResource().getPoliciesResource().addPolicy(policySet);
-		final String policyHref = link.getHref();
-		final String[] parts = policyHref.split("/");
-		assertTrue(parts.length >= 2, "Link returned by addPolicy does not match pattern 'policyId/version'");
-		final String policyResId = parts[0];
-		final String versionResId = parts[1];
-
-		// Check result was committed
-		// check added policy link is in policies list
-		PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
-		assertTrue(isHrefMatched(policyResId, policiesRes.getPolicies().getLinks()),
-				"Added policy resource link not found in links returned by getPoliciesResource()");
-
-		// check added policy version is in policy versions list
-		PolicyResource policyRes = policiesRes.getPolicyResource(policyResId);
-		final Resources policyVersionsResources = policyRes.getPolicyVersions();
-		assertTrue(isHrefMatched(versionResId, policyVersionsResources.getLinks()),
-				"Added policy version resource link not found in links returned by getPolicyVersions()");
-
-		// check PolicySet of added policy id/version is actually the one we
-		// added
-		final PolicySet getRespPolicySet = policyRes.getPolicyVersionResource(versionResId).getPolicyVersion();
-		matchPolicySets(getRespPolicySet, policySet, "getPolicy");
-
-		return policyResId;
-	}
-
 	private static final String TEST_POLICY_ID1 = "testPolicyAdd";
 
 	@Test(dependsOnMethods = { "getRootPolicy" })
 	public void addAndGetPolicy()
 	{
 		PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID1, "1.0");
-		testAddAndGetPolicy(policySet);
+		testDomainHelper.testAddAndGetPolicy(policySet);
 
 		PolicySet policySet2 = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID1, "1.1");
-		testAddAndGetPolicy(policySet2);
+		testDomainHelper.testAddAndGetPolicy(policySet2);
 
 		PolicySet policySet3 = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID1, "1.2");
-		testAddAndGetPolicy(policySet3);
+		testDomainHelper.testAddAndGetPolicy(policySet3);
 		Resources policyVersionsResources = testDomain.getPapResource().getPoliciesResource()
 				.getPolicyResource(TEST_POLICY_ID1).getPolicyVersions();
 		assertEquals(policyVersionsResources.getLinks().size(), 3);
@@ -459,18 +384,18 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	public void getLatestPolicyVersion()
 	{
 		PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID2, "1.0");
-		testAddAndGetPolicy(policySet);
+		testDomainHelper.testAddAndGetPolicy(policySet);
 
 		PolicySet policySet2 = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID2, "1.1");
-		testAddAndGetPolicy(policySet2);
+		testDomainHelper.testAddAndGetPolicy(policySet2);
 
 		PolicySet policySet3 = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID2, "1.2");
-		testAddAndGetPolicy(policySet3);
+		testDomainHelper.testAddAndGetPolicy(policySet3);
 
 		PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
 		PolicyResource policyRes = policiesRes.getPolicyResource(TEST_POLICY_ID2);
 		final PolicySet getRespPolicySet = policyRes.getPolicyVersionResource("latest").getPolicyVersion();
-		matchPolicySets(getRespPolicySet, policySet3, "getLatestPolicyVersion");
+		DomainAPIHelper.matchPolicySets(getRespPolicySet, policySet3, "getLatestPolicyVersion");
 
 	}
 
@@ -479,12 +404,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	public void addTooManyPolicies(int maxPolicyCountPerDomain) throws JAXBException
 	{
 		// replace all policies with one root policy and this is the only one policy
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 		// So we can only add maxPolicyCountPerDomain-1 more policies before reaching the max
 		for (int i = 0; i < maxPolicyCountPerDomain - 1; i++)
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + i, "1.0");
-			testAddAndGetPolicy(policySet);
+			testDomainHelper.testAddAndGetPolicy(policySet);
 		}
 
 		// verify that all policies are there
@@ -501,7 +426,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		try
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany", "1.0");
-			testAddAndGetPolicy(policySet);
+			testDomainHelper.testAddAndGetPolicy(policySet);
 			fail("Failed to enforce maxPoliciesPerDomain property: " + maxPolicyCountPerDomain);
 		} catch (ForbiddenException e)
 		{
@@ -519,7 +444,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		for (int i = 0; i < maxVersionCountPerPolicy; i++)
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + i);
-			testAddAndGetPolicy(policySet);
+			testDomainHelper.testAddAndGetPolicy(policySet);
 		}
 
 		// verify that all versions are there
@@ -538,7 +463,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		try
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "2.0");
-			testAddAndGetPolicy(policySet);
+			testDomainHelper.testAddAndGetPolicy(policySet);
 			fail("Failed to enforce property 'org.ow2.authzforce.domain.policy.maxVersionCount': "
 					+ maxVersionCountPerPolicy);
 		} catch (ForbiddenException e)
@@ -552,12 +477,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	public void addConflictingPolicyVersion()
 	{
 		PolicySet policySet = RestServiceTest.createDumbPolicySet("testAddConflictingPolicyVersion", "1.0");
-		testAddAndGetPolicy(policySet);
+		testDomainHelper.testAddAndGetPolicy(policySet);
 
 		// must be rejected
 		try
 		{
-			testAddAndGetPolicy(policySet);
+			testDomainHelper.testAddAndGetPolicy(policySet);
 			fail("Adding the same policy did not fail with HTTP 409 Conflict as expected");
 		} catch (ClientErrorException e)
 		{
@@ -568,20 +493,20 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	@Test(dependsOnMethods = { "addAndGetPolicy" })
 	public void deleteAndTryGetUnusedPolicy() throws JAXBException
 	{
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 		PolicySet policySet1 = RestServiceTest.createDumbPolicySet("testPolicyDelete", "1.2.3");
-		testAddAndGetPolicy(policySet1);
+		testDomainHelper.testAddAndGetPolicy(policySet1);
 
 		PolicySet policySet2 = RestServiceTest.createDumbPolicySet("testPolicyDelete", "1.3.1");
-		testAddAndGetPolicy(policySet2);
+		testDomainHelper.testAddAndGetPolicy(policySet2);
 
 		// delete policy (all versions)
 		PolicyResource policyResource = testDomain.getPapResource().getPoliciesResource()
 				.getPolicyResource("testPolicyDelete");
 		Resources versionsResources = policyResource.deletePolicy();
 		assertNotNull(versionsResources);
-		assertTrue(isHrefMatched("1.2.3", versionsResources.getLinks()));
-		assertTrue(isHrefMatched("1.3.1", versionsResources.getLinks()));
+		assertTrue(DomainAPIHelper.isHrefMatched("1.2.3", versionsResources.getLinks()));
+		assertTrue(DomainAPIHelper.isHrefMatched("1.3.1", versionsResources.getLinks()));
 
 		try
 		{
@@ -593,7 +518,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		}
 
 		PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
-		assertFalse(isHrefMatched("testPolicyDelete", policiesRes.getPolicies().getLinks()),
+		assertFalse(DomainAPIHelper.isHrefMatched("testPolicyDelete", policiesRes.getPolicies().getLinks()),
 				"Deleted policy resource (all versions) is still in links returned by getPoliciesResource()");
 
 	}
@@ -602,16 +527,16 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	public void deleteAndTryGetPolicyVersion()
 	{
 		PolicySet policySet1 = RestServiceTest.createDumbPolicySet("testPolicyDelete", "1.2.3");
-		testAddAndGetPolicy(policySet1);
+		testDomainHelper.testAddAndGetPolicy(policySet1);
 
 		PolicySet policySet2 = RestServiceTest.createDumbPolicySet("testPolicyDelete", "1.3.1");
-		testAddAndGetPolicy(policySet2);
+		testDomainHelper.testAddAndGetPolicy(policySet2);
 
 		// delete one of the versions
 		PolicyVersionResource policyVersionRes = testDomain.getPapResource().getPoliciesResource()
 				.getPolicyResource("testPolicyDelete").getPolicyVersionResource("1.2.3");
 		PolicySet deletedPolicy = policyVersionRes.deletePolicyVersion();
-		matchPolicySets(deletedPolicy, policySet1, "deleteAndTryGetPolicy");
+		DomainAPIHelper.matchPolicySets(deletedPolicy, policySet1, "deleteAndTryGetPolicy");
 
 		try
 		{
@@ -625,7 +550,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		Resources policyVersionsResources = testDomain.getPapResource().getPoliciesResource()
 				.getPolicyResource("testPolicyDelete").getPolicyVersions();
 		assertEquals(policyVersionsResources.getLinks().size(), 1);
-		assertTrue(isHrefMatched("1.3.1", policyVersionsResources.getLinks()));
+		assertTrue(DomainAPIHelper.isHrefMatched("1.3.1", policyVersionsResources.getLinks()));
 
 	}
 
@@ -655,31 +580,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				.getRootPolicyRef(), "rootPolicyRef changed although root policy removal rejected");
 	}
 
-	private IdReferenceType setRootPolicy(String policyId, String version)
-	{
-		PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();
-		IdReferenceType newRootPolicyRef = new IdReferenceType(policyId, version, null, null);
-		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(newRootPolicyRef));
-		return newRootPolicyRef;
-	}
-
-	private IdReferenceType setRootPolicy(PolicySet policySet)
-	{
-		try
-		{
-			testAddAndGetPolicy(policySet);
-		} catch (ClientErrorException e)
-		{
-			// If this is a conflict, it means it is already added, else something bad happened
-			if (e.getResponse().getStatus() != Status.CONFLICT.getStatusCode())
-			{
-				throw e;
-			}
-		}
-
-		return setRootPolicy(policySet.getPolicySetId(), policySet.getVersion());
-	}
-
 	@Test(dependsOnMethods = { "addAndGetPolicy", "deleteRootPolicy", "updateDomainProperties" })
 	public void updateRootPolicyRefToValidPolicy() throws JAXBException
 	{
@@ -694,7 +594,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		String oldRootPolicyId = rootPolicyRef.getValue();
 		String newRootPolicyId = oldRootPolicyId + ".new";
 		PolicySet policySet = RestServiceTest.createDumbPolicySet(newRootPolicyId, "1.0");
-		IdReferenceType newRootPolicyRef = setRootPolicy(policySet);
+		IdReferenceType newRootPolicyRef = testDomainHelper.setRootPolicy(policySet, false);
 
 		// verify update
 		final PdpProperties newProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
@@ -744,13 +644,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		PdpProperties props = propsRes.getOtherPdpProperties();
 
 		PolicySet policySet = RestServiceTest.createDumbPolicySet("testUpdateRootPolicyRefToValidVersion", "4.4");
-		testAddAndGetPolicy(policySet);
+		testDomainHelper.testAddAndGetPolicy(policySet);
 
 		PolicySet policySet2 = RestServiceTest.createDumbPolicySet("testUpdateRootPolicyRefToValidVersion", "4.5");
-		testAddAndGetPolicy(policySet2);
+		testDomainHelper.testAddAndGetPolicy(policySet2);
 
 		PolicySet policySet3 = RestServiceTest.createDumbPolicySet("testUpdateRootPolicyRefToValidVersion", "4.6");
-		testAddAndGetPolicy(policySet3);
+		testDomainHelper.testAddAndGetPolicy(policySet3);
 
 		IdReferenceType newRootPolicyRef = new IdReferenceType("testUpdateRootPolicyRefToValidVersion", "4.5", null,
 				null);
@@ -795,29 +695,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				.getRootPolicyRef());
 	}
 
-	private void resetPolicies() throws JAXBException
-	{
-		final JAXBElement<?> jaxbElt = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, TEST_DEFAULT_POLICYSET_FILENAME));
-		final PolicySet newRootPolicySet = (PolicySet) jaxbElt.getValue();
-		final PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
-		setRootPolicy(newRootPolicySet);
-
-		// Delete all other policies
-		Resources policiesResources = policiesRes.getPolicies();
-		for (Link link : policiesResources.getLinks())
-		{
-			String policyId = link.getHref();
-			// skip if this is the root policy
-			if (policyId.equals(newRootPolicySet.getPolicySetId()))
-			{
-				continue;
-			}
-
-			policiesRes.getPolicyResource(policyId).deletePolicy();
-		}
-	}
-
 	@Test(dependsOnMethods = { "updateRootPolicyRefToValidPolicy" })
 	public void setRootPolicyWithGoodRefs() throws JAXBException
 	{
@@ -826,20 +703,21 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		 * policySet without policy references (in case the current root PolicySet has references, uploading the empty
 		 * refPolicySets before will be rejected because it makes the policySet with references invalid)
 		 */
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 
-		final JAXBElement<?> jaxbElement = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
-		final PolicySet refPolicySet = (PolicySet) jaxbElement.getValue();
-		String refPolicyResId = testAddAndGetPolicy(refPolicySet);
+		final JAXBElement<PolicySet> jaxbElement = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"),
+				PolicySet.class);
+		final PolicySet refPolicySet = jaxbElement.getValue();
+		String refPolicyResId = testDomainHelper.testAddAndGetPolicy(refPolicySet);
 
 		// Set root policy referencing ref policy above
-		final JAXBElement<?> jaxbElement2 = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"));
-		final PolicySet policySetWithRef = (PolicySet) jaxbElement2.getValue();
+		final JAXBElement<PolicySet> jaxbElement2 = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"), PolicySet.class);
+		final PolicySet policySetWithRef = jaxbElement2.getValue();
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
-		setRootPolicy(policySetWithRef);
+		testDomainHelper.setRootPolicy(policySetWithRef, true);
 
 		// Delete referenced policy -> must fail (because root policy is still
 		// referencing one of them)
@@ -870,7 +748,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		 * policySet without policy references (in case the current root PolicySet has references, uploading the empty
 		 * refPolicySets before will be rejected because it makes the policySet with references invalid)
 		 */
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 		// Get current rootPolicy
 		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource()
 				.getOtherPdpProperties().getRootPolicyRef();
@@ -878,11 +756,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final PolicySet policySetWithRefs = (PolicySet) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Undef/policy.xml"));
+		final JAXBElement<PolicySet> policySetWithRefs = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Undef/policy.xml"), PolicySet.class);
 		try
 		{
-			setRootPolicy(policySetWithRefs);
+			testDomainHelper.setRootPolicy(policySetWithRefs.getValue(), true);
 			fail("Invalid Root PolicySet (with invalid references) accepted");
 		} catch (BadRequestException e)
 		{
@@ -902,27 +780,29 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		 * policySet without policy references (in case the current root PolicySet has references, uploading the empty
 		 * refPolicySets before will be rejected because it makes the policySet with references invalid)
 		 */
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 		// Get current rootPolicy
 		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource()
 				.getOtherPdpProperties().getRootPolicyRef();
 
 		// add refPolicies
-		final PolicySet refPolicySet = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"PolicyReference.Circular/refPolicies/invalid-pps-employee.xml"));
-		testAddAndGetPolicy(refPolicySet);
-		final PolicySet refPolicySet2 = (PolicySet) unmarshaller.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
-				"PolicyReference.Circular/refPolicies/pps-manager.xml"));
-		testAddAndGetPolicy(refPolicySet2);
+		final JAXBElement<PolicySet> refPolicySet = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/refPolicies/invalid-pps-employee.xml"),
+				PolicySet.class);
+		testDomainHelper.testAddAndGetPolicy(refPolicySet.getValue());
+		final JAXBElement<PolicySet> refPolicySet2 = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/refPolicies/pps-manager.xml"),
+				PolicySet.class);
+		testDomainHelper.testAddAndGetPolicy(refPolicySet2.getValue());
 
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final PolicySet policySetWithRefs = (PolicySet) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/policy.xml"));
+		final JAXBElement<PolicySet> policySetWithRefs = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/policy.xml"), PolicySet.class);
 		try
 		{
-			setRootPolicy(policySetWithRefs);
+			testDomainHelper.setRootPolicy(policySetWithRefs.getValue(), true);
 			fail("Invalid Root PolicySet (with invalid references) accepted");
 		} catch (BadRequestException e)
 		{
@@ -940,12 +820,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final JAXBElement<?> badPolicySetJaxbObj = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "policySetWithTooManyChildElements.xml"));
-		final PolicySet badPolicySet = (PolicySet) badPolicySetJaxbObj.getValue();
+		final JAXBElement<PolicySet> badPolicySetJaxbObj = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_SAMPLES_DIR, "policyWithTooManyChildElements.xml"), PolicySet.class);
+		final PolicySet badPolicySet = badPolicySetJaxbObj.getValue();
 		try
 		{
-			testAddAndGetPolicy(badPolicySet);
+			testDomainHelper.testAddAndGetPolicy(badPolicySet);
 			fail("Invalid PolicySet (too many child elements) accepted");
 		} catch (ClientErrorException e)
 		{
@@ -964,12 +844,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		// Then attempt to put bad root policy set (referenced policysets in
 		// Policy(Set)IdReferences do
 		// not exist since refPolicySets empty)
-		final JAXBElement<?> jaxbObj = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "policySetTooDeep.xml"));
-		final PolicySet badPolicySet = (PolicySet) jaxbObj.getValue();
+		final JAXBElement<PolicySet> jaxbObj = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR,
+				"policyTooDeep.xml"), PolicySet.class);
+		final PolicySet badPolicySet = jaxbObj.getValue();
 		try
 		{
-			testAddAndGetPolicy(badPolicySet);
+			testDomainHelper.testAddAndGetPolicy(badPolicySet);
 			fail("Invalid PolicySet (too deep element(s)) accepted");
 		} catch (BadRequestException e)
 		{
@@ -1001,6 +881,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp");
 		for (final File subDir : testRootDir.listFiles(DIRECTORY_FILTER))
 		{
+			if (subDir.getName().equals("IIIE302(PolicySet)") && !enableMDP)
+			{
+				// skip as this test requires support for Multiple Decision Profile
+				continue;
+			}
 			// specific test's resources directory location, used as parameter
 			// to PdpTest(String)
 			testParams.add(new Object[] { subDir });
@@ -1022,7 +907,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" }, dataProvider = "pdpTestFiles")
 	public void requestPDP(File testDirectory) throws JAXBException
 	{
-		resetPolicies();
+		testDomainHelper.resetPolicies();
 		// reset attribute providers
 		testDomain
 				.getPapResource()
@@ -1032,11 +917,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 		LOGGER.debug("Starting PDP test of directory '{}'", testDirectory);
 
-		final File attributeProviderFile = new File(testDirectory, TEST_ATTRIBUTE_PROVIDER_FILENAME);
+		final File attributeProviderFile = new File(testDirectory, RestServiceTest.TEST_ATTRIBUTE_PROVIDER_FILENAME);
 		if (attributeProviderFile.exists())
 		{
-			JAXBElement<AbstractAttributeProvider> jaxbElt = (JAXBElement<AbstractAttributeProvider>) unmarshaller
-					.unmarshal(attributeProviderFile);
+			JAXBElement<AbstractAttributeProvider> jaxbElt = testDomainHelper.unmarshal(attributeProviderFile,
+					AbstractAttributeProvider.class);
 			testDomain
 					.getPapResource()
 					.getAttributeProvidersResource()
@@ -1045,73 +930,40 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 									.getValue())));
 		}
 
-		final File refPoliciesDir = new File(testDirectory, TEST_REF_POLICIES_DIRECTORY_NAME);
+		final File refPoliciesDir = new File(testDirectory, RestServiceTest.TEST_REF_POLICIES_DIRECTORY_NAME);
 		if (refPoliciesDir.exists() && refPoliciesDir.isDirectory())
 		{
 			for (final File policyFile : refPoliciesDir.listFiles())
 			{
 				if (policyFile.isFile())
 				{
-					final PolicySet policy = (PolicySet) unmarshaller.unmarshal(policyFile);
-					testAddAndGetPolicy(policy);
+					final JAXBElement<PolicySet> policy = testDomainHelper.unmarshal(policyFile, PolicySet.class);
+					testDomainHelper.testAddAndGetPolicy(policy.getValue());
 					LOGGER.debug("Added policy from file: " + policyFile);
 				}
 			}
 		}
 
-		final PolicySet policy = (PolicySet) unmarshaller.unmarshal(new File(testDirectory,
-				RestServiceTest.TEST_POLICY_FILENAME));
+		final JAXBElement<PolicySet> policy = testDomainHelper.unmarshal(new File(testDirectory,
+				RestServiceTest.TEST_POLICY_FILENAME), PolicySet.class);
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
-		setRootPolicy(policy);
+		testDomainHelper.setRootPolicy(policy.getValue(), true);
 
-		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(testDirectory,
-				RestServiceTest.REQUEST_FILENAME));
-		final Response expectedResponse = (Response) unmarshaller.unmarshal(new File(testDirectory,
-				RestServiceTest.EXPECTED_RESPONSE_FILENAME));
-		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
-		assertNormalizedEquals(expectedResponse, actualResponse);
+		final JAXBElement<Request> xacmlReq = testDomainHelper.unmarshal(new File(testDirectory,
+				RestServiceTest.REQUEST_FILENAME), Request.class);
+		final JAXBElement<Response> expectedResponse = testDomainHelper.unmarshal(new File(testDirectory,
+				RestServiceTest.EXPECTED_RESPONSE_FILENAME), Response.class);
+		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+		assertNormalizedEquals(expectedResponse.getValue(), actualResponse);
 	}
 
-	@Parameters("start.server")
-	@Test(dependsOnMethods = { "requestPDP" })
-	public void getRootPolicyRefAfterChangingPdpConfFile(@Optional("true") boolean startServer) throws JAXBException
+	private void verifySyncAfterPdpConfFileModification(IdReferenceType newRootPolicyRef) throws JAXBException
 	{
-		// skip this if server not started locally (files not local)
-		if (!startServer)
-		{
-			return;
-		}
-
-		File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "IIIG301");
-
-		final PolicySet policy = (PolicySet) unmarshaller.unmarshal(new File(testDir,
-				RestServiceTest.TEST_POLICY_FILENAME));
-		IdReferenceType newRootPolicyRef = new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
-		testAddAndGetPolicy(policy);
-
-		// change root policyref in PDP conf file
-		Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(testDomainPDPConfFile), Pdp.class);
-		final StaticRefBasedRootPolicyProvider staticRefBasedRootPolicyProvider = (StaticRefBasedRootPolicyProvider) pdpConf
-				.getRootPolicyProvider();
-		staticRefBasedRootPolicyProvider.setPolicyRef(newRootPolicyRef);
-		pdpModelHandler.marshal(pdpConf, testDomainPDPConfFile);
-		long timeBeforeSync = System.currentTimeMillis();
-
-		// Manual sync via GET /domains/{domainId}/pap/properties
-		PdpProperties pdpProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
-		long lastModifiedTime = pdpProps.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
-		assertTrue(lastModifiedTime > timeBeforeSync,
-				"Manual sync with API getOtherPdpProperties() failed: returned lastModifiedTime is not up-to-date");
-
-		assertEquals(
-				pdpProps.getRootPolicyRef(),
-				newRootPolicyRef,
-				"Manual sync with API getOtherPdpProperties() failed: returned root policyRef does not match the one in PDP configuration file");
-
 		// check PDP returned policy identifier
-		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(testDir, RestServiceTest.REQUEST_FILENAME));
-		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
+		final JAXBElement<Request> jaxbXacmlReq = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, RestServiceTest.REQUEST_FILENAME), Request.class);
+		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(jaxbXacmlReq.getValue());
 		for (JAXBElement<IdReferenceType> jaxbElt : actualResponse.getResults().get(0).getPolicyIdentifierList()
 				.getPolicyIdReferencesAndPolicySetIdReferences())
 		{
@@ -1129,85 +981,235 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		fail("Manual sync with API getOtherPdpProperties() failed: PolicySetIdReference returned by PDP does not match the root policyRef in PDP configuration file");
 	}
 
-	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory() throws JAXBException
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "requestPDP" })
+	public void headRootPolicyRefAfterChangingPdpConfFile(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
-		resetPolicies();
+		// skip this if server not started locally (files not local)
+		if (!startServer)
+		{
+			return;
+		}
 
-		final JAXBElement<?> jaxbElt = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"));
-		final PolicySet refPolicySet = (PolicySet) jaxbElt.getValue();
-		testAddAndGetPolicy(refPolicySet);
+		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyPdpConfFile(isFilesystemLegacy);
 
-		// Set root policy referencing ref policy above
-		final JAXBElement<?> jaxbElt2 = (JAXBElement<?>) unmarshaller.unmarshal(new File(
-				RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"));
-		final PolicySet policySetWithRef = (PolicySet) jaxbElt2.getValue();
-		// Add the policy and point the rootPolicyRef to new policy with refs to
-		// instantiate it as root policy (validate, etc.)
-		setRootPolicy(policySetWithRef);
+		// Manual sync via HEAD /domains/{domainId}/pap/properties
+		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId).path("pap")
+				.path("properties").head();
+		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
+				+ testDomainId + "/pap/properties failed");
 
-		// update referenced policy version on disk (we add ".1" to old version to have later version)
-		PolicySet newRefPolicySet = new PolicySet(refPolicySet.getDescription(), refPolicySet.getPolicyIssuer(),
-				refPolicySet.getPolicySetDefaults(), refPolicySet.getTarget(),
-				refPolicySet.getPolicySetsAndPoliciesAndPolicySetIdReferences(),
-				refPolicySet.getObligationExpressions(), refPolicySet.getAdviceExpressions(),
-				refPolicySet.getPolicySetId(), refPolicySet.getVersion() + ".1",
-				refPolicySet.getPolicyCombiningAlgId(), refPolicySet.getMaxDelegationDepth());
-		Marshaller marshaller = RestServiceTest.JAXB_CTX.createMarshaller();
-		File refPolicyDir = new File(testDomainPoliciesDirName, FlatFileDAOUtils.base64UrlEncode(newRefPolicySet
-				.getPolicySetId()));
-		File refPolicyFile = new File(refPolicyDir, newRefPolicySet.getVersion() + ".xml");
-		marshaller.marshal(newRefPolicySet, refPolicyFile);
-
-		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/policies
-		long timeBeforeGetPolicies = System.currentTimeMillis();
-		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
-		long timeAfterGetPolicies = System.currentTimeMillis();
-
-		// check new PDP lastModifiedTime
-		PdpProperties pdpProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
-		long lastModifiedTime = pdpProps.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
-		assertTrue(
-				lastModifiedTime > timeBeforeGetPolicies && lastModifiedTime < timeAfterGetPolicies,
-				"Manual sync with API getPolicies() failed: lastModifiedTime returned by getOtherPdpProperties() does not match the time when getPolicies() was called");
-		// check enabled policies
-		IdReferenceType newRefPolicySetRef = new IdReferenceType(newRefPolicySet.getPolicySetId(),
-				newRefPolicySet.getVersion(), null, null);
-		assertTrue(
-				pdpProps.getRefPolicyReves().contains(newRefPolicySetRef),
-				"Manual sync with API getPolicies() failed: enabledPolicies returned by getOtherPdpProperties() does not contain last policy version");
-
-		// Redo the same but updating the root policy version on disk this time
-		PolicySet newRootPolicySet = new PolicySet(policySetWithRef.getDescription(),
-				policySetWithRef.getPolicyIssuer(), policySetWithRef.getPolicySetDefaults(),
-				policySetWithRef.getTarget(), policySetWithRef.getPolicySetsAndPoliciesAndPolicySetIdReferences(),
-				policySetWithRef.getObligationExpressions(), policySetWithRef.getAdviceExpressions(),
-				policySetWithRef.getPolicySetId(), policySetWithRef.getVersion() + ".1",
-				policySetWithRef.getPolicyCombiningAlgId(), policySetWithRef.getMaxDelegationDepth());
-		File rootPolicyDir = new File(testDomainPoliciesDirName, FlatFileDAOUtils.base64UrlEncode(newRootPolicySet
-				.getPolicySetId()));
-		File rootPolicyFile = new File(rootPolicyDir, newRootPolicySet.getVersion() + ".xml");
-		marshaller.marshal(newRootPolicySet, rootPolicyFile);
-
-		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/policies
-		long timeBeforeGetPolicies2 = System.currentTimeMillis();
-		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
-		long timeAfterGetPolicies2 = System.currentTimeMillis();
-
-		// check new PDP lastModifiedTime
-		long lastModifiedTime2 = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties()
-				.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
-		assertTrue(
-				lastModifiedTime2 < timeBeforeGetPolicies2 && lastModifiedTime2 > timeAfterGetPolicies2,
-				"Manual sync with API getPolicies() failed: lastModifiedTime returned by getOtherPdpProperties() does not match the time when getPolicies() was called");
-		// check enabled policies
-		IdReferenceType newRootPolicySetRef = new IdReferenceType(newRootPolicySet.getPolicySetId(),
-				newRootPolicySet.getVersion(), null, null);
-		assertEquals(
-				pdpProps.getRootPolicyRef(),
-				newRootPolicySetRef,
-				"Manual sync with API getPolicies() failed: enabledPolicies returned by getOtherPdpProperties() does not contain last policy version");
+		verifySyncAfterPdpConfFileModification(newRootPolicyRef);
 	}
 
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "requestPDP" })
+	public void getRootPolicyRefAfterChangingPdpConfFile(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	{
+		// skip this if server not started locally (files not local)
+		if (!startServer)
+		{
+			return;
+		}
+
+		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyPdpConfFile(isFilesystemLegacy);
+
+		// Manual sync via GET /domains/{domainId}/pap/properties
+		long timeBeforeSync = System.currentTimeMillis();
+		PdpProperties pdpProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
+		long lastModifiedTime = pdpProps.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
+		assertTrue(lastModifiedTime > timeBeforeSync,
+				"Manual sync with API getOtherPdpProperties() failed: returned lastModifiedTime is not up-to-date");
+
+		assertEquals(
+				pdpProps.getRootPolicyRef(),
+				newRootPolicyRef,
+				"Manual sync with API getOtherPdpProperties() failed: returned root policyRef does not match the one in PDP configuration file");
+
+		verifySyncAfterPdpConfFileModification(newRootPolicyRef);
+	}
+
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
+	{
+		// skip test if server not started locally
+		if (!startServer)
+		{
+			return;
+		}
+
+		final File inputRefPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_REF_POLICIES_DIRECTORY_NAME + "/pps-employee.xml");
+		final File inputRootPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_DEFAULT_POLICYSET_FILENAME);
+		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, false, isFileSystemLegacy);
+
+		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/properties
+		long timeBeforeSync = System.currentTimeMillis();
+		PdpProperties pdpProps = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
+		long timeAfterSync = System.currentTimeMillis();
+
+		// check new PDP lastModifiedTime
+		long lastModifiedTime = pdpProps.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
+		if (LOGGER.isDebugEnabled())
+		{
+			LOGGER.debug("Domain '{}': PDP lastmodifiedtime = {}", testDomainId,
+					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(lastModifiedTime)));
+		}
+
+		assertTrue(
+				lastModifiedTime > timeBeforeSync && lastModifiedTime < timeAfterSync,
+				"Manual sync with API Domain('"
+						+ testDomainId
+						+ "')#getOtherPdpProperties() failed: lastModifiedTime ("
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(lastModifiedTime))
+						+ ") returned by getOtherPdpProperties() does not match the time when getPolicies() was called. Expected to be in range ["
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(timeBeforeSync)) + ", "
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(timeAfterSync)) + "]");
+		// check enabled policies
+		assertTrue(pdpProps.getRefPolicyReves().contains(newRefPolicySetRef), "Manual sync with API Domain('"
+				+ testDomainId
+				+ "')#getOtherPdpProperties() failed: <refPolicyRef>s returned by getOtherPdpProperties() ( = "
+				+ pdpProps.getRefPolicyReves()
+				+ ") does not contain last applicable refpolicy version created on disk: " + newRefPolicySetRef);
+
+		// Redo the same but updating the root policy version on disk this time
+		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, true, isFileSystemLegacy);
+
+		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/properties
+		long timeBeforeSync2 = System.currentTimeMillis();
+		PdpProperties pdpProps2 = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties();
+		long timeAfterSync2 = System.currentTimeMillis();
+		final long lastModifiedTime2 = pdpProps2.getLastModifiedTime().toGregorianCalendar().getTimeInMillis();
+		if (LOGGER.isDebugEnabled())
+		{
+			LOGGER.debug("Domain '{}': PDP lastmodifiedtime = {}", testDomainId,
+					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(lastModifiedTime2)));
+		}
+
+		assertTrue(
+				lastModifiedTime2 > timeBeforeSync2 && lastModifiedTime2 < timeAfterSync2,
+				"Manual sync with API Domain('"
+						+ testDomainId
+						+ "')#getOtherPdpProperties() failed: lastModifiedTime ("
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(lastModifiedTime2))
+						+ ") returned by getOtherPdpProperties() does not match the time when getPolicies() was called. Expected to be in range ["
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(timeBeforeSync2)) + ", "
+						+ RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(timeAfterSync2)) + "]");
+		// check enabled policies
+		assertEquals(pdpProps2.getRootPolicyRef(), newRootPolicySetRef, "Manual sync with API Domain('" + testDomainId
+				+ "')#getOtherPdpProperties() failed: rootPolicyRef returned by getOtherPdpProperties() ( = "
+				+ pdpProps2.getRootPolicyRef()
+				+ ") does not match last applicable root policy version created on disk: " + newRootPolicySetRef);
+	}
+
+	private void verifyPdpReturnedPolicies(IdReferenceType expectedPolicyRef) throws JAXBException
+	{
+		/*
+		 * We cannot check again with /domain/{domainId}/pap/properties because it will sync again and this is not what
+		 * we intend to test here.
+		 */
+		// Check PDP returned policy identifiers
+		final JAXBElement<Request> jaxbXacmlReq = testDomainHelper.unmarshal(new File(
+				RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR, "requestPolicyIdentifiers.xml"), Request.class);
+		final Request xacmlReq = jaxbXacmlReq.getValue();
+		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
+		boolean isNewRefPolicyRefMatched = false;
+		final List<JAXBElement<IdReferenceType>> jaxbPolicyRefs = actualResponse.getResults().get(0)
+				.getPolicyIdentifierList().getPolicyIdReferencesAndPolicySetIdReferences();
+		final List<IdReferenceType> returnedPolicyIdentifiers = new ArrayList<>();
+		for (JAXBElement<IdReferenceType> jaxbPolicyRef : jaxbPolicyRefs)
+		{
+			String tagLocalName = jaxbPolicyRef.getName().getLocalPart();
+			if (tagLocalName.equals("PolicySetIdReference"))
+			{
+				final IdReferenceType idRef = jaxbPolicyRef.getValue();
+				returnedPolicyIdentifiers.add(idRef);
+				if (idRef.equals(expectedPolicyRef))
+				{
+					isNewRefPolicyRefMatched = true;
+				}
+			}
+		}
+
+		assertTrue(isNewRefPolicyRefMatched, "Manual sync with API Domain('" + testDomainId
+				+ "')#getPolicies() failed: new policy version created on disk (" + expectedPolicyRef
+				+ ") is not in PolicySetIdReferences returned by PDP: " + returnedPolicyIdentifiers);
+
+	}
+
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "getPdpPropertiesAfterModifyingUsedPolicyDirectory" })
+	public void headPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
+	{
+		// skip test if server not started locally
+		if (!startServer)
+		{
+			return;
+		}
+
+		final File inputRefPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_REF_POLICIES_DIRECTORY_NAME + "/pps-employee.xml");
+		final File inputRootPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_DEFAULT_POLICYSET_FILENAME);
+		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, false, isFileSystemLegacy);
+
+		// Manual sync via HEAD /domains/{domainId}/pap/properties
+		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId).path("pap")
+				.path("properties").head();
+		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
+				+ testDomainId + "/pap/properties failed");
+
+		verifyPdpReturnedPolicies(newRefPolicySetRef);
+
+		// Redo the same but adding new root policy version on disk this time
+		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, true, isFileSystemLegacy);
+
+		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/policies
+		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+
+		verifyPdpReturnedPolicies(newRootPolicySetRef);
+	}
+
+	@Parameters({ "start.server", "legacy.fs" })
+	@Test(dependsOnMethods = { "requestPDP" })
+	public void getPoliciesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	{
+		// skip test if server not started locally
+		if (!startServer)
+		{
+			return;
+		}
+
+		final File inputRefPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_REF_POLICIES_DIRECTORY_NAME + "/pps-employee.xml");
+		final File inputRootPolicyFile = new File(RestServiceTest.XACML_POLICYREFS_PDP_TEST_DIR,
+				RestServiceTest.TEST_DEFAULT_POLICYSET_FILENAME);
+		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, false, isFilesystemLegacy);
+
+		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/policies
+		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+
+		verifyPdpReturnedPolicies(newRefPolicySetRef);
+
+		// Redo the same but adding new root policy version on disk this time
+		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile,
+				inputRefPolicyFile, true, isFilesystemLegacy);
+
+		// Manual sync of PDP's active policies via GET /domains/{domainId}/pap/policies
+		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+
+		verifyPdpReturnedPolicies(newRootPolicySetRef);
+	}
 }

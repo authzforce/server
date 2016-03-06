@@ -6,6 +6,7 @@
 	maxVariableRefDepth="1"
 	maxPolicyRefDepth="10"
 	requestFilter="urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax">
+	<!-- One of the PDP tests uses Multiple Decision Profile, so the requestFilter must be compatible, e.g. "urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax". -->
 	<!-- You may customize this PDP configuration except 'rootPolicyProvider' and 'refPolicyProvider' elements. -->
 	<!-- policyLocation must start with ${PARENT_DIR}/ and end with: /*SUFFIX (* is expanded to base64url(policyId)/policyVersion) -->
 	<refPolicyProvider

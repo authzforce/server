@@ -26,6 +26,22 @@
 			<version>3.0.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<!-- Optional cxf-core dependency, needed here for FastInfoSet -->
+			<groupId>com.sun.xml.fastinfoset</groupId>
+			<artifactId>FastInfoset</artifactId>
+			<version>1.2.13</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jsr173</artifactId>
+					<groupId>javax.xml</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsr173_api</artifactId>
+					<groupId>javax.xml.bind</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 , item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
@@ -96,6 +112,16 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- Override the default version of surefire used by jar packaging -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.19.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -198,19 +224,21 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugin</groupId>
+				<!-- This execution of surefire is overwritten by a default one unless we specify a different version in pluginManagement. -->
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.14.1</version>
 				<configuration>
+					<suiteXmlFiles>
+						<!-- Parameters in the XML files seem to be ignore (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
 					<properties>
 						<property>
 							<name>surefire.testng.verbose</name>
-							<value>10</value>
+							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
+							<value>0</value>
 						</property>
 					</properties>
-					<suiteXmlFiles>
-						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
-					</suiteXmlFiles>
 				</configuration>
 			</plugin>
 		</plugins>

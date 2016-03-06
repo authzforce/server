@@ -23,6 +23,7 @@ import java.util.TimeZone;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -55,6 +56,8 @@ import org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper;
 import org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl;
 import org.ow2.authzforce.rest.service.jaxrs.ErrorHandlerInterceptor;
 import org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -64,23 +67,27 @@ import org.testng.ITestContext;
 @ContextConfiguration(locations = { "classpath:META-INF/spring/applicationContext.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTest.class);
+
 	/**
 	 * Test context attribute set by the beforeSuite() to the initialized value of class member 'client'. To be reused
 	 * in other test classes of the same test suite. Attribute value type: {@link DomainsResource}
 	 */
-	public static final String REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.rest.client";
+	public static final String REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client";
 
 	/**
 	 * Test context attribute set by the beforeSuite() to the initialized value of class member 'pdpModelHandler'. To be
 	 * reused in other test classes of the same test suite. Attribute value type: {@link PdpModelHandler}
 	 */
-	public static final String PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.pdp.model.handler";
+	public static final String PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.pdp.model.handler";
 
 	/**
 	 * Test context attribute set by the beforeSuite() to the XML schema of all XML data sent/received by the API
 	 * client. To be reused in other test classes of the same test suite. Attribute value type: {@link Schema}
 	 */
-	public static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "com.thalesgroup.authzforce.test.rest.client.api.schema";
+	public static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client.api.schema";
+
+	private static final String COMPONENT_ENV_JNDI_CTX_NAME = "java:comp/env";
 
 	protected static final int MAX_XML_TEXT_LENGTH = 1000;
 
@@ -96,6 +103,26 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!XACML_SAMPLES_DIR.exists())
 		{
 			throw new RuntimeException("XACML SAMPLES DIRECTORY NOT FOUND: " + XACML_SAMPLES_DIR);
+		}
+	}
+
+	static final File XACML_IIIG301_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "IIIG301");
+	static
+	{
+		if (!XACML_IIIG301_PDP_TEST_DIR.exists())
+		{
+			throw new RuntimeException("XACML PDP TEST DIRECTORY NOT FOUND: " + XACML_IIIG301_PDP_TEST_DIR);
+		}
+	}
+
+	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR,
+			"pdp/PolicyReference.Valid");
+	static
+	{
+		if (!XACML_POLICYREFS_PDP_TEST_DIR.exists())
+		{
+			throw new RuntimeException("XACML POLICYREFS PDP TEST DIRECTORY NOT FOUND: "
+					+ XACML_POLICYREFS_PDP_TEST_DIR);
 		}
 	}
 
@@ -126,6 +153,15 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
+	protected static final Random PRNG = new Random();
+
+	protected static final DateFormat UTC_DATE_WITH_MILLIS_FORMATTER = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss.SSS ('UTC')");
+	static
+	{
+		UTC_DATE_WITH_MILLIS_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+	}
+
 	/**
 	 * XACML request filename
 	 */
@@ -142,14 +178,14 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 */
 	protected final static String EXPECTED_RESPONSE_FILENAME = "response.xml";
 
-	protected static final Random PRNG = new Random();
+	protected static final String TEST_REF_POLICIES_DIRECTORY_NAME = "refPolicies";
 
-	protected static final DateFormat UTC_DATE_WITH_MILLIS_FORMATTER = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss.SSS ('UTC')");
-	static
-	{
-		UTC_DATE_WITH_MILLIS_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
+	protected static final String TEST_ATTRIBUTE_PROVIDER_FILENAME = "attributeProvider.xml";
+
+	protected static final String TEST_DEFAULT_POLICYSET_FILENAME = "policy.xml";
+
+	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
+	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
 	protected static PolicySet createDumbPolicySet(String policyId, String version)
 	{
@@ -169,7 +205,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected PdpModelHandler pdpModelHandler;
 
 	@Autowired
-	private SchemaHandler clientApiSchemaHandler;
+	protected SchemaHandler clientApiSchemaHandler;
 
 	private Server server;
 
@@ -181,9 +217,6 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected DomainsResource client = null;
 
 	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
-
-	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
-	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
 	protected void startServerAndInitCLient(String appBaseUrl, boolean startServer, int maxPolicyCountPerDomain,
 			int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany, int domainSyncIntervalSec,
@@ -212,12 +245,23 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				System.setProperty(Context.URL_PKG_PREFIXES, "org.eclipse.jetty.jndi");
 
 				InitialContext ic = new InitialContext();
-				ic.createSubcontext("java:comp/env");
-				ic.bind("java:comp/env/org.ow2.authzforce.domain.maxPolicyCount", maxPolicyCountPerDomain);
-				ic.bind("java:comp/env/org.ow2.authzforce.domain.policy.maxVersionCount", maxVersionCountPerPolicy);
-				ic.bind("java:comp/env/org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany",
+				// check if the comp/env context already exists (created with previous test)
+				try
+				{
+					ic.list(COMPONENT_ENV_JNDI_CTX_NAME);
+				} catch (NameNotFoundException e)
+				{
+					ic.createSubcontext(COMPONENT_ENV_JNDI_CTX_NAME);
+				}
+
+				ic.rebind(COMPONENT_ENV_JNDI_CTX_NAME + "/org.ow2.authzforce.domain.maxPolicyCount",
+						maxPolicyCountPerDomain);
+				ic.rebind(COMPONENT_ENV_JNDI_CTX_NAME + "/org.ow2.authzforce.domain.policy.maxVersionCount",
+						maxVersionCountPerPolicy);
+				ic.rebind(COMPONENT_ENV_JNDI_CTX_NAME + "/org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany",
 						removeOldVersionsTooMany);
-				ic.bind("java:comp/env/org.ow2.authzforce.domains.sync.interval", domainSyncIntervalSec);
+				ic.rebind(COMPONENT_ENV_JNDI_CTX_NAME + "/org.ow2.authzforce.domains.sync.interval",
+						domainSyncIntervalSec);
 			} catch (NamingException ex)
 			{
 				throw new RuntimeException("Error setting property via JNDI", ex);
@@ -285,9 +329,12 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		/**
 		 * Request/response logging (for debugging).
 		 */
-		final ClientConfiguration clientConf = WebClient.getConfig(client);
-		clientConf.getInInterceptors().add(new LoggingInInterceptor());
-		clientConf.getOutInterceptors().add(new LoggingOutInterceptor());
+		if (LOGGER.isDebugEnabled())
+		{
+			final ClientConfiguration clientConf = WebClient.getConfig(client);
+			clientConf.getInInterceptors().add(new LoggingInInterceptor());
+			clientConf.getOutInterceptors().add(new LoggingOutInterceptor());
+		}
 
 		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, client);
 	}

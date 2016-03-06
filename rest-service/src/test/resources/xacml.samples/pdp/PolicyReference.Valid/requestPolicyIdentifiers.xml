@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <Request xmlns='urn:oasis:names:tc:xacml:3.0:core:schema:wd-17' CombinedDecision="false"
-	ReturnPolicyIdList="false">
+	ReturnPolicyIdList="true">
 	<Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
 		<Attribute AttributeId='urn:oasis:names:tc:xacml:1.0:subject:subject-id'
 			IncludeInResult="false">

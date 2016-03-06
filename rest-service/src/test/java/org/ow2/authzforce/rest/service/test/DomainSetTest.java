@@ -60,6 +60,19 @@ public class DomainSetTest extends RestServiceTest
 	private int domainExternalId = 0;
 	private Set<String> createdDomainIds = new HashSet<>();
 
+	/**
+	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values
+	 * for all.
+	 * 
+	 * @param appBaseUrl
+	 * @param startServer
+	 * @param maxPolicyCountPerDomain
+	 * @param maxVersionCountPerPolicy
+	 * @param removeOldVersionsTooMany
+	 * @param domainSyncIntervalSec
+	 * @param testCtx
+	 * @throws Exception
+	 */
 	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
 			"org.ow2.authzforce.domain.policy.maxVersionCount",
 			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
@@ -84,9 +97,13 @@ public class DomainSetTest extends RestServiceTest
 	{
 		WebTarget target = ClientBuilder.newClient().target(appBaseUrl).queryParam("_wadl", "");
 		Invocation.Builder builder = target.request();
-		final ClientConfiguration builderConf = WebClient.getConfig(builder);
-		builderConf.getInInterceptors().add(new LoggingInInterceptor());
-		builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
+		if (LOGGER.isDebugEnabled())
+		{
+			final ClientConfiguration builderConf = WebClient.getConfig(builder);
+			builderConf.getInInterceptors().add(new LoggingInInterceptor());
+			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
+		}
+
 		javax.ws.rs.core.Response response = builder.get();
 
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());

@@ -10,6 +10,8 @@
 	If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results.
 	-->
 	<parameter name="legacy.fs" value="true" />
+	<!-- enableMDP = true -> requires that PDP configuration uses a requestFilter with support for Multiple Decision Profile -->
+	<parameter name="enableMDP" value="true" />
 	<parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="false" />
@@ -38,7 +40,6 @@
 	</test>
 	<test name="WithAutoSyncAndVersionRemovalIfTooMany" preserve-order="true" enabled="true">
 		<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="true" />
-		<parameter name="org.ow2.authzforce.domains.sync.interval" value="4" />
 		<classes>
 			<!-- Domain-specific testing -->
 			<class name="org.ow2.authzforce.rest.service.test.DomainTestWithAutoSyncAndVersionRemoval" />

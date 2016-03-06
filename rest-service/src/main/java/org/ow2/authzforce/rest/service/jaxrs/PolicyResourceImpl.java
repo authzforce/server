@@ -15,7 +15,6 @@ package org.ow2.authzforce.rest.service.jaxrs;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
 
@@ -34,8 +33,7 @@ import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
 
 /**
- * Policy Resource implementation. Each policy managed by
- * {@link DomainResourceImpl} is an instance of this class.
+ * Policy Resource implementation. Each policy managed by {@link DomainResourceImpl} is an instance of this class.
  *
  */
 public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
@@ -58,8 +56,7 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 	{
 
 		@Override
-		public PolicyResourceImpl getInstance(String policyId,
-				DomainDAO<PolicyVersionResourceImpl, ?> policyDAO)
+		public PolicyResourceImpl getInstance(String policyId, DomainDAO<PolicyVersionResourceImpl, ?> policyDAO)
 		{
 			if (policyId == null)
 			{
@@ -85,26 +82,22 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 	private final DomainDAO<PolicyVersionResourceImpl, ?> domainDAO;
 	private final String policyId;
 
-	private PolicyResourceImpl(String policyId,
-			DomainDAO<PolicyVersionResourceImpl, ?> domainDAO)
+	private PolicyResourceImpl(String policyId, DomainDAO<PolicyVersionResourceImpl, ?> domainDAO)
 	{
 		assert domainDAO != null;
 		this.policyId = policyId;
 		this.domainDAO = domainDAO;
 	}
 
-	private static Resources getVersionResources(
-			NavigableSet<PolicyVersion> versions)
+	private static Resources getVersionResources(NavigableSet<PolicyVersion> versions)
 	{
+		// versions expected to be ordered from latest to oldest
 		final List<Link> policyVersionLinks = new ArrayList<>(versions.size());
-		// Iterate from last version to oldest
-		final Iterator<PolicyVersion> versionIterator = versions
-				.descendingIterator();
-		while (versionIterator.hasNext())
+		for (final PolicyVersion v : versions)
 		{
 			final Link link = new Link();
 			policyVersionLinks.add(link);
-			link.setHref(versionIterator.next().toString());
+			link.setHref(v.toString());
 			link.setRel(Relation.ITEM);
 		}
 
@@ -120,8 +113,7 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			removedPolicyVersions = domainDAO.removePolicy(policyId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error removing policy '"
-					+ policyId + "' (all versions)", e);
+			throw new InternalServerErrorException("Error removing policy '" + policyId + "' (all versions)", e);
 		}
 
 		if (removedPolicyVersions.isEmpty())
@@ -141,9 +133,7 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			policyVersions = domainDAO.getPolicyVersions(policyId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException(
-					"Error getting all versions of policy '" + policyId + "'",
-					e);
+			throw new InternalServerErrorException("Error getting all versions of policy '" + policyId + "'", e);
 		}
 
 		if (policyVersions.isEmpty())
@@ -170,9 +160,7 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 				policyVersion = domainDAO.getLatestPolicyVersionId(policyId);
 			} catch (IOException e)
 			{
-				throw new InternalServerErrorException(
-						"Error getting latest version of policy '" + policyId
-								+ "'", e);
+				throw new InternalServerErrorException("Error getting latest version of policy '" + policyId + "'", e);
 			}
 		} else
 		{
@@ -185,8 +173,7 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			}
 		}
 
-		final PolicyVersionResource versionResource = domainDAO
-				.getVersionDAOClient(policyId, policyVersion);
+		final PolicyVersionResource versionResource = domainDAO.getVersionDAOClient(policyId, policyVersion);
 		if (versionResource == null)
 		{
 			throw NOT_FOUND_EXCEPTION;

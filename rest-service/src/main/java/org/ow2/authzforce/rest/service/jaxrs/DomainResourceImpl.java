@@ -41,6 +41,7 @@ import org.ow2.authzforce.core.pap.api.dao.ReadableDomainProperties;
 import org.ow2.authzforce.core.pap.api.dao.ReadablePdpProperties;
 import org.ow2.authzforce.core.pap.api.dao.TooManyPoliciesException;
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
+import org.ow2.authzforce.core.pdp.api.PDP;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -75,6 +76,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		AttributeProvidersResource, PdpPropertiesResource
 {
 
+	private static final InternalServerErrorException NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION = new InternalServerErrorException(
+			"PDP is in erroneous state. Please contact the domain or system administrator.");
 	private static final ClientErrorException ADD_POLICY_CONFLICT_EXCEPTION = new ClientErrorException(
 			"PolicySet already exists with same PolicySetId and Version", javax.ws.rs.core.Response.Status.CONFLICT);
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
@@ -253,7 +256,13 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public Response requestPolicyDecision(Request request)
 	{
-		return domainDAO.getPDP().evaluate(request);
+		final PDP pdp = domainDAO.getPDP();
+		if (pdp == null)
+		{
+			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
+		}
+
+		return pdp.evaluate(request);
 	}
 
 	@Override

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:jee="http://www.springframework.org/schema/jee"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util" xmlns:jee="http://www.springframework.org/schema/jee" xmlns:cxf="http://cxf.apache.org/core"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
 						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+						http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
 
 	<jee:jndi-lookup id="jndi_configDir" jndi-name="org.ow2.authzforce.config.dir" expected-type="java.lang.String" default-value="classpath:server/conf" />
 	<!-- File: prefix matters. If not present, the path is loaded as classpath resource by Spring -->
