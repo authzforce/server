@@ -83,13 +83,13 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 	public void addDomain(@Optional("true") boolean startServer, ITestContext testCtx) throws JAXBException,
 			IOException
 	{
-		final Link domainLink = client.addDomain(new DomainProperties("Some description", testDomainExternalId));
+		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
 		testDomainId = domainLink.getHref();
 		LOGGER.debug("Added domain ID={}", testDomainId);
-		testDomain = client.getDomainResource(testDomainId);
+		testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 		testDomainDir = new File(DOMAINS_DIR, testDomainId);
 
@@ -241,7 +241,7 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 		boolean syncDone = false;
 		while (!syncDone)
 		{
-			domainLinks = client.getDomains(testDomainExternalId).getLinks();
+			domainLinks = domainsAPIProxyClient.getDomains(testDomainExternalId).getLinks();
 			syncDone = domainLinks != null && domainLinks.isEmpty();
 			// if sync failed, the loop goes on until the timeout specified in testng.xml expires
 		}
@@ -250,7 +250,7 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 
 		// test the new externalId
 		// test externalId
-		final List<Link> domainLinks2 = client.getDomains(newExternalId).getLinks();
+		final List<Link> domainLinks2 = domainsAPIProxyClient.getDomains(newExternalId).getLinks();
 		String matchedDomainId = domainLinks2.get(0).getHref();
 		assertEquals(matchedDomainId, testDomainId,
 				"Auto sync of externalId with domain properties file failed: getDomains(externalId = " + newExternalId

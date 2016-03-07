@@ -35,12 +35,15 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
 
 import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.interceptor.FIStaxInInterceptor;
+import org.apache.cxf.interceptor.FIStaxOutInterceptor;
 import org.apache.cxf.interceptor.Interceptor;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
@@ -187,6 +190,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
 	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
+	protected static final String FASTINFOSET_MEDIA_TYPE = "application/fastinfoset";
+
 	protected static PolicySet createDumbPolicySet(String policyId, String version)
 	{
 		return new PolicySet(null, null, null, new Target(null), null, null, null, policyId, version,
@@ -207,14 +212,16 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	@Autowired
 	protected SchemaHandler clientApiSchemaHandler;
 
-	private Server server;
+	private Server server = null;
 
 	@Autowired
 	private JAXBElementProvider<?> clientJaxbProvider;
 
 	protected Unmarshaller unmarshaller = null;
 
-	protected DomainsResource client = null;
+	protected DomainsResource domainsAPIProxyClient = null;
+
+	protected WebClient fiClient = null;
 
 	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
 
@@ -291,6 +298,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 					new ClientErrorExceptionMapper(), new ServerErrorExceptionMapper()));
 			sf.setServiceBean(domainsResourceBean);
 			final Map<String, Object> jaxRsServerProperties = new HashMap<>();
+			jaxRsServerProperties.put("org.apache.cxf.fastinfoset.enabled", "true");
 			jaxRsServerProperties.put("org.apache.cxf.propagate.exception", "false");
 			// XML security properties
 			jaxRsServerProperties.put("org.apache.cxf.stax.maxChildElements", "10");
@@ -303,6 +311,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			jaxRsServerProperties.put("org.apache.cxf.stax.maxTextLength", Integer.toString(MAX_XML_TEXT_LENGTH, 10));
 
 			sf.setProperties(jaxRsServerProperties);
+
+			sf.getOutInterceptors().add(new FIStaxOutInterceptor());
+			sf.getInInterceptors().add(new FIStaxInInterceptor());
+
 			sf.setOutFaultInterceptors(Collections
 					.<Interceptor<? extends Message>> singletonList(new ErrorHandlerInterceptor()));
 			server = sf.create();
@@ -317,26 +329,71 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 * WARNING: if tests are to be multi-threaded, modify according to Thread-safety section of CXF JAX-RS client
 		 * API documentation http://cxf .apache.org/docs/jax-rs-client-api.html#JAX-RSClientAPI-ThreadSafety
 		 */
-		client = JAXRSClientFactory.create(appBaseUrl, DomainsResource.class,
+		domainsAPIProxyClient = JAXRSClientFactory.create(appBaseUrl, DomainsResource.class,
 				Collections.singletonList(clientJaxbProvider));
+		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, domainsAPIProxyClient);
 
-		final Schema apiSchema = this.clientApiSchemaHandler.getSchema();
-		testCtx.setAttribute(REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID, apiSchema);
-
-		unmarshaller = DomainSetTest.JAXB_CTX.createUnmarshaller();
-		unmarshaller.setSchema(apiSchema);
-
+		// FASTINFOSET client
+		final JAXRSClientFactoryBean fiClientBean = new JAXRSClientFactoryBean();
+		fiClientBean.setAddress(appBaseUrl);
+		fiClientBean.getOutInterceptors().add(new FIStaxOutInterceptor());
+		fiClientBean.getInInterceptors().add(new FIStaxInInterceptor());
 		/**
 		 * Request/response logging (for debugging).
 		 */
 		if (LOGGER.isDebugEnabled())
 		{
-			final ClientConfiguration clientConf = WebClient.getConfig(client);
-			clientConf.getInInterceptors().add(new LoggingInInterceptor());
-			clientConf.getOutInterceptors().add(new LoggingOutInterceptor());
+			fiClientBean.getInInterceptors().add(new LoggingInInterceptor());
+			fiClientBean.getOutInterceptors().add(new LoggingOutInterceptor());
+
+			// also set same interceptors on domainsAPIProxyClient
+			final ClientConfiguration proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+			proxyClientConf.getInInterceptors().add(new LoggingInInterceptor());
+			proxyClientConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		}
 
-		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, client);
+		fiClientBean.setProvider(clientJaxbProvider);
+
+		Map<String, Object> fiClientProps = new HashMap<>();
+		fiClientProps.put(FIStaxOutInterceptor.FI_ENABLED, Boolean.TRUE);
+		fiClientBean.setProperties(fiClientProps);
+		fiClient = fiClientBean.createWebClient();
+		fiClient.type(FASTINFOSET_MEDIA_TYPE).accept(FASTINFOSET_MEDIA_TYPE);
+
+		checkFiInterceptors(WebClient.getConfig(fiClient));
+
+		// Unmarshaller
+		final Schema apiSchema = this.clientApiSchemaHandler.getSchema();
+		testCtx.setAttribute(REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID, apiSchema);
+
+		unmarshaller = DomainSetTest.JAXB_CTX.createUnmarshaller();
+		unmarshaller.setSchema(apiSchema);
+	}
+
+	private void checkFiInterceptors(ClientConfiguration cfg)
+	{
+		// https://github.com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache/cxf/systest/jaxrs/JAXRSSoapBookTest.java
+		int count = 0;
+		for (Interceptor<?> in : cfg.getInInterceptors())
+		{
+			if (in instanceof FIStaxInInterceptor)
+			{
+				count++;
+				break;
+			}
+		}
+		for (Interceptor<?> in : cfg.getOutInterceptors())
+		{
+			if (in instanceof FIStaxOutInterceptor)
+			{
+				count++;
+				break;
+			}
+		}
+		if (count != 2)
+		{
+			throw new RuntimeException("In and Out FastInfoset interceptors are expected");
+		}
 	}
 
 	protected void destroyServer() throws Exception

@@ -116,7 +116,8 @@ public class DomainSetTest extends RestServiceTest
 		final DomainProperties domainProperties = new DomainProperties("Test domain", "external"
 				+ Integer.toString(domainExternalId));
 		domainExternalId += 1;
-		final Link domainLink = client.addDomain(domainProperties);
+		// final Link domainLink = domainsAPIProxyClient.addDomain(domainProperties);
+		final Link domainLink = fiClient.path("domains").post(domainProperties, Link.class);
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
@@ -125,7 +126,7 @@ public class DomainSetTest extends RestServiceTest
 		assertTrue(createdDomainIds.add(domainId), "Domain ID uniqueness violation: Conflict on domain ID=" + domainId);
 
 		// verify link appears on GET /domains
-		final Resources domainResources = client.getDomains(null);
+		final Resources domainResources = domainsAPIProxyClient.getDomains(null);
 		assertNotNull(domainResources, "No domain found");
 		for (final Link link : domainResources.getLinks())
 		{
@@ -149,7 +150,7 @@ public class DomainSetTest extends RestServiceTest
 		final DomainProperties domainProperties = new DomainProperties(description, "external"
 				+ Integer.toString(domainExternalId));
 		domainExternalId += 1;
-		client.addDomain(domainProperties);
+		domainsAPIProxyClient.addDomain(domainProperties);
 	}
 
 	@Test(expectedExceptions = BadRequestException.class)
@@ -164,13 +165,13 @@ public class DomainSetTest extends RestServiceTest
 		// externalID is x:NCName therefore cannot start with a number
 		final DomainProperties domainProperties = new DomainProperties("test", externalId);
 		domainExternalId += 1;
-		client.addDomain(domainProperties);
+		domainsAPIProxyClient.addDomain(domainProperties);
 	}
 
 	@Test(dependsOnMethods = { "addAndGetDomain" })
 	public void getDomains()
 	{
-		final Resources domainResources = client.getDomains(null);
+		final Resources domainResources = domainsAPIProxyClient.getDomains(null);
 		assertNotNull(domainResources, "No domain found");
 		// match retrieved domains against created ones in addDomain test
 		int matchedDomainCount = 0;
@@ -191,7 +192,7 @@ public class DomainSetTest extends RestServiceTest
 	public void getDomain()
 	{
 		final String testDomainId = createdDomainIds.iterator().next();
-		Domain testDomainResource = client.getDomainResource(testDomainId).getDomain();
+		Domain testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
 		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
 
@@ -199,9 +200,10 @@ public class DomainSetTest extends RestServiceTest
 	public void getDomainByExternalId()
 	{
 		String createdDomainId = createdDomainIds.iterator().next();
-		String externalId = client.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+		String externalId = domainsAPIProxyClient.getDomainResource(createdDomainId).getDomain().getProperties()
+				.getExternalId();
 
-		final List<Link> domainLinks = client.getDomains(externalId).getLinks();
+		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(externalId).getLinks();
 		// verify that there is only one domain resource link and it is the one
 		// we are looking for
 		assertEquals(domainLinks.size(), 1);
@@ -230,13 +232,13 @@ public class DomainSetTest extends RestServiceTest
 
 		// delete existing domain on disk, but first get its externalId for later testing
 		String deletedDomainId = createdDomainIds.iterator().next();
-		String deletedDomainExternalId = client.getDomainResource(deletedDomainId).getDomain().getProperties()
-				.getExternalId();
+		String deletedDomainExternalId = domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain()
+				.getProperties().getExternalId();
 		File deleteSrcDir = new File(DOMAINS_DIR, deletedDomainId);
 		FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 3);
 
 		// Manual sync of files-to-cache with getDomains()
-		final List<Link> linksToDomains = client.getDomains(null).getLinks();
+		final List<Link> linksToDomains = domainsAPIProxyClient.getDomains(null).getLinks();
 		// match retrieved domains against created ones in addDomain test
 		Set<String> newDomainIds = new HashSet<>();
 		for (final Link domainLink : linksToDomains)
@@ -249,7 +251,7 @@ public class DomainSetTest extends RestServiceTest
 				+ deletedDomainId + " still returned by REST API although domain directory deleted on disk");
 		try
 		{
-			client.getDomainResource(deletedDomainId).getDomain();
+			domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain();
 			fail("Sync from disk with getDomains() failed: getDomain(" + deletedDomainId
 					+ ") on REST API succeeds although domain directory deleted on disk");
 		} catch (NotFoundException e)
@@ -259,7 +261,7 @@ public class DomainSetTest extends RestServiceTest
 
 		// test externalId on deleted domain
 
-		final List<Link> links = client.getDomains(deletedDomainExternalId).getLinks();
+		final List<Link> links = domainsAPIProxyClient.getDomains(deletedDomainExternalId).getLinks();
 		assertTrue(links.isEmpty(), "Sync from disk with getDomains() failed: getDomains(externalId = "
 				+ deletedDomainExternalId + ") on REST API succeeds although domain directory deleted on disk");
 
@@ -268,7 +270,7 @@ public class DomainSetTest extends RestServiceTest
 		// Test for domain created on disk
 		assertTrue(newDomainIds.contains(SAMPLE_DOMAIN_ID), "Manual sync with getDomains() failed: domain ID "
 				+ SAMPLE_DOMAIN_ID + " not returned by REST API although domain directory created on disk");
-		Domain testDomainResource = client.getDomainResource(SAMPLE_DOMAIN_ID).getDomain();
+		Domain testDomainResource = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID).getDomain();
 		assertNotNull(testDomainResource, "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID
 				+ " failed although domain directory created on disk");
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
@@ -282,7 +284,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// test externalId
-		final List<Link> domainLinks = client.getDomains(externalId).getLinks();
+		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(externalId).getLinks();
 		// verify that there is only one domain resource link and it is the one
 		// we are looking for
 		assertEquals(domainLinks.size(), 1);
@@ -308,7 +310,7 @@ public class DomainSetTest extends RestServiceTest
 		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_COPY_DIR, 3);
 
 		// sync API cache
-		DomainResource domainRes = client.getDomainResource(SAMPLE_DOMAIN_ID);
+		DomainResource domainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
 		DomainProperties deletedDomainProps = domainRes.deleteDomain();
 		// make sure it's done
 		try
@@ -323,7 +325,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// try with externalId
-		List<Link> links = client.getDomains(deletedDomainProps.getExternalId()).getLinks();
+		List<Link> links = domainsAPIProxyClient.getDomains(deletedDomainProps.getExternalId()).getLinks();
 		assertTrue(
 				links.isEmpty(),
 				"Error deleting domain with API deleteDomain() after deleting directory on disk: getDomains(externalId) still returns link to domain");
@@ -343,7 +345,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// verify domain does not exist by trying the PDP
-		DomainResource testDomainRes = client.getDomainResource(SAMPLE_DOMAIN_ID);
+		DomainResource testDomainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
 		File testDir = new File(XACML_SAMPLES_DIR, "IIIG301");
 		final Request request = (Request) unmarshaller.unmarshal(new File(testDir, REQUEST_FILENAME));
 		try
@@ -371,7 +373,7 @@ public class DomainSetTest extends RestServiceTest
 		for (final String domainId : createdDomainIds)
 		{
 			LOGGER.debug("Deleting domain ID={}", domainId);
-			final DomainResource domainResource = client.getDomainResource(domainId);
+			final DomainResource domainResource = domainsAPIProxyClient.getDomainResource(domainId);
 			final DomainProperties domainProperties = domainResource.deleteDomain();
 			assertNotNull(domainProperties, String.format("Error deleting domain ID=%s", domainId));
 
