@@ -30,12 +30,18 @@
 	<util:list id="extraJaxbClasses" value-type="java.lang.Class">
 		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
 	</util:list>
-	
+
+	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+		<property name="singleJaxbContext" value="true" />
+		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
+		<property name="schemaHandler" ref="clientApiSchemaHandler" />
+	</bean>
+		
 	<util:list id="fastinfosetType">
         <value>application/fastinfoset</value>
     </util:list>
-
-	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+	
+	<bean id="clientJaxbProviderFI" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
 		<property name="singleJaxbContext" value="true" />
 		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
 		<property name="schemaHandler" ref="clientApiSchemaHandler" />

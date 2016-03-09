@@ -64,8 +64,7 @@ public class DomainSetTest extends RestServiceTest
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values
 	 * for all.
 	 * 
-	 * @param appBaseUrl
-	 * @param startServer
+	 * @param remoteAppBaseUrl
 	 * @param maxPolicyCountPerDomain
 	 * @param maxVersionCountPerPolicy
 	 * @param removeOldVersionsTooMany
@@ -73,15 +72,14 @@ public class DomainSetTest extends RestServiceTest
 	 * @param testCtx
 	 * @throws Exception
 	 */
-	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
+	@Parameters({ "remote.base.url", "org.ow2.authzforce.domain.maxPolicyCount",
 			"org.ow2.authzforce.domain.policy.maxVersionCount",
 			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest
-	public void beforeTest(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl, @Optional("true") boolean startServer,
-			int maxPolicyCountPerDomain, int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany,
-			int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, int maxPolicyCountPerDomain, int maxVersionCountPerPolicy,
+			boolean removeOldVersionsTooMany, int domainSyncIntervalSec, ITestContext testCtx) throws Exception
 	{
-		super.startServerAndInitCLient(appBaseUrl, startServer, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+		super.startServerAndInitCLient(remoteAppBaseUrl, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
 				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
 	}
 
@@ -91,11 +89,12 @@ public class DomainSetTest extends RestServiceTest
 		super.destroyServer();
 	}
 
-	@Parameters({ "app.base.url" })
+	@Parameters({ "remote.base.url" })
 	@Test
-	public void getWADL(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl)
+	public void getWADL(@Optional String remoteAppBaseUrlParam)
 	{
-		WebTarget target = ClientBuilder.newClient().target(appBaseUrl).queryParam("_wadl", "");
+		final String remoteAppBaseUrl = remoteAppBaseUrlParam == null? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress(): remoteAppBaseUrlParam;
+		WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).queryParam("_wadl", "");
 		Invocation.Builder builder = target.request();
 		if (LOGGER.isDebugEnabled())
 		{
@@ -116,8 +115,7 @@ public class DomainSetTest extends RestServiceTest
 		final DomainProperties domainProperties = new DomainProperties("Test domain", "external"
 				+ Integer.toString(domainExternalId));
 		domainExternalId += 1;
-		// final Link domainLink = domainsAPIProxyClient.addDomain(domainProperties);
-		final Link domainLink = fiClient.path("domains").post(domainProperties, Link.class);
+		 final Link domainLink = domainsAPIProxyClient.addDomain(domainProperties);
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
@@ -216,13 +214,12 @@ public class DomainSetTest extends RestServiceTest
 	private static final String SAMPLE_DOMAIN_ID = SAMPLE_DOMAIN_DIR.getFileName().toString();
 	private static final Path SAMPLE_DOMAIN_COPY_DIR = new File(DOMAINS_DIR, SAMPLE_DOMAIN_ID).toPath();
 
-	@Parameters({ "start.server" })
+	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "getDomains", "getDomainByExternalId" })
-	public void getDomainsAfterFileModifications(@Optional("true") boolean startServer)
-			throws IllegalArgumentException, IOException
+	public void getDomainsAfterFileModifications(String remoteAppBaseUrl) throws IllegalArgumentException, IOException
 	{
-		// skip test if server not started locally
-		if (!startServer)
+		// skip test if server is remote (remoteAppBaseUrl != null)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -295,13 +292,12 @@ public class DomainSetTest extends RestServiceTest
 
 	}
 
-	@Parameters({ "start.server" })
+	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "getDomainsAfterFileModifications" })
-	public void deleteDomainAfterDirectoryDeleted(@Optional("true") boolean startServer)
-			throws IllegalArgumentException, IOException
+	public void deleteDomainAfterDirectoryDeleted(String remoteAppBaseUrl) throws IllegalArgumentException, IOException
 	{
-		// skip test if server not started locally
-		if (!startServer)
+		// skip test if server is remote (remoteAppBaseUrl != null)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -333,16 +329,16 @@ public class DomainSetTest extends RestServiceTest
 		createdDomainIds.remove(SAMPLE_DOMAIN_ID);
 	}
 
-	@Parameters({ "start.server" })
+	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "deleteDomainAfterDirectoryDeleted" })
-	public void getPdpAfterDomainDirCreated(@Optional("true") boolean startServer) throws IllegalArgumentException,
+	public void getPdpAfterDomainDirCreated(String remoteAppBaseUrl) throws IllegalArgumentException,
 			IOException, JAXBException
 	{
-		// skip test if server not started locally
-		if (!startServer)
-		{
-			return;
-		}
+		// skip test if server is remote (remoteAppBaseUrl != null)
+				if (remoteAppBaseUrl != null)
+				{
+					return;
+				}
 
 		// verify domain does not exist by trying the PDP
 		DomainResource testDomainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);

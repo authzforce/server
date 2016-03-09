@@ -91,7 +91,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 	};
 
 	private DomainsResource domainsAPIClient;
-	private WebClient baseWebClient;
+	private WebClient httpHeadClient;
 
 	private DomainAPIHelper testDomainHelper = null;
 
@@ -103,19 +103,25 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	private boolean enableMDP;
 
-	@Parameters({ "app.base.url", "start.server", "enableMDP" })
+//	private DomainResource testDomainFI = null;
+
+	@Parameters({ "remote.base.url", "enableMDP" })
 	@BeforeClass
-	public void addDomain(@Optional(RestServiceTest.DEFAULT_APP_BASE_URL) String appBaseUrl,
-			@Optional("true") boolean startServer, boolean enableMDP, ITestContext testCtx) throws JAXBException,
+	public void addDomain(@Optional String remoteAppBaseUrl, boolean enableMDP, ITestContext testCtx) throws JAXBException,
 			IOException
 	{
 		final PdpModelHandler pdpModelHandler;
-		if (startServer)
+		final String appBaseUrl;
+		if (remoteAppBaseUrl == null)
 		{
+			// server running locally (using local filesystem as domain repository)
+			appBaseUrl = (String) testCtx
+					.getAttribute(RestServiceTest.REST_APP_BASE_URL);
 			pdpModelHandler = (PdpModelHandler) testCtx
 					.getAttribute(RestServiceTest.PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID);
 		} else
 		{
+			appBaseUrl = remoteAppBaseUrl;
 			pdpModelHandler = null;
 		}
 
@@ -143,15 +149,21 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		unmarshaller.setSchema(apiSchema);
 		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
 
-		baseWebClient = WebClient.create(appBaseUrl, true);
+		httpHeadClient = WebClient.create(appBaseUrl, true);
 		if (LOGGER.isDebugEnabled())
 		{
-			final ClientConfiguration builderConf = WebClient.getConfig(baseWebClient);
+			final ClientConfiguration builderConf = WebClient.getConfig(httpHeadClient);
 			builderConf.getInInterceptors().add(new LoggingInInterceptor());
 			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		}
 
 		this.enableMDP = enableMDP;
+		
+		// FASTINFOSET client
+//		DomainsResource domainsApiFIClient = (DomainsResource) testCtx
+//				.getAttribute(RestServiceTest.FI_REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID);
+//		testDomainFI  = domainsApiFIClient.getDomainResource(testDomainId);
+		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
 
 	@AfterClass
@@ -235,14 +247,14 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				+ ") returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "getDomainProperties" })
-	public void headDomainPropertiesAfterFileModification(@Optional("true") boolean startServer,
+	public void headDomainPropertiesAfterFileModification(String remoteAppBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws InterruptedException, JAXBException
 	{
 
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -251,7 +263,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		testDomainHelper.modifyDomainPropertiesFile(newExternalId, isFilesystemLegacy);
 
 		// manual sync with HEAD /domains/{id}/properties
-		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId)
+		final javax.ws.rs.core.Response response = httpHeadClient.reset().path("domains").path(testDomainId)
 				.path("properties").head();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
 				+ testDomainId + "/properties failed");
@@ -260,13 +272,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "getDomainProperties" })
-	public void getDomainPropertiesAfterFileModification(@Optional("true") boolean startServer,
+	public void getDomainPropertiesAfterFileModification(String remoteAppBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -955,6 +967,8 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		final JAXBElement<Response> expectedResponse = testDomainHelper.unmarshal(new File(testDirectory,
 				RestServiceTest.EXPECTED_RESPONSE_FILENAME), Response.class);
 		final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+//		final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+		
 		assertNormalizedEquals(expectedResponse.getValue(), actualResponse);
 	}
 
@@ -981,13 +995,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		fail("Manual sync with API getOtherPdpProperties() failed: PolicySetIdReference returned by PDP does not match the root policyRef in PDP configuration file");
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "requestPDP" })
-	public void headRootPolicyRefAfterChangingPdpConfFile(@Optional("true") boolean startServer,
+	public void headRootPolicyRefAfterChangingPdpConfFile(String remoteAppBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -995,7 +1009,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyPdpConfFile(isFilesystemLegacy);
 
 		// Manual sync via HEAD /domains/{domainId}/pap/properties
-		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId).path("pap")
+		final javax.ws.rs.core.Response response = httpHeadClient.reset().path("domains").path(testDomainId).path("pap")
 				.path("properties").head();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
 				+ testDomainId + "/pap/properties failed");
@@ -1003,13 +1017,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		verifySyncAfterPdpConfFileModification(newRootPolicyRef);
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "requestPDP" })
-	public void getRootPolicyRefAfterChangingPdpConfFile(@Optional("true") boolean startServer,
+	public void getRootPolicyRefAfterChangingPdpConfFile(String remoteAppBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -1031,13 +1045,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		verifySyncAfterPdpConfFileModification(newRootPolicyRef);
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl,
 			@Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -1144,13 +1158,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "getPdpPropertiesAfterModifyingUsedPolicyDirectory" })
-	public void headPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+	public void headPdpPropertiesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl,
 			@Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}
@@ -1163,7 +1177,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 				inputRefPolicyFile, false, isFileSystemLegacy);
 
 		// Manual sync via HEAD /domains/{domainId}/pap/properties
-		final javax.ws.rs.core.Response response = baseWebClient.reset().path("domains").path(testDomainId).path("pap")
+		final javax.ws.rs.core.Response response = httpHeadClient.reset().path("domains").path(testDomainId).path("pap")
 				.path("properties").head();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/"
 				+ testDomainId + "/pap/properties failed");
@@ -1180,13 +1194,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRemoval
 		verifyPdpReturnedPolicies(newRootPolicySetRef);
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "requestPDP" })
-	public void getPoliciesAfterModifyingUsedPolicyDirectory(@Optional("true") boolean startServer,
+	public void getPoliciesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteAppBaseUrl != null)
 		{
 			return;
 		}

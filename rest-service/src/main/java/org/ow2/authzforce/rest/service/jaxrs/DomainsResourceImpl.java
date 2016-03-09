@@ -28,6 +28,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Context;
 
+import org.apache.cxf.feature.Features;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.ow2.authzforce.core.pap.api.dao.DomainsDAO;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -44,6 +45,7 @@ import com.google.common.net.UrlEscapers;
  * Client/End-User-managed domains resource implementation
  *
  */
+@Features(features = "org.apache.cxf.feature.FastInfosetFeature")
 public class DomainsResourceImpl implements DomainsResource
 {
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();

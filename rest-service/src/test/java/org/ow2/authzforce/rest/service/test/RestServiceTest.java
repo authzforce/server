@@ -14,10 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
 
@@ -43,22 +40,15 @@ import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
-import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
-import org.apache.cxf.message.Message;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
-import org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper;
-import org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper;
-import org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl;
-import org.ow2.authzforce.rest.service.jaxrs.ErrorHandlerInterceptor;
-import org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,29 +66,27 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * Test context attribute set by the beforeSuite() to the initialized value of class member 'client'. To be reused
 	 * in other test classes of the same test suite. Attribute value type: {@link DomainsResource}
 	 */
-	public static final String REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client";
+	protected static final String REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client";
+
+	protected final static String REST_APP_BASE_URL = "org.ow2.authzforce.test.rest.app.base.url";
 
 	/**
 	 * Test context attribute set by the beforeSuite() to the initialized value of class member 'pdpModelHandler'. To be
 	 * reused in other test classes of the same test suite. Attribute value type: {@link PdpModelHandler}
 	 */
-	public static final String PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.pdp.model.handler";
+	protected static final String PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.pdp.model.handler";
 
 	/**
 	 * Test context attribute set by the beforeSuite() to the XML schema of all XML data sent/received by the API
 	 * client. To be reused in other test classes of the same test suite. Attribute value type: {@link Schema}
 	 */
-	public static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client.api.schema";
+	protected static final String REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID = "org.ow2.authzforce.test.rest.client.api.schema";
 
 	private static final String COMPONENT_ENV_JNDI_CTX_NAME = "java:comp/env";
 
 	protected static final int MAX_XML_TEXT_LENGTH = 1000;
 
-	private static final String WADL_LOCATION = "classpath:/authz-api.wadl";
-
 	protected static final File DOMAINS_DIR = new File("target/server.data/domains");
-
-	protected static final String DEFAULT_APP_BASE_URL = "http://localhost:9080/";
 
 	protected static final File XACML_SAMPLES_DIR = new File("src/test/resources/xacml.samples");
 	static
@@ -192,6 +180,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected static final String FASTINFOSET_MEDIA_TYPE = "application/fastinfoset";
 
+	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
+
 	protected static PolicySet createDumbPolicySet(String policyId, String version)
 	{
 		return new PolicySet(null, null, null, new Target(null), null, null, null, policyId, version,
@@ -199,39 +189,41 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	}
 
 	@Autowired
-	@Qualifier("jaxbProvider")
-	private JAXBElementProvider<?> serverJaxbProvider;
-
-	@Autowired
-	private DomainsResourceImpl domainsResourceBean;
+	@Qualifier("tazService")
+	private JAXRSServerFactoryBean jaxrsServerFactoryBean;
 
 	@Autowired
 	@Qualifier("pdpModelHandler")
 	protected PdpModelHandler pdpModelHandler;
 
 	@Autowired
+	@Qualifier("clientApiSchemaHandler")
 	protected SchemaHandler clientApiSchemaHandler;
 
 	private Server server = null;
 
 	@Autowired
+	@Qualifier("clientJaxbProvider")
 	private JAXBElementProvider<?> clientJaxbProvider;
+
+	@Autowired
+	@Qualifier("clientJaxbProviderFI")
+	private JAXBElementProvider<?> clientJaxbProviderFI;
 
 	protected Unmarshaller unmarshaller = null;
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
-	protected WebClient fiClient = null;
-
-	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
-
-	protected void startServerAndInitCLient(String appBaseUrl, boolean startServer, int maxPolicyCountPerDomain,
+	protected void startServerAndInitCLient(String appBaseUrl, int maxPolicyCountPerDomain,
 			int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany, int domainSyncIntervalSec,
 			ITestContext testCtx) throws Exception
 	{
 
-		if (startServer)
+		if (appBaseUrl == null)
 		{
+			// Not a remote server -> start the JAX-RS server locally with all his configuration (including base URL)
+			// locally
+			// configured in META-INF/spring/server.xml on the classpath
 			/*
 			 * Make sure the directory target/domains exists and is empty (see
 			 * src/test/resources/META-INF/spring/server.xml for actual domains directory path)
@@ -274,6 +266,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				throw new RuntimeException("Error setting property via JNDI", ex);
 			}
 
+			// For SSL debugging
+			// System.setProperty("javax.net.debug", "all");
+
 			/*
 			 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs
 			 * -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404 (duplicate of
@@ -284,40 +279,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			 * @BeforeTest
 			 */
 			super.springTestContextPrepareTestInstance();
-			// For SSL debugging
-			// System.setProperty("javax.net.debug", "all");
-
-			/**
-			 * Create the REST (JAX-RS) server
-			 */
-			JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
-			sf.setAddress(appBaseUrl);
-			sf.setDocLocation(WADL_LOCATION);
-			sf.setStaticSubresourceResolution(true);
-			sf.setProviders(Arrays.asList(serverJaxbProvider, new BadRequestExceptionMapper(),
-					new ClientErrorExceptionMapper(), new ServerErrorExceptionMapper()));
-			sf.setServiceBean(domainsResourceBean);
-			final Map<String, Object> jaxRsServerProperties = new HashMap<>();
-			jaxRsServerProperties.put("org.apache.cxf.fastinfoset.enabled", "true");
-			jaxRsServerProperties.put("org.apache.cxf.propagate.exception", "false");
-			// XML security properties
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxChildElements", "10");
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxElementDepth", "10");
-			// Maximum number of attributes per element
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxAttributeCount", "100");
-			// Maximum size of a single attribute
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxAttributeSize", "500");
-			// Maximum size of an element's text value
-			jaxRsServerProperties.put("org.apache.cxf.stax.maxTextLength", Integer.toString(MAX_XML_TEXT_LENGTH, 10));
-
-			sf.setProperties(jaxRsServerProperties);
-
-			sf.getOutInterceptors().add(new FIStaxOutInterceptor());
-			sf.getInInterceptors().add(new FIStaxInInterceptor());
-
-			sf.setOutFaultInterceptors(Collections
-					.<Interceptor<? extends Message>> singletonList(new ErrorHandlerInterceptor()));
-			server = sf.create();
+			// Server started by Spring
+			server = jaxrsServerFactoryBean.getServer();
 
 			testCtx.setAttribute(PDP_MODEL_HANDLER_TEST_CONTEXT_ATTRIBUTE_ID, pdpModelHandler);
 		}
@@ -329,50 +292,47 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 * WARNING: if tests are to be multi-threaded, modify according to Thread-safety section of CXF JAX-RS client
 		 * API documentation http://cxf .apache.org/docs/jax-rs-client-api.html#JAX-RSClientAPI-ThreadSafety
 		 */
-		domainsAPIProxyClient = JAXRSClientFactory.create(appBaseUrl, DomainsResource.class,
-				Collections.singletonList(clientJaxbProvider));
+		final String serverBaseAddress = appBaseUrl == null ? jaxrsServerFactoryBean.getAddress() : appBaseUrl;
+		testCtx.setAttribute(REST_APP_BASE_URL, serverBaseAddress);
+
+		/*
+		 * Use FASTINFOSET-aware client if FastInfoset enabled More info on testing FastInfoSet with CXF:
+		 * https://github.
+		 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache
+		 * /cxf/systest/jaxrs/JAXRSSoapBookTest.java WARNING: "application/fastinfoset" mediatype must be declared
+		 * before others for this to work (in WADL or Consumes annotations); if not (with CXF 3.1.0), the first
+		 * mediatype is set as Content-type, which causes exception on server-side such as:
+		 * com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0, byte #-1)
+		 */
+		// FIXME: defined enableFastInfoset test parameter to decide which client to use
+		 domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class,
+		 Collections.singletonList(clientJaxbProvider));
+//		domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class,
+//				Collections.singletonList(clientJaxbProviderFI));
+
+//			checkFiInterceptors(WebClient.getConfig(domainsAPIProxyClient));
 		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, domainsAPIProxyClient);
 
-		// FASTINFOSET client
-		final JAXRSClientFactoryBean fiClientBean = new JAXRSClientFactoryBean();
-		fiClientBean.setAddress(appBaseUrl);
-		fiClientBean.getOutInterceptors().add(new FIStaxOutInterceptor());
-		fiClientBean.getInInterceptors().add(new FIStaxInInterceptor());
 		/**
 		 * Request/response logging (for debugging).
 		 */
 		if (LOGGER.isDebugEnabled())
 		{
-			fiClientBean.getInInterceptors().add(new LoggingInInterceptor());
-			fiClientBean.getOutInterceptors().add(new LoggingOutInterceptor());
-
-			// also set same interceptors on domainsAPIProxyClient
 			final ClientConfiguration proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
 			proxyClientConf.getInInterceptors().add(new LoggingInInterceptor());
 			proxyClientConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		}
 
-		fiClientBean.setProvider(clientJaxbProvider);
-
-		Map<String, Object> fiClientProps = new HashMap<>();
-		fiClientProps.put(FIStaxOutInterceptor.FI_ENABLED, Boolean.TRUE);
-		fiClientBean.setProperties(fiClientProps);
-		fiClient = fiClientBean.createWebClient();
-		fiClient.type(FASTINFOSET_MEDIA_TYPE).accept(FASTINFOSET_MEDIA_TYPE);
-
-		checkFiInterceptors(WebClient.getConfig(fiClient));
-
 		// Unmarshaller
 		final Schema apiSchema = this.clientApiSchemaHandler.getSchema();
 		testCtx.setAttribute(REST_CLIENT_API_SCHEMA_TEST_CONTEXT_ATTRIBUTE_ID, apiSchema);
 
-		unmarshaller = DomainSetTest.JAXB_CTX.createUnmarshaller();
+		unmarshaller = JAXB_CTX.createUnmarshaller();
 		unmarshaller.setSchema(apiSchema);
 	}
 
 	private void checkFiInterceptors(ClientConfiguration cfg)
 	{
-		// https://github.com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache/cxf/systest/jaxrs/JAXRSSoapBookTest.java
 		int count = 0;
 		for (Interceptor<?> in : cfg.getInInterceptors())
 		{

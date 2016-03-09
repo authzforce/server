@@ -63,24 +63,23 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 
 	private String testDomainExternalId = "test" + PRNG.nextInt(100);
 
-	@Parameters({ "app.base.url", "start.server", "org.ow2.authzforce.domain.maxPolicyCount",
+	@Parameters({ "remote.base.url", "org.ow2.authzforce.domain.maxPolicyCount",
 			"org.ow2.authzforce.domain.policy.maxVersionCount",
 			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" })
 	@BeforeTest
-	public void beforeTest(@Optional(DEFAULT_APP_BASE_URL) String appBaseUrl, @Optional("true") boolean startServer,
+	public void beforeTest(@Optional String remoteBaseUrl,
 			int maxPolicyCountPerDomain, int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany,
 			ITestContext testCtx) throws Exception
 	{
 		// set the sync interval to half the test timeout in sec
 		syncIntervalMs = TEST_TIMEOUT_MS / 4;
 		final int domainSyncIntervalSec = syncIntervalMs / 1000;
-		super.startServerAndInitCLient(appBaseUrl, startServer, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+		super.startServerAndInitCLient(remoteBaseUrl, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
 				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
 	}
 
-	@Parameters("start.server")
 	@BeforeClass
-	public void addDomain(@Optional("true") boolean startServer, ITestContext testCtx) throws JAXBException,
+	public void addDomain() throws JAXBException,
 			IOException
 	{
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
@@ -219,13 +218,13 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(timeOut = TEST_TIMEOUT_MS, description = "Check whether externalId-to-domain mapping updated automatically after any modification to domain's properties file")
-	public void syncExternalIdAfterDomainPropertiesFileChanged(@Optional("true") boolean startServer,
+	public void syncExternalIdAfterDomainPropertiesFileChanged(String remoteBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip test i f server not started locally
-		if (!startServer)
+		if (remoteBaseUrl != null)
 		{
 			return;
 		}
@@ -257,13 +256,13 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 						+ ") returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "syncExternalIdAfterDomainPropertiesFileChanged" })
-	public void syncPdpAfterConfFileChanged(@Optional("true") boolean startServer,
+	public void syncPdpAfterConfFileChanged(String remoteBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (!startServer)
+		if (remoteBaseUrl != null)
 		{
 			return;
 		}
@@ -297,13 +296,13 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 		}
 	}
 
-	@Parameters({ "start.server", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(timeOut = TEST_TIMEOUT_MS * 2, dependsOnMethods = { "syncPdpAfterConfFileChanged" })
-	public void syncPdpAfterUsedPolicyDirectoryChanged(@Optional("true") boolean startServer,
+	public void syncPdpAfterUsedPolicyDirectoryChanged(String remoteBaseUrl,
 			@Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (!startServer)
+		if (remoteBaseUrl != null)
 		{
 			return;
 		}
@@ -387,21 +386,19 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 	/**
 	 * To be executed last since the domain is removed as a result if successful
 	 * 
-	 * @param startServer
-	 * 
 	 * @throws InterruptedException
 	 * @throws IOException
 	 * @throws IllegalArgumentException
 	 * @throws JAXBException
 	 */
-	@Parameters({ "start.server" })
+	@Parameters({ "remote.base.url" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "addTooManyPolicyVersions",
 			"syncPdpAfterUsedPolicyDirectoryChanged" })
-	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(@Optional("true") boolean startServer)
+	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(String remoteBaseUrl)
 			throws InterruptedException, IllegalArgumentException, IOException, JAXBException
 	{
 		// skip test if server not started locally
-		if (!startServer)
+		if (remoteBaseUrl != null)
 		{
 			return;
 		}
