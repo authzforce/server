@@ -214,7 +214,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
-	protected void startServerAndInitCLient(String appBaseUrl, int maxPolicyCountPerDomain,
+	protected void startServerAndInitCLient(String appBaseUrl, boolean enableFastInfoset, int maxPolicyCountPerDomain,
 			int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany, int domainSyncIntervalSec,
 			ITestContext testCtx) throws Exception
 	{
@@ -294,23 +294,31 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 */
 		final String serverBaseAddress = appBaseUrl == null ? jaxrsServerFactoryBean.getAddress() : appBaseUrl;
 		testCtx.setAttribute(REST_APP_BASE_URL, serverBaseAddress);
+		final ClientConfiguration proxyClientConf;
+		if (enableFastInfoset)
+		{
+			/*
+			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF:
+			 * https://github.
+			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache
+			 * /cxf/systest/jaxrs/JAXRSSoapBookTest.java WARNING: "application/fastinfoset" mediatype must be declared
+			 * before others for this to work (in WADL or Consumes annotations); if not (with CXF 3.1.0), the first
+			 * mediatype is set as Content-type, which causes exception on server-side such as:
+			 * com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0, byte #-1)
+			 */
+			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class,
+					Collections.singletonList(clientJaxbProviderFI));
+			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+			checkFiInterceptors(proxyClientConf);
+		} else
+		{
+			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class,
+					Collections.singletonList(clientJaxbProvider));
+			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+			// if no fastinfoset, force to use only application/xml mediatype:
+			proxyClientConf.getOutInterceptors().add(new ContentTypeHeaderModifier());
+		}
 
-		/*
-		 * Use FASTINFOSET-aware client if FastInfoset enabled More info on testing FastInfoSet with CXF:
-		 * https://github.
-		 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache
-		 * /cxf/systest/jaxrs/JAXRSSoapBookTest.java WARNING: "application/fastinfoset" mediatype must be declared
-		 * before others for this to work (in WADL or Consumes annotations); if not (with CXF 3.1.0), the first
-		 * mediatype is set as Content-type, which causes exception on server-side such as:
-		 * com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0, byte #-1)
-		 */
-		// FIXME: defined enableFastInfoset test parameter to decide which client to use
-		 domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class,
-		 Collections.singletonList(clientJaxbProvider));
-//		domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class,
-//				Collections.singletonList(clientJaxbProviderFI));
-
-//			checkFiInterceptors(WebClient.getConfig(domainsAPIProxyClient));
 		testCtx.setAttribute(REST_CLIENT_TEST_CONTEXT_ATTRIBUTE_ID, domainsAPIProxyClient);
 
 		/**
@@ -318,7 +326,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 */
 		if (LOGGER.isDebugEnabled())
 		{
-			final ClientConfiguration proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+
 			proxyClientConf.getInInterceptors().add(new LoggingInInterceptor());
 			proxyClientConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		}

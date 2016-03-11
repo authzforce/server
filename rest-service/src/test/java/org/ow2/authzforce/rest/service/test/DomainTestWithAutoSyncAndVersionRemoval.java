@@ -63,18 +63,18 @@ public class DomainTestWithAutoSyncAndVersionRemoval extends RestServiceTest
 
 	private String testDomainExternalId = "test" + PRNG.nextInt(100);
 
-	@Parameters({ "remote.base.url", "org.ow2.authzforce.domain.maxPolicyCount",
+	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domain.maxPolicyCount",
 			"org.ow2.authzforce.domain.policy.maxVersionCount",
 			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" })
 	@BeforeTest
-	public void beforeTest(@Optional String remoteBaseUrl,
+	public void beforeTest(@Optional String remoteBaseUrl, boolean enableFastInfoset, 
 			int maxPolicyCountPerDomain, int maxVersionCountPerPolicy, boolean removeOldVersionsTooMany,
 			ITestContext testCtx) throws Exception
 	{
 		// set the sync interval to half the test timeout in sec
 		syncIntervalMs = TEST_TIMEOUT_MS / 4;
 		final int domainSyncIntervalSec = syncIntervalMs / 1000;
-		super.startServerAndInitCLient(remoteBaseUrl, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+		super.startServerAndInitCLient(remoteBaseUrl, enableFastInfoset, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
 				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
 	}
 

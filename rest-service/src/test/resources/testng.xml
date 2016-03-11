@@ -8,13 +8,15 @@
 	<!-- True iff the filesystem local to the server is a "legacy" filesystem, meaning here that millisecond or higher resolution of file timestamps is not supported. This is the case of 'ext3'; whereas 'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter 
 		is set to true, the unit tests will make sure this does not happen to avoid false results. -->
 	<parameter name="legacy.fs" value="true" />
+	<parameter name="enableFastInfoset" value="false" />
 	<!-- enableMDP = true -> requires that PDP configuration uses a requestFilter with support for Multiple Decision Profile -->
 	<parameter name="enableMDP" value="true" />
 	<parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="10" />
 	<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="false" />
 	<parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
-	<test name="WithoutAutoSyncOrVersionRemovalIfTooMany" preserve-order="true" enabled="true">
+	<test name="Test_FastInfoset:No.AutoSync:No.AutoVersionRemovalIfTooMany:No" preserve-order="true" enabled="true">
+		<!-- Test using default parameter values -->
 		<classes>
 			<class name="org.ow2.authzforce.rest.service.test.DomainSetTest">
 				<methods>
@@ -36,7 +38,30 @@
 			<class name="org.ow2.authzforce.rest.service.test.DomainMainTestWithoutAutoSyncOrVersionRemoval" />
 		</classes>
 	</test>
-	<test name="WithAutoSyncAndVersionRemovalIfTooMany" preserve-order="true" enabled="true">
+	<test name="Test_FastInfoset:Yes.AutoSync:No.AutoVersionRemovalIfTooMany:No" preserve-order="true" enabled="true">
+	<!-- Same tests as before but with FastInfoset-capable client -->
+		<parameter name="enableFastInfoset" value="true" />
+		<classes>
+			<class name="org.ow2.authzforce.rest.service.test.DomainSetTest">
+				<methods>
+					<!-- invocation-numbers not working as expected: https://github.com/cbeust/testng/issues/613 <include name="addDomain" invocation-numbers="3" /> -->
+					<include name="addAndGetDomain" />
+					<include name="getDomains" />
+					<include name="getDomain" />
+					<include name="getDomainByExternalId" />
+					<include name="addDomainWithTooBigDescription" />
+					<include name="addDomainWithTooBigExternalId" />
+					<include name="getDomainsAfterFileModifications" />
+					<include name="deleteDomainAfterDirectoryDeleted" />
+					<include name="getPdpAfterDomainDirCreated" />
+					<include name="deleteDomains" />
+				</methods>
+			</class>
+			<!-- Domain-specific testing -->
+			<class name="org.ow2.authzforce.rest.service.test.DomainMainTestWithoutAutoSyncOrVersionRemoval" />
+		</classes>
+	</test>
+	<test name="Test_FastInfoset:No.AutoSync:Yes.AutoVersionRemovalIfTooMany:Yes" preserve-order="true" enabled="true">
 		<parameter name="org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany" value="true" />
 		<classes>
 			<!-- Domain-specific testing -->

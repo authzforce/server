@@ -72,14 +72,14 @@ public class DomainSetTest extends RestServiceTest
 	 * @param testCtx
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "org.ow2.authzforce.domain.maxPolicyCount",
+	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domain.maxPolicyCount",
 			"org.ow2.authzforce.domain.policy.maxVersionCount",
 			"org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany", "org.ow2.authzforce.domains.sync.interval" })
-	@BeforeTest
-	public void beforeTest(@Optional String remoteAppBaseUrl, int maxPolicyCountPerDomain, int maxVersionCountPerPolicy,
+	@BeforeTest()
+	public void beforeTest(@Optional String remoteAppBaseUrl, boolean enableFastInfoset, int maxPolicyCountPerDomain, int maxVersionCountPerPolicy,
 			boolean removeOldVersionsTooMany, int domainSyncIntervalSec, ITestContext testCtx) throws Exception
 	{
-		super.startServerAndInitCLient(remoteAppBaseUrl, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
+		super.startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, maxPolicyCountPerDomain, maxVersionCountPerPolicy,
 				removeOldVersionsTooMany, domainSyncIntervalSec, testCtx);
 	}
 
