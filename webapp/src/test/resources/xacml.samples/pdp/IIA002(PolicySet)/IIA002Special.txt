@@ -1,0 +1,38 @@
+====
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+====
+
+Test IIA002 requires the Context Handler to be able to obtain an
+Attribute from an external repository, where the required
+Attribute is not supplied in the physical request received
+from the PEP.
+
+The test as written uses an Attribute with
+AttributeId="urn:oasis:names:tc:xacml:1.0:example:attribute:role",
+value "Physician", and Subject named "Julius Hibbert".
+
+This test may be modified to use a different AttributeId and
+AttributeValue in the SubjectAttributeDesignator of the
+Policy.xml file, and a different Subject in the Request.xml file,
+so long as the SubjectAttributeDesignator refers to an attribute
+that is not present in the original input Request.xml file.  Any
+modified version of the test must still demonstrate that the
+Context Handler is able to obtain values for particular
+attributes that are referenced in its policies, even if those
+attributes are not present in the Request as received from the
+PEP.

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://authzforce.github.io/rest-api-model/xmlns/authzforce/ext" xmlns:tns="http://authzforce.github.io/rest-api-model/xmlns/authzforce/ext" elementFormDefault="qualified" attributeFormDefault="unqualified" version="4.0">
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			Schemas of enabled AuthZForce extensions, such as attribute providers.
+		</xs:documentation>
+	</xs:annotation>
+	<!-- Extension for file-based PAP DAO root/ref policy providers -->
+	<xs:import namespace="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6" />
+	<!-- Extension for test attribute provider -->
+	<xs:import namespace="http://authzforce.github.io/core/xmlns/test/3" />
+</xs:schema>
