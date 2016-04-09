@@ -19,11 +19,8 @@
     along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<!-- Copyright (C) 2015 Thales Services SAS. The contents of this file are subject to the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This file is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received 
-	a copy of the GNU General Public License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
-<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be used with Saxon XSLT processor. -->
-<!-- Author: Cyril DANGERVILLE -->
-<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oldapi="http://thalesgroup.com/authz/model/3.0" xmlns:oldext="http://thalesgroup.com/authz/model/ext/3.0" xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12" xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:pap-dao="http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6"
+<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be used with Saxon XSLT processor. Author: Cyril DANGERVILLE. -->
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oldapi="http://thalesgroup.com/authz/model/3.0" xmlns:oldext="http://thalesgroup.com/authz/model/ext/3.0" xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12" xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	exclude-result-prefixes="oldapi oldext old">
 	<xsl:import href="xacml3-policy-c14n.xsl" />
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
@@ -39,19 +36,19 @@
 	<xsl:param name="maxVariableRefDepth" select="10" />
 	<xsl:param name="maxPolicyRefDepth" select="10" />
 	<!-- Single quotes to escape special character ':' -->
-	<xsl:param name="requestFilter" select="'urn:thalesgroup:xacml:request-filter:default-lax'" />
+	<xsl:param name="requestFilter" select="'urn:ow2:authzforce:xacml:request-filter:default-lax'" />
 	<!-- WARNING 1: old policyFinder, resourceFinder, cache elements ignored/not supported. WARNING 2: if you use custom attribute finders, i.e. other than native CurrentDateTimeFinder or AttributeSelectorXPathFinder (in 'old' namespace), or if you use NON-standard datatypes / combining algorithms / functions, you have to add transformation rules to handle each of those. WARNING 3: old 'useStandard*' attributes are ignored (assume it is true always) -->
 	<xsl:template match="old:pdps">
 		<xsl:apply-templates select="document($refPoliciesFileURI)/oldapi:policySets/xacml:PolicySet" />
 		<xsl:apply-templates select="$rootPolicy" />
-		<pdp version="3.6.1" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" requestFilter="{$requestFilter}">
+		<pdp version="3.6.2" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" requestFilter="{$requestFilter}">
 			<xsl:apply-templates select="old:attributeFactory/old:datatype" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:function|old:functionFactory/old:condition/old:function|old:functionFactory/old:general/old:function" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:abstractFunction|old:functionFactory/old:condition/old:abstractFunction|old:functionFactory/old:general/old:abstractFunction" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:functionCluster|old:functionFactory/old:condition/old:functionCluster|old:functionFactory/old:general/old:functionCluster" />
 			<xsl:apply-templates select="old:combiningAlgFactory/old:algorithm" />
 			<xsl:apply-templates select="document($attributeFindersFileURI)/oldapi:attributeFinders" />
-			<refPolicyProvider id="refPolicyProvider" xsi:type="pap-dao:StaticFileBasedDAORefPolicyProvider">
+			<refPolicyProvider id="refPolicyProvider" xsi:type="pap-dao:StaticFlatFileDAORefPolicyProvider">
 				<xsl:attribute name="policyLocationPattern">${PARENT_DIR}/policies/*.xml</xsl:attribute>
 			</refPolicyProvider>
 			<rootPolicyProvider id="rootPolicyProvider" xsi:type="StaticRefBasedRootPolicyProvider">
@@ -68,7 +65,7 @@
 		<!-- Note: Non-free Saxon PE/EE has string-to-base64Binary() function (http://www.saxonica.com/html/documentation/functions/saxon/string-to-base64Binary.html). Unfortunately, we are using HE edition. -->
 		<!-- Calling Java in XSLT is no longer supported by latest version of Saxon-HE. Or you have to use "integrated extension functions". http://stackoverflow.com/questions/19004719/calling-java-methods-in-xslt -->
 		<!-- Calling string() makes sure Saxon matches method base64UrlEncode(String), otherwise Saxon throws an error because of ambiguous call (there are multiple base64UrlEncode() methods in the class) -->
-		<xsl:variable name="encodedId" select="utils:base64UrlEncode(string(@PolicySetId))" xmlns:utils="java:org.ow2.authzforce.pap.dao.file.FileBasedDAOUtils" />
+		<xsl:variable name="encodedId" select="utils:base64UrlEncode(string(@PolicySetId))" xmlns:utils="java:org.org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils" />
 		<xsl:variable name="outfileURI" select="concat($encodedId,'/', @Version, '.xml')" />
 		<xsl:result-document href="policies/{$outfileURI}" omit-xml-declaration="no" method="xml">
 			<xsl:call-template name="canonicalize-policy" />

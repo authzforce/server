@@ -30,18 +30,18 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 	<property name="old.install.dir" value="../test/authzforce-4.2.0" description="Old Authzforce (4.2.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce)" />
-	<property name="new.install.dir" value="../../target/server" description="Current Authzforce (>= 4.3.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce)" />
+	<property name="new.install.dir" value="../../target/server" description="Current Authzforce (>= 4.3.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
 
 	<!-- PDP properties (may be overridden by Java system properties): 
 	Possible values for 'pdp.request.filter':
-			urn:thalesgroup:xacml:request-filter:default-lax (default value)
-			urn:thalesgroup:xacml:request-filter:default-strict
-			urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax
-			urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-strict
+			urn:ow2:authzforce:xacml:request-filter:default-lax (default value)
+			urn:ow2:authzforce:xacml:request-filter:default-strict
+			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
+			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict
 	-->
 	<property name="pdp.max.var.ref.depth" value="10" />
 	<property name="pdp.max.policy.ref.depth" value="10" />
-	<property name="pdp.request.filter" value="urn:thalesgroup:xacml:request-filter:default-lax" />
+	<property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:default-lax" />
 
 	<macrodef name="saxon-xslt">
 		<attribute name="basedir" />

@@ -32,7 +32,7 @@
 	<!-- 9.1 B is last free/open source version of Saxon supporting Java calls from XSLT, but 9.0 only is the last version available on Maven repositories <= 9.1 -->
 	<dependency org="net.sf.saxon" name="Saxon-B" rev="9.0" transitive="false" />
 	<!-- For base64Url encoding of policy IDs -->
-	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-file" rev="3.6.1" transitive="false" />
+	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-flat-file" rev="4.0.0" transitive="false" />
 			<!-- authzforce-ce-pap-dao-file's dependency necessary for base64 encoding 
 			WARNING: guava's packaging is bundle! So you have to add bundle in ivy:retrieve type attribute, e.g. "jar,bundle".
 			-->

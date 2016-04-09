@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>4.4.2-SNAPSHOT</version>
+		<version>5.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-upgrader</artifactId>
@@ -42,25 +42,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-transports-http-jetty</artifactId>
-			<version>${cxf.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-client</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-jndi</artifactId>
-			<version>9.2.9.v20150224</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-core</artifactId>
-			<version>3.7.0</version>
+			<version>3.8.0</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
@@ -161,6 +149,11 @@
 						<version>3.6.1</version>
 					</dependency>
 					<dependency>
+						<groupId>org.apache.ivy</groupId>
+						<artifactId>ivy</artifactId>
+						<version>2.4.0</version>
+					</dependency>
+					<dependency>
 						<groupId>ant-contrib</groupId>
 						<artifactId>ant-contrib</artifactId>
 						<version>1.0b3</version>
@@ -180,7 +173,7 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${project.basedir}/target/server/conf">
 									<fileset dir="${project.basedir}/src/test/authzforce-ce-server-current/conf" />
 								</copy>
@@ -189,7 +182,7 @@
 									<property name="old.install.dir" value="${project.basedir}/src/test/authzforce-4.2.0" />
 									<property name="new.install.dir" value="${project.basedir}/target/server" />
 								</ant>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>4.4.2-SNAPSHOT</version>
+		<version>5.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-webapp</artifactId>
@@ -11,6 +12,10 @@
 	<packaging>war</packaging>
 	<description>Web application packaging for AuthZForce (PAP/PDP) REST service</description>
 	<url>https://github.com/authzforce/server/rest-service</url>
+	<properties>
+		<!-- Tomcat version on Ubuntu 14.04 LTS (target OS) -->
+		<tomcat.version>7.0.52</tomcat.version>
+	</properties>
 	<scm>
 		<connection>scm:git:${git.url.base}.git</connection>
 		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
@@ -18,22 +23,25 @@
 		<url>${git.url.base}/webapp</url>
 	</scm>
 	<dependencies>
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.xml.bind</groupId> -->
+		<!-- <artifactId>jaxb-impl</artifactId> -->
+		<!-- <version>2.2.6</version> -->
+		<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: 
+			com.sun.xml.bind.v2.ClassFactory -->
+		<!-- has memory leak (upon webapp undeployment/redeployment). Therefore, 
+			jaxb RI from JDK >= 7 must be used so -->
+		<!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat 
+			lib directory to be loaded by common -->
+		<!-- classloader (shared libraries) -->
+		<!-- <scope>provided</scope> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.0.1</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>com.sun.xml.bind</groupId> -->
-		<!-- <artifactId>jaxb-impl</artifactId> -->
-		<!-- <version>2.2.6</version> -->
-		<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: com.sun.xml.bind.v2.ClassFactory -->
-		<!-- has memory leak (upon webapp undeployment/redeployment). Therefore, jaxb RI from JDK >= 7 must be used so -->
-		<!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat lib directory to be loaded by common -->
-		<!-- classloader (shared libraries) -->
-		<!-- <scope>provided</scope> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -56,14 +64,125 @@
 			<version>1.0.1</version>
 		</dependency>
 		<dependency>
+			<!-- Optional cxf-core dependency, needed here for FastInfoSet -->
+			<groupId>com.sun.xml.fastinfoset</groupId>
+			<artifactId>FastInfoset</artifactId>
+			<version>1.2.13</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jsr173</artifactId>
+					<groupId>javax.xml</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsr173_api</artifactId>
+					<groupId>javax.xml.bind</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 
+			, item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-service-description</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${project.parent.artifactId}-rest-service</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.9.8</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.jetty</groupId> -->
+		<!-- <artifactId>jetty-plus</artifactId> -->
+		<!-- <version>9.2.9.v20150224</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.jetty</groupId> -->
+		<!-- <artifactId>jetty-servlet</artifactId> -->
+		<!-- <version>9.2.9.v20150224</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.jetty</groupId> -->
+		<!-- <artifactId>jetty-webapp</artifactId> -->
+		<!-- <version>9.2.9.v20150224</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.cxf</groupId> -->
+		<!-- <artifactId>cxf-rt-transports-http-jetty</artifactId> -->
+		<!-- <version>${cxf.version}</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-core</artifactId>
+			<version>${tomcat.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-logging-juli</artifactId>
+			<version>${tomcat.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>${artifactId.prefix}-core</artifactId>
+			<version>3.8.0-SNAPSHOT</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- Override the default version of surefire used by jar packaging -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.19.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
-			<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects Property ${currentYear} is defined in parent POM. -->
+			<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects 
+				Property ${currentYear} is defined in parent POM. -->
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -90,6 +209,50 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<!-- Create folder for authzforce server test data (domains) -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<includeEmptyDirs>true</includeEmptyDirs>
+							<outputDirectory>${basedir}/target/server/conf</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/test/server.conf</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- This execution of surefire is overwritten by a default one unless 
+					we specify a different version in pluginManagement. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<suiteXmlFiles>
+						<!-- Parameters in the XML files seem to be ignore (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+					<properties>
+						<property>
+							<name>surefire.testng.verbose</name>
+							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 
+								for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
+							<value>0</value>
+						</property>
+					</properties>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>

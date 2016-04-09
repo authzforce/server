@@ -28,7 +28,6 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Context;
 
-import org.apache.cxf.feature.Features;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.ow2.authzforce.core.pap.api.dao.DomainsDAO;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -45,13 +44,11 @@ import com.google.common.net.UrlEscapers;
  * Client/End-User-managed domains resource implementation
  *
  */
-@Features(features = "org.apache.cxf.feature.FastInfosetFeature")
 public class DomainsResourceImpl implements DomainsResource
 {
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
-			"Invalid argument");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
 
 	private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
 
@@ -70,14 +67,12 @@ public class DomainsResourceImpl implements DomainsResource
 	 * @param domainsDAO
 	 *            domain repository
 	 * @param authorizedResourceAttribute
-	 *            name of ServletRequest attribute expected to give the list of authorized resource (
-	 *            <code>java.util.List</code>) IDs for the current user
+	 *            name of ServletRequest attribute expected to give the list of authorized resource ( <code>java.util.List</code>) IDs for the current user
 	 * @param anyResourceId
 	 *            identifier for "any resource" (access to any one)
 	 */
 	@ConstructorProperties({ "domainsDAO", "authorizedResourceAttribute", "anyResourceId" })
-	public DomainsResourceImpl(DomainsDAO<DomainResourceImpl<?>> domainsDAO, String authorizedResourceAttribute,
-			String anyResourceId)
+	public DomainsResourceImpl(DomainsDAO<DomainResourceImpl<?>> domainsDAO, String authorizedResourceAttribute, String anyResourceId)
 	{
 		this.domainRepo = domainsDAO;
 		this.authorizedResourceAttrId = authorizedResourceAttribute;
@@ -98,12 +93,11 @@ public class DomainsResourceImpl implements DomainsResource
 		}
 
 		/*
-		 * If the 'rootPolicyRef' element is missing, a default root policy must be automatically created for the domain
-		 * by the domainsDAO and a corresponding rootPolicyRef set by the Service Provider of this API in the domain
-		 * properties. If the 'rootPolicyRef' element is present, it assumes that the Service Provider of this API
-		 * initializes the domain with a fixed set of policies, and the client knows about those policies and therefore
-		 * how to set the 'rootPolicyRef' properly to match one of those pre-set policies. If the 'rootPolicyRef' does
-		 * not match any, the domain creation request will be rejected.
+		 * If the 'rootPolicyRef' element is missing, a default root policy must be automatically created for the domain by the domainsDAO and a corresponding
+		 * rootPolicyRef set by the Service Provider of this API in the domain properties. If the 'rootPolicyRef' element is present, it assumes that the
+		 * Service Provider of this API initializes the domain with a fixed set of policies, and the client knows about those policies and therefore how to set
+		 * the 'rootPolicyRef' properly to match one of those pre-set policies. If the 'rootPolicyRef' does not match any, the domain creation request will be
+		 * rejected.
 		 */
 		final String domainId;
 		try
@@ -184,16 +178,13 @@ public class DomainsResourceImpl implements DomainsResource
 							}
 						} catch (IOException e)
 						{
-							throw new InternalServerErrorException("Error getting domain info from domain repository",
-									e);
+							throw new InternalServerErrorException("Error getting domain info from domain repository", e);
 						}
 					}
 				}
 			} else
 			{
-				throw new InternalServerErrorException(new IllegalArgumentException(
-						"Invalid type of value for ServletRequest attribute '" + authorizedResourceAttrId + "' = "
-								+ attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
+				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '" + authorizedResourceAttrId + "' = " + attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
 			}
 		}
 

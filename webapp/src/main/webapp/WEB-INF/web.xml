@@ -9,13 +9,13 @@
 		<description>Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<env-entry-name>org.ow2.authzforce.config.dir</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce-ce</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>Data (e.g. data of domains created and managed by the API) directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<env-entry-name>org.ow2.authzforce.data.dir</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce-ce</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>UUID generator option for domain IDs, set to true if and only if Authzforce deployed in dev environment that is disconnected from the network, 
@@ -26,37 +26,24 @@
 		<env-entry-value>false</env-entry-value>
 	</env-entry>
 	<env-entry>
-		<description>Max number of policies per domain. -1 or any negative value means no max (unlimited).</description>
-		<env-entry-name>org.ow2.authzforce.domain.maxPolicyCount</env-entry-name>
-		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>10</env-entry-value>
-	</env-entry>
-	<env-entry>
-		<description>Max number of versions per policy. -1 or any negative value means no max (unlimited).</description>
-		<env-entry-name>org.ow2.authzforce.domain.policy.maxVersionCount</env-entry-name>
-		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>10</env-entry-value>
-	</env-entry>
-	<env-entry>
-		<description>When the value of above property 'org.ow2.authzforce.domain.policy.maxVersionCount' is reached, then: if this environment entry is 'true', oldest unused policies versions are automatically removed to make sure that is not exceeded; else an HTTP status 400 Bad Request is returned whenever trying to add a version too many</description>
-		<env-entry-name>org.ow2.authzforce.domain.policy.removeOldVersionsIfTooMany</env-entry-name>
-		<env-entry-type>java.lang.Boolean</env-entry-type>
-		<env-entry-value>true</env-entry-value>
-	</env-entry>
-	<env-entry>
 		<description>Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature.</description>
 		<env-entry-name>org.ow2.authzforce.domains.sync.interval</env-entry-name>
 		<env-entry-type>java.lang.Integer</env-entry-type>
 		<env-entry-value>0</env-entry-value>
 	</env-entry>
 	<context-param>
-		<description>Location of logging configuration file (any Spring resource path allowed) loaded by SSPG LogConfServletContextListener or LogbackConfigListener (if SSPG disabled) below. Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
+		<description>Spring default profile (may be overridden by system property 'spring.profiles.active'): '+fastinfoset' or '-fastinfoset'</description>
+		<param-name>spring.profiles.default</param-name>
+	    <param-value>+fastinfoset</param-value>
+	</context-param>
+	<context-param>
+		<description>Location of logging configuration file (any Spring resource path allowed) loaded by LogbackConfigListener (if SSPG disabled) below. Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<param-name>logbackConfigLocation</param-name>
-		<param-value>file:///${catalina.base}/conf/authzforce/logback.xml</param-value>
+		<param-value>file:///${catalina.base}/conf/authzforce-ce/logback.xml</param-value>
 	</context-param>
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>WEB-INF/applicationContext.xml</param-value>
+		<param-value>WEB-INF/beans.xml</param-value>
 	</context-param>
 	<listener>
 		<listener-class>ch.qos.logback.ext.spring.web.LogbackConfigListener</listener-class>

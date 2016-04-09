@@ -29,7 +29,7 @@ $ ant -Dold.data.dir=/path/to/old/opt/authzforce-4.2.0 \
       -Dnew.data.dir=/path/to/new/opt/authzforce-ce-server \
       -Dpdp.max.var.ref.depth=10 \
       -Dpdp.max.policy.ref.depth=10 \
-      -Dpdp.request.filter=urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax
+      -Dpdp.request.filter=urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
 ```
 
 This generates new data (e.g. domain directories) compatible with AuthZForce > v4.2.0 in location specified by `new.data.dir`.
