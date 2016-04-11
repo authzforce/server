@@ -1,0 +1,2 @@
+release date=${jdeb.changelog.timestamp},version=${project.version},urgency=low,by=Thales Services <http://www.thalesgroup.com>
+ * See https://github.com/authzforce/server/blob/release-${project.version}/CHANGELOG.md
