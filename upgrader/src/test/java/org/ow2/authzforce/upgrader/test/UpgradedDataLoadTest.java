@@ -31,6 +31,8 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.ws.rs.NotFoundException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -45,15 +47,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.jndi.SimpleNamingContextBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.ITestContext;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/beans.xml" })
 public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
@@ -78,13 +77,16 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	 * 
 	 * @param remoteAppBaseUrl
 	 * @param domainSyncIntervalSec
-	 * @param testCtx
 	 * @throws Exception
 	 */
 	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("-1") int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
+		final File targetDir = new File("target");
+		// set catalina.base property in server's logback.xml
+		System.setProperty("catalina.base", targetDir.toURI().toString());
+		
 		final File confDir = new File("target/server/conf");
 		final String confURI = confDir.toURI().toString();
 		final File dataDir = new File("target/server/data");
@@ -93,13 +95,11 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		// Set some server properties via JNDI
 		try
 		{
-			// Create initial context
-			// System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.naming.java.javaURLContextFactory");
-			// System.setProperty(Context.URL_PKG_PREFIXES, "org.apache.naming");
-
 			final SimpleNamingContextBuilder jndiCtxFactoryBuilder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
 			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.config.dir", confURI);
 			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.data.dir", dataURI);
+			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.uuid.gen.randomMulticastAddressBased", Boolean.TRUE);
+			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.sync.interval", new Integer(-1));
 		} catch (NamingException ex)
 		{
 			throw new RuntimeException("Error setting property via JNDI", ex);
@@ -114,7 +114,6 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		 * @BeforeTest
 		 */
 		super.springTestContextPrepareTestInstance();
-
 		testDomainId = domainsResourceBean.getDomains(null).getLinks().get(0).getHref();
 		testDomain = domainsResourceBean.getDomainResource(testDomainId);
 	}
@@ -136,16 +135,15 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 			boolean isDeleted = false;
 			try
 			{
-				// try to do something on the domain expected to be deleted ->
+				// try to get domain again ->
 				// MUST fail
-				domainResource.getDomain();
+				domainsResourceBean.getDomainResource(domainId);
 			} catch (NotFoundException nfe)
 			{
 				isDeleted = true;
 			}
 
 			assertTrue(isDeleted, String.format("Error deleting domain ID=%s", domainId));
-			createdDomainIds.remove(domainId);
 		}
 	}
 

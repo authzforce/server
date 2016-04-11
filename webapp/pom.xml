@@ -114,30 +114,6 @@
 			<version>6.9.8</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.jetty</groupId> -->
-		<!-- <artifactId>jetty-plus</artifactId> -->
-		<!-- <version>9.2.9.v20150224</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.jetty</groupId> -->
-		<!-- <artifactId>jetty-servlet</artifactId> -->
-		<!-- <version>9.2.9.v20150224</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.jetty</groupId> -->
-		<!-- <artifactId>jetty-webapp</artifactId> -->
-		<!-- <version>9.2.9.v20150224</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.cxf</groupId> -->
-		<!-- <artifactId>cxf-rt-transports-http-jetty</artifactId> -->
-		<!-- <version>${cxf.version}</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.apache.tomcat.embed</groupId>
 			<artifactId>tomcat-embed-core</artifactId>
@@ -164,7 +140,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-core</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
+			<version>3.8.0</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
@@ -249,7 +225,7 @@
 							<name>surefire.testng.verbose</name>
 							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 
 								for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
-							<value>0</value>
+							<value>2</value>
 						</property>
 					</properties>
 				</configuration>

@@ -131,7 +131,7 @@ public class DomainsResourceImpl implements DomainsResource
 		// add domain on the fly
 		// rename to resourceCollection
 		final Set<String> authorizedDomainIDs = new HashSet<>();
-		final Object attrVal = messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
+		final Object attrVal = messageContext == null? null: messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
 		// attrVal may be null
 		if (attrVal == null)
 		{

@@ -44,7 +44,7 @@
 
 	My comment: if you run the command with strace, you will actually see that it is trying to read bytes from /dev/random, one by one in order to create a 64-bytes base64-encoded string (therefore reading bytes until it has 64 of them) -> 64*64=4096 bit (+ a newline character).
 
-	if you are on a master, say ubuntu199.theresis.org, and master-slave config with ubuntu200.theresis.org as slave...
+	if you are on a master, say ubuntu199.example.org, and master-slave config with ubuntu200.example.org as slave...
 	Edit /etc/csync2.cfg and update as below (use brackets '()' for slave hosts):
 	****
 	# please see the README file how to configure csync2
@@ -52,11 +52,11 @@
 
 	group taz {
 	# use bracket for slave hosts
-			host    ubuntu199.theresis.org (ubuntu200.theresis.org);
+			host    ubuntu199.example.org (ubuntu200.example.org);
 			#pre-shared group authentication key
 			key     /etc/csync2.key;
 			# Monitored pattern path
-			include /home/theresis/;
+			include /home/example/;
 			# Action when change
 			action {
 					# For some reason, it can happen that "%%" will list all files changed since first sync after last csync2 daemon started, not only the last changes (during last sync)
@@ -90,14 +90,14 @@
 	... to clean the database, before you retry sync
 
 	The lastchangedfiles will look like this (whitespace-separated list of absolute paths): (only changed files during last sync in there, previous list overwritten, no append):
-	theresis@sp:~$ cat lastchangedfiles.log
-	/home/theresis/csync2testdir/test5.txt /home/theresis/csync2testdir/test4dir/test.txt /home/theresis/csync2testdir/test4dir /home/theresis/csync2testdir/test3.txt
+	example@sp:~$ cat lastchangedfiles.log
+	/home/example/csync2testdir/test5.txt /home/example/csync2testdir/test4dir/test.txt /home/example/csync2testdir/test4dir /home/example/csync2testdir/test3.txt
 
 	TODO: test deleted file
 
 	If you use whitespaces in filenames, it will end like this in lastchangefiles.log:
-	theresis@sp:~$ cat lastchangedfiles.log
-	/home/theresis/csync2testdir/test%20with%20whitespace.txt
+	example@sp:~$ cat lastchangedfiles.log
+	/home/example/csync2testdir/test%20with%20whitespace.txt
 
 	-> URL-encoded (%-encoded)
 	
@@ -107,19 +107,18 @@
 */1 * * * * csync2 -x >/dev/null 2>&1
 
 Once saved, Csync2 will run once per 1 minute, check, synchronize and restart your service if required automatically.
-============
 	
-	-TESTING (showing /var/log/syslog output)-
+== SAMPLE TESTING OUTPUT (showing /var/log/syslog output) ==
 	1) update domain2/policyset.xml, creating domain5, delete domain 4
-	Nov 30 16:28:42 kyrill-old-desktop-pc csync2 taz update: /home/cdangerv/XIFI/domains/domain5/policySet.xml /home/cdangerv/XIFI/domains/domain5/pdp.xml /home/cdangerv/XIFI/domains/domain5 /home/cdangerv/XIFI/domains/domain2/policySet.xml /home/cdangerv/XIFI/domains/domain4 /home/cdangerv/XIFI/domains/domain4/pdp.xml /home/cdangerv/XIFI/domains/domain4/policySet.xml
+	... csync2 taz update: /home/example/XIFI/domains/domain5/policySet.xml /home/example/XIFI/domains/domain5/pdp.xml /home/example/XIFI/domains/domain5 /home/example/XIFI/domains/domain2/policySet.xml /home/example/XIFI/domains/domain4 /home/example/XIFI/domains/domain4/pdp.xml /home/example/XIFI/domains/domain4/policySet.xml
 
 	2) update domain2/policyset.xml and domain2/pdp.xml
-	Nov 30 16:32:09 kyrill-old-desktop-pc csync2 taz update: /home/cdangerv/XIFI/domains/domain2/policySet.xml /home/cdangerv/XIFI/domains/domain2/pdp.xml
+	... csync2 taz update: /home/example/XIFI/domains/domain2/policySet.xml /home/example/XIFI/domains/domain2/pdp.xml
 
 	3) delete domain5
-	Nov 30 16:33:57 kyrill-old-desktop-pc csync2 update:: /home/cdangerv/XIFI/domains/domain5 /home/cdangerv/XIFI/domains/domain5/pdp.xml /home/cdangerv/XIFI/domains/domain5/policySet.xml
+	... csync2 update:: /home/example/XIFI/domains/domain5 /home/example/XIFI/domains/domain5/pdp.xml /home/example/XIFI/domains/domain5/policySet.xml
 
 	4) create domain3:
-	Nov 30 16:35:17 kyrill-old-desktop-pc csync2 update:: /home/cdangerv/XIFI/domains/domain3/policySet.xml /home/cdangerv/XIFI/domains/domain3/pdp.xml /home/cdangerv/XIFI/domains/domain3
+	... csync2 update:: /home/example/XIFI/domains/domain3/policySet.xml /home/example/XIFI/domains/domain3/pdp.xml /home/example/XIFI/domains/domain3
 	
 		

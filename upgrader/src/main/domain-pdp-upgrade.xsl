@@ -19,7 +19,7 @@
     along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 4.3.0 and above. To be used with Saxon XSLT processor. Author: Cyril DANGERVILLE. -->
+<!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 5.0.0 and above. To be used with Saxon XSLT processor. Author: Cyril DANGERVILLE. -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oldapi="http://thalesgroup.com/authz/model/3.0" xmlns:oldext="http://thalesgroup.com/authz/model/ext/3.0" xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12" xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	exclude-result-prefixes="oldapi oldext old">
 	<xsl:import href="xacml3-policy-c14n.xsl" />
@@ -65,7 +65,7 @@
 		<!-- Note: Non-free Saxon PE/EE has string-to-base64Binary() function (http://www.saxonica.com/html/documentation/functions/saxon/string-to-base64Binary.html). Unfortunately, we are using HE edition. -->
 		<!-- Calling Java in XSLT is no longer supported by latest version of Saxon-HE. Or you have to use "integrated extension functions". http://stackoverflow.com/questions/19004719/calling-java-methods-in-xslt -->
 		<!-- Calling string() makes sure Saxon matches method base64UrlEncode(String), otherwise Saxon throws an error because of ambiguous call (there are multiple base64UrlEncode() methods in the class) -->
-		<xsl:variable name="encodedId" select="utils:base64UrlEncode(string(@PolicySetId))" xmlns:utils="java:org.org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils" />
+		<xsl:variable name="encodedId" select="utils:base64UrlEncode(string(@PolicySetId))" xmlns:utils="java:org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils" />
 		<xsl:variable name="outfileURI" select="concat($encodedId,'/', @Version, '.xml')" />
 		<xsl:result-document href="policies/{$outfileURI}" omit-xml-declaration="no" method="xml">
 			<xsl:call-template name="canonicalize-policy" />

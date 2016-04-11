@@ -35,6 +35,9 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
 import org.ow2.authzforce.core.xmlns.pdp.StaticRefBasedRootPolicyProvider;
@@ -52,9 +55,6 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 
 class DomainAPIHelper
 {
@@ -413,11 +413,11 @@ class DomainAPIHelper
 		return prpPropsRes.getOtherPrpProperties().getMaxVersionCountPerPolicy().intValue();
 	}
 
-	public PrpProperties updateMaxPolicyVersionCount(int maxPolicyVersionCount)
+	public PrpProperties updateVersioningProperties(int maxPolicyVersionCount, boolean versionRolling)
 	{
 		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
 		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
-		return prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, oldPrpProps.isVersionRollingEnabled()));
+		return prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, versionRolling));
 	}
 
 	public boolean setPolicyVersionRollingAndGetStatus(boolean isEnabled)

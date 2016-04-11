@@ -5,7 +5,7 @@
 	version="3.6.2"
 	maxPolicyRefDepth="10" 
 	strictAttributeIssuerMatch="false" 
-	requestFilter="urn:thalesgroup:xacml:request-filter:default-lax">
+	requestFilter="urn:ow2:authzforce:xacml:request-filter:default-lax">
 	<!-- Replace with requestFilter = "urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories-lax" for Multiple Decision Profile support. -->
 	<!-- You may customize this PDP configuration except 'rootPolicyProvider' and 'refPolicyProvider' elements. -->
 	<!-- policyLocation must start with ${PARENT_DIR}/ and end with: /*SUFFIX (* is expanded to base64url(policyId)/policyVersion) -->

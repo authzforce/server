@@ -139,14 +139,14 @@
 				<version>1.6</version>
 				<dependencies>
 					<dependency>
-						<groupId>net.sf.saxon</groupId>
-						<artifactId>Saxon-B</artifactId>
-						<version>9.0</version>
+						<groupId>net.sourceforge.saxon</groupId>
+						<artifactId>saxon</artifactId>
+						<version>9.1.0.8</version>
 					</dependency>
 					<dependency>
 						<groupId>${project.groupId}</groupId>
-						<artifactId>${artifactId.prefix}-pap-dao-file</artifactId>
-						<version>3.6.1</version>
+						<artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
+						<version>4.0.0</version>
 					</dependency>
 					<dependency>
 						<groupId>org.apache.ivy</groupId>
@@ -187,19 +187,19 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- <plugin> -->
-			<!-- <groupId>org.apache.maven.plugin</groupId> -->
-			<!-- <artifactId>maven-surefire-plugin</artifactId> -->
-			<!-- <version>2.14.1</version> -->
-			<!-- <configuration> -->
-			<!-- <properties> -->
-			<!-- <property> -->
-			<!-- <name>surefire.testng.verbose</name> -->
-			<!-- <value>10</value> -->
-			<!-- </property> -->
-			<!-- </properties> -->
-			<!-- </configuration> -->
-			<!-- </plugin> -->
+<!-- 			<plugin> -->
+<!-- 			<groupId>org.apache.maven.plugin</groupId> -->
+<!-- 			<artifactId>maven-surefire-plugin</artifactId> -->
+<!-- 			<version>2.14.1</version> -->
+<!-- 			<configuration> -->
+<!-- 			<properties> -->
+<!-- 			<property> -->
+<!-- 			<name>surefire.testng.verbose</name> -->
+<!-- 			<value>5</value> -->
+<!-- 			</property> -->
+<!-- 			</properties> -->
+<!-- 			</configuration> -->
+<!-- 			</plugin> -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>

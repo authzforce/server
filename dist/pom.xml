@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>4.4.2-SNAPSHOT</version>
+		<version>5.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-dist</artifactId>
@@ -14,6 +14,9 @@
 	<properties>
 		<productName>${project.parent.artifactId}</productName>
 		<productMaintainer>Thales Services SAS</productMaintainer>
+		<!-- Timestamp to be used in debian/changes.jdeb.txt -->
+		<maven.build.timestamp.format>HH:mm dd.MM.yyyy</maven.build.timestamp.format>
+		<jdeb.changelog.timestamp>${maven.build.timestamp}</jdeb.changelog.timestamp>
 	</properties>
 	<url>https://github.com/authzforce/server/dist</url>
 	<scm>
@@ -39,10 +42,39 @@
 				<filtering>true</filtering>
 				<includes>
 					<include>webapp-context.xml</include>
+					<include>debian/changelog</include>
+					<include>debian/changes.jdeb.txt</include>
 				</includes>
 			</resource>
 		</resources>
 		<plugins>
+			<plugin>
+			<!-- Set timestamp property to be used in debian/changelog -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.10</version>
+				<executions>
+					<execution>
+						<id>timestamp-property</id>
+						<goals>
+							<goal>timestamp-property</goal>
+						</goals>
+						<configuration>
+							<name>debian.changelog.timestamp</name>
+							<locale>en,US</locale>
+							<pattern>E, dd MMM yyyy HH:mm:ss Z</pattern>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<escapeString>\</escapeString>
+				</configuration>
+			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
@@ -63,28 +95,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<!-- Compress debian package changelog using gzip to comply with Debian Policy -->
-				<groupId>net.alchim31.maven</groupId>
-				<artifactId>yuicompressor-maven-plugin</artifactId>
-				<version>1.3.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compress</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<gzip>true</gzip>
-					<nosuffix>true</nosuffix>
-					<outputDirectory>${project.build.directory}</outputDirectory>
-					<sourceDirectory>src/debian</sourceDirectory>
-					<includes>
-						<include>changelog</include>
-					</includes>
-				</configuration>
-			</plugin>
-			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
 				<version>1.4</version>
@@ -98,17 +108,17 @@
 							<verbose>true</verbose>
 							<snapshotExpand>true</snapshotExpand>
 							<deb>${project.build.directory}/${productName}_${project.version}_all.deb</deb>
+							<changesIn>${project.build.outputDirectory}/debian/changes.jdeb.txt</changesIn>
 							<changesOut>${project.build.directory}/${productName}_${project.version}_all.changes</changesOut>
 							<!-- expand "SNAPSHOT" to what is in the "USER" env variable. Expanded to timestamp by default. -->
 							<!-- <snapshotEnv>USER</snapshotEnv> -->
-							<!-- In control files, you can use any variable defined by initializeVariableResolver(...) method in https://github.com/tcurdt/jdeb/blob/master/src/main/java/org/vafer/jdeb/maven/DebMojo.java Surround 
-								the variable name with double square brackets "[[" "]]" to have it replaced by the variable value. -->
+							<!-- In control files, you can use any variable defined by initializeVariableResolver(...) method in https://github.com/tcurdt/jdeb/blob/master/src/main/java/org/vafer/jdeb/maven/DebMojo.java Surround the variable name with double square brackets "[[" "]]" to have it replaced by the variable value. -->
 							<controlDir>${project.basedir}/src/debian/control</controlDir>
 							<dataSet>
 								<data>
-									<!-- lintian will complain changelog-not-compressed-with-max-compression changelog.gz Fix to come: https://github.com/tcurdt/jdeb/issues/157 -->
-									<src>${project.build.directory}/changelog.gz</src>
-									<dst>/usr/share/doc/${productName}/changelog.gz</dst>
+									<!-- lintian will complain changelog-not-compressed-with-max-compression . Fix to come: https://github.com/tcurdt/jdeb/issues/157 -->
+									<src>${project.build.outputDirectory}/debian/changelog</src>
+									<dst>/usr/share/doc/${productName}/changelog</dst>
 									<type>file</type>
 								</data>
 								<data>

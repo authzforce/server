@@ -27,7 +27,7 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${project.basedir}/src/webapp-context.xml</source>
+			<source>${project.build.outputDirectory}/webapp-context.xml</source>
 			<outputDirectory>/conf</outputDirectory>
 			<destName>context.xml.sample</destName>
 		</file>

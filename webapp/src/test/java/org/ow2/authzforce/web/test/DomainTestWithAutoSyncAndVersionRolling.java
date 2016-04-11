@@ -18,6 +18,11 @@ import javax.ws.rs.NotFoundException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -25,7 +30,6 @@ import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
@@ -34,11 +38,6 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 /**
  * Tests specific to a domain with auto-sync and automatic removal of versions if too many
@@ -57,7 +56,6 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 	private DomainResource testDomain = null;
 	private String testDomainId = null;
 	private File testDomainDir;
-	private int syncIntervalMs;
 
 	private String testDomainExternalId = "test" + PRNG.nextInt(100);
 
@@ -69,14 +67,13 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 	 * @param remoteAppBaseUrl
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
-	 * @param testCtx
 	 * @throws Exception
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, testCtx);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
 	}
 
 	/**
@@ -136,7 +133,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 	public void addTooManyPolicyVersions()
 	{
 		int maxVersionCountPerPolicy = 3;
-		testDomainHelper.updateMaxPolicyVersionCount(maxVersionCountPerPolicy);
+		testDomainHelper.updateVersioningProperties(maxVersionCountPerPolicy, true);
 
 		for (int i = 0; i < maxVersionCountPerPolicy; i++)
 		{
@@ -201,12 +198,12 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 
 	}
 
-	@Parameters({ "remote.base.url", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs",  "org.ow2.authzforce.domains.sync.interval"  })
 	@Test(timeOut = TEST_TIMEOUT_MS, description = "Check whether externalId-to-domain mapping updated automatically after any modification to domain's properties file")
-	public void syncExternalIdAfterDomainPropertiesFileChanged(String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void syncExternalIdAfterDomainPropertiesFileChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
 	{
-		// skip test i f server not started locally
-		if (remoteBaseUrl != null)
+		// skip test if server not started locally
+		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
 		{
 			return;
 		}
@@ -215,7 +212,6 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		testDomainHelper.modifyDomainPropertiesFile(newExternalId, isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(syncIntervalMs);
 
 		// test the old externalId
 		List<Link> domainLinks = null;
@@ -236,12 +232,12 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		assertEquals(matchedDomainId, testDomainId, "Auto sync of externalId with domain properties file failed: getDomains(externalId = " + newExternalId + ") returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
 	}
 
-	@Parameters({ "remote.base.url", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "syncExternalIdAfterDomainPropertiesFileChanged" })
-	public void syncPdpAfterConfFileChanged(String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void syncPdpAfterConfFileChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (remoteBaseUrl != null)
+		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
 		{
 			return;
 		}
@@ -249,7 +245,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyRootPolicyRefInPdpConfFile(isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(syncIntervalMs);
+		Thread.sleep(domainSyncIntervalSec*1000);
 
 		// check PDP returned policy identifier
 		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, DomainSetTest.REQUEST_FILENAME));
@@ -270,12 +266,12 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		}
 	}
 
-	@Parameters({ "remote.base.url", "legacy.fs" })
+	@Parameters({ "remote.base.url", "legacy.fs", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS * 2, dependsOnMethods = { "syncPdpAfterConfFileChanged" })
-	public void syncPdpAfterUsedPolicyDirectoryChanged(String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void syncPdpAfterUsedPolicyDirectoryChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
-		if (remoteBaseUrl != null)
+		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
 		{
 			return;
 		}
@@ -285,7 +281,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, false, isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(syncIntervalMs);
+		Thread.sleep(domainSyncIntervalSec*1000);
 
 		/*
 		 * We cannot check again with /domain/{domainId}/pap/properties because it will sync again and this is not what we intend to test here.
@@ -319,7 +315,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, true, isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(syncIntervalMs);
+		Thread.sleep(domainSyncIntervalSec*1000);
 
 		/*
 		 * We cannot check again with /domain/{domainId}/pap/properties because it will sync again and this is not what we intend to test here.
@@ -349,18 +345,19 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 
 	/**
 	 * To be executed last since the domain is removed as a result if successful
+	 * @param remoteBaseUrl 
 	 * 
 	 * @throws InterruptedException
 	 * @throws IOException
 	 * @throws IllegalArgumentException
 	 * @throws JAXBException
 	 */
-	@Parameters({ "remote.base.url" })
+	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "addTooManyPolicyVersions", "syncPdpAfterUsedPolicyDirectoryChanged" })
-	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(String remoteBaseUrl) throws InterruptedException, IllegalArgumentException, IOException, JAXBException
+	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(@Optional String remoteBaseUrl,@Optional("4") int domainSyncIntervalSec) throws InterruptedException, IllegalArgumentException, IOException, JAXBException
 	{
 		// skip test if server not started locally
-		if (remoteBaseUrl != null)
+		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
 		{
 			return;
 		}
@@ -369,7 +366,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		FlatFileDAOUtils.deleteDirectory(testDomainDir.toPath(), 3);
 
 		// wait for sync
-		Thread.sleep(syncIntervalMs);
+		Thread.sleep(domainSyncIntervalSec*1000);
 
 		// check whether domain's PDP reachable
 		File testDir = new File(DomainSetTest.XACML_SAMPLES_DIR, "IIIG301");

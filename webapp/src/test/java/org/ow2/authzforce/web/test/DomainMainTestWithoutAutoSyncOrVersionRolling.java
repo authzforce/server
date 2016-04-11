@@ -31,6 +31,11 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -57,7 +62,6 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
@@ -67,11 +71,6 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 /**
  * Main tests specific to a domain, requires {@link DomainSetTest} to be run first
@@ -111,14 +110,13 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	 * @param remoteAppBaseUrl
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
-	 * @param testCtx
 	 * @throws Exception
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, testCtx);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
 	}
 
 	/**
@@ -133,9 +131,14 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		shutdownServer();
 	}
 
+	/**
+	 * @param remoteAppBaseUrl
+	 * @param enableFastInfoset
+	 * @throws Exception
+	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset" })
 	@BeforeClass
-	public void addDomain(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset, ITestContext testCtx) throws Exception
+	public void addDomain(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset) throws Exception
 	{
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
@@ -501,7 +504,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		int actualMax = testDomainHelper.updateAndGetMaxPolicyVersionCount(maxPolicyVersionCount);
 		assertEquals(maxPolicyVersionCount, actualMax, "Max policy count set with PUT does not match the one retrieve with GET");
 		// reset max version count for other tests
-		testDomainHelper.updateMaxPolicyVersionCount(-1);
+		testDomainHelper.updateVersioningProperties(-1, false);
 	}
 
 	@Test(dependsOnMethods = { "setValidMaxPolicyVersionCount" }, expectedExceptions = { BadRequestException.class })
@@ -510,7 +513,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		testDomainHelper.resetPdpAndPrp();
 
 		final int maxVersionCountPerPolicy = 3;
-		testDomainHelper.updateMaxPolicyVersionCount(maxVersionCountPerPolicy);
+		testDomainHelper.updateVersioningProperties(maxVersionCountPerPolicy, false);
 
 		for (int i = 0; i < maxVersionCountPerPolicy; i++)
 		{
@@ -519,7 +522,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		}
 
 		// try setting max policy count lower than current number of policies
-		testDomainHelper.updateMaxPolicyVersionCount(maxVersionCountPerPolicy - 1);
+		testDomainHelper.updateVersioningProperties(maxVersionCountPerPolicy - 1, false);
 	}
 
 	@Test(dependsOnMethods = { "addTooManyPolicies" })
@@ -528,7 +531,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		testDomainHelper.resetPdpAndPrp();
 
 		final int maxVersionCountPerPolicy = 3;
-		testDomainHelper.updateMaxPolicyVersionCount(maxVersionCountPerPolicy);
+		testDomainHelper.updateVersioningProperties(maxVersionCountPerPolicy, false);
 		for (int i = 0; i < maxVersionCountPerPolicy; i++)
 		{
 			PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + i);
@@ -708,7 +711,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	public void updateRootPolicyRefToValidVersion() throws JAXBException
 	{
 		testDomainHelper.updateMaxPolicyCount(-1);
-		testDomainHelper.updateMaxPolicyVersionCount(-1);
+		testDomainHelper.updateVersioningProperties(-1, false);
 
 		PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();
 
@@ -943,7 +946,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void enableMDP(String remoteAppBaseUrl) throws JAXBException
+	public void enableMDP(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
 		final List<String> inputFeatures = Collections.singletonList(MDP_REPEATED_ATTRIBUTE_CATEGORIES_PDP_FEATURE_ID);
 		List<String> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
@@ -959,7 +962,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "enableMDP" })
-	public void disableMDP(String remoteAppBaseUrl) throws JAXBException
+	public void disableMDP(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
 		final List<String> inputFeatures = Collections.emptyList();
 		List<String> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
@@ -1051,7 +1054,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void headRootPolicyRefAfterChangingPdpConfFile(String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void headRootPolicyRefAfterChangingPdpConfFile(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -1070,7 +1073,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void getRootPolicyRefAfterChangingPdpConfFile(String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void getRootPolicyRefAfterChangingPdpConfFile(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -1093,7 +1096,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithCircularRef", "getRootPolicyRefAfterChangingPdpConfFile" }, expectedExceptions = BadRequestException.class)
-	public void setRootPolicyWithTooDeepPolicyRef(String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void setRootPolicyWithTooDeepPolicyRef(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -1119,7 +1122,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl, @Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
+	public void getPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -1197,7 +1200,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "getPdpPropertiesAfterModifyingUsedPolicyDirectory" })
-	public void headPdpPropertiesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl, @Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
+	public void headPdpPropertiesAfterModifyingUsedPolicyDirectory(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFileSystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -1226,7 +1229,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	@Parameters({ "remote.base.url", "legacy.fs" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void getPoliciesAfterModifyingUsedPolicyDirectory(String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	public void getPoliciesAfterModifyingUsedPolicyDirectory(@Optional String remoteAppBaseUrl, @Optional("false") boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())

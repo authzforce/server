@@ -21,12 +21,13 @@ import javax.ws.rs.NotFoundException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
@@ -35,8 +36,6 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 
 /**
  * Demo test
@@ -69,9 +68,9 @@ public class SecurityDemoTest extends RestServiceTest
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec, ITestContext testCtx) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, testCtx);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
 	}
 
 	/**

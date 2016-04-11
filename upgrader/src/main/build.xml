@@ -60,13 +60,10 @@
         			    		-->
 				<factory name="net.sf.saxon.TransformerFactoryImpl">
 					<!-- 
-        							For a full list of feature names,
-        							for latest version of Saxon,
-        							 see http://www.saxonica.com/html/documentation/configuration/config-features.html or http://www.saxonica.com/html/documentation/javadoc/net/sf/saxon/lib/FeatureKeys.html
-        							 for version 9.0, see http://www.saxonica.com/documentation9.0/javadoc/net/sf/saxon/FeatureKeys.html
+        							For a full list of feature names in version 9.1, see http://www.saxonica.com/documentation9.1/javadoc/net/sf/saxon/FeatureKeys.html
         							 
         							 More info on using XSLT task with Saxon 9:
-        							 http://www.saxonica.com/documentation9.0/using-xsl/xsltfromant.html
+        							 http://www.saxonica.com/documentation9.1/using-xsl/xsltfromant.html
         							-->
 					<!-- Using a SAXON configuration file
         							<attribute name="http://saxon.sf.net/feature/configuration-file" 
@@ -95,9 +92,12 @@
 		<property name="old.domain.tmpl.path" value="${old.install.dir}/conf/domain.tmpl" />
 		<property name="new.domain.tmpl.path" value="${new.install.dir}/conf/domain.tmpl" />
 		<echo message="Upgrading domain template directory '${old.domain.tmpl.path}' --> '${new.domain.tmpl.path}'" />
-		<!-- Clean directory 'policies' before we set the root policy from old domain template-->
+		<property name="new.domain.tmpl.backup.path" value="${new.domain.tmpl.path}.old" />
+		<echo message="Creating backup of current domain template directory in target installation directory for recovery: '${new.domain.tmpl.path}' --> '${new.domain.tmpl.backup.path}'" />
+		<copy todir="${new.domain.tmpl.backup.path}"><fileset dir="${new.domain.tmpl.path}" /></copy>
+		<!-- Clean directory 'policies' and remove pdp.xml whose content will be replaced from old domain template using XSLT task down below-->
 		<delete includeemptydirs="true">
-			<fileset dir="${new.domain.tmpl.path}/policies" includes="**/*" />
+			<fileset dir="${new.domain.tmpl.path}" includes="policies/, pdp.xml" />
 		</delete>
 
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->

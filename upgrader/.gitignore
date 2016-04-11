@@ -6,3 +6,4 @@
 /lib/
 /test-output/
 /.pmd
+/.pmdruleset.xml

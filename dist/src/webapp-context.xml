@@ -12,11 +12,11 @@
 	<!-- Override <env-entry>s in web.xml -->
 	<Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productName}/conf"
 		type="java.lang.String" override="false"
-		description="Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
+		description="Configuration directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
 	<Environment name="org.ow2.authzforce.data.dir" value="file:/opt/${productName}/data"
 		type="java.lang.String" override="false"
-		description="Data (e.g. data of domains created and managed by the API) directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
+		description="Data (e.g. data of domains created and managed by the API) directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
 	<Environment name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased"
 		value="false" type="java.lang.Boolean" override="false"
