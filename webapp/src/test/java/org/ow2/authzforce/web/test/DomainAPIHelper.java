@@ -380,7 +380,7 @@ class DomainAPIHelper
 	{
 		PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
 		PdpProperties oldProps = propsRes.getOtherPdpProperties();
-		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(features, oldProps.getRootPolicyRef()));
+		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(features, oldProps.getRootPolicyRefExpression()));
 		return propsRes;
 	}
 

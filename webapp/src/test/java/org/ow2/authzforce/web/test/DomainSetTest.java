@@ -7,6 +7,7 @@ package org.ow2.authzforce.web.test;
  *
  *
  */
+import static org.ow2.authzforce.web.test.RestServiceTest.SAMPLE_DOMAIN_ID;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -15,7 +16,6 @@ import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -223,9 +223,6 @@ public class DomainSetTest extends RestServiceTest
 		String matchedDomainId = domainLinks.get(0).getHref();
 		assertEquals(matchedDomainId, createdDomainId, "getDomains(externalId) returned wrong domainId: " + matchedDomainId + " instead of " + createdDomainId);
 	}
-
-	private static final String SAMPLE_DOMAIN_ID = SAMPLE_DOMAIN_DIR.getFileName().toString();
-	private static final Path SAMPLE_DOMAIN_COPY_DIR = new File(DOMAINS_DIR, SAMPLE_DOMAIN_ID).toPath();
 
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "getDomains", "getDomainByExternalId" })

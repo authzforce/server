@@ -8,6 +8,7 @@ package org.ow2.authzforce.web.test;
  *
  */
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +21,7 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.ServletException;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -31,6 +33,7 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.LifecycleState;
 import org.apache.catalina.deploy.ContextEnvironment;
@@ -53,6 +56,8 @@ import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -120,6 +125,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
+	protected static final String SAMPLE_DOMAIN_ID = SAMPLE_DOMAIN_DIR.getFileName().toString();
+	protected static final Path SAMPLE_DOMAIN_COPY_DIR = new File(DOMAINS_DIR, SAMPLE_DOMAIN_ID).toPath();
+
 	/*
 	 * JAXB context for (un)marshalling XACML
 	 */
@@ -173,6 +181,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTest.class);
+
 	protected static PolicySet createDumbPolicySet(String policyId, String version)
 	{
 		return createDumbPolicySet(policyId, version, null);
@@ -206,87 +216,118 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
+	/**
+	 * 
+	 * @param port
+	 *            server port, dynamically allocated if negative
+	 * @param enableFastInfoset
+	 * @param domainSyncIntervalSec
+	 * @param addSampleDomain
+	 * @return
+	 * @throws ServletException
+	 * @throws IllegalArgumentException
+	 * @throws IOException
+	 * @throws LifecycleException
+	 */
+	private static Tomcat startServer(int port, boolean enableFastInfoset, int domainSyncIntervalSec,
+			boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
+	{
+		/*
+		 * Make sure the domains directory exists and is empty
+		 */
+		if (DOMAINS_DIR.exists())
+		{
+			// delete to start clean
+			FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
+		}
+
+		DOMAINS_DIR.mkdirs();
+
+		if (addSampleDomain)
+		{
+			// Add sample domain directory
+			// create domain directory on disk
+			FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
+			LOGGER.info("Added sample domain: '{}'", SAMPLE_DOMAIN_ID);
+		}
+
+		// For SSL debugging
+		// System.setProperty("javax.net.debug", "all");
+
+		/*
+		 * WORKAROUND to avoid accessExternalSchema error restricting protocols such as http://... in xacml schema:
+		 * schemaLocation="http://www.w3.org/2001/xml.xsd"
+		 */
+		System.setProperty("javax.xml.accessExternalSchema", "all");
+
+		// Create Jetty Server
+		// set 'catalina.base' for Tomcat work dir and property in server's logback.xml
+		System.setProperty("catalina.base", new File("target/server").getAbsolutePath());
+
+		// Initialize embedded Tomcat server
+		final Tomcat embeddedServer = new Tomcat();
+		/*
+		 * Increment server port after getting current value, to prepare for next server tests and avoid conflict with
+		 * this one
+		 */
+		embeddedServer.setPort(port < 0 ? EMBEDDED_SERVER_PORT.incrementAndGet() : port);
+		// enable JNDI
+		embeddedServer.enableNaming();
+		final Context webappCtx = embeddedServer.addWebapp(EMBEDDED_APP_CONTEXT_PATH,
+				new File("src/main/webapp").getAbsolutePath());
+		for (final LifecycleListener listener : webappCtx.findLifecycleListeners())
+		{
+			if (listener instanceof Tomcat.DefaultWebXmlListener)
+			{
+				webappCtx.removeLifecycleListener(listener);
+			}
+		}
+
+		// Initialize server JNDI properties for embedded Tomcat
+		final NamingResources webappNamingResources = webappCtx.getNamingResources();
+
+		/*
+		 * Override spring active profile context parameter with system property (no way to override context parameter
+		 * with Tomcat embedded API, otherwise error "Duplicate context initialization parameter")
+		 * spring.profiles.active may be set either via servletConfig init param or servletContext init param or JNDI
+		 * property java:comp/env/spring.profiles.active or system property
+		 */
+		ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
+		springActiveProfileEnv.setName("spring.profiles.active");
+		springActiveProfileEnv.setType("java.lang.String");
+		springActiveProfileEnv.setValue((enableFastInfoset ? "+" : "-") + "fastinfoset");
+		springActiveProfileEnv.setOverride(false);
+		webappNamingResources.addEnvironment(springActiveProfileEnv);
+
+		// override env-entry for domains sync interval
+		ContextEnvironment syncIntervalEnv = new ContextEnvironment();
+		syncIntervalEnv.setName("org.ow2.authzforce.domains.sync.interval");
+		syncIntervalEnv.setType("java.lang.Integer");
+		syncIntervalEnv.setValue(Integer.toString(domainSyncIntervalSec));
+		syncIntervalEnv.setOverride(false);
+		webappNamingResources.addEnvironment(syncIntervalEnv);
+
+		/*
+		 * Example using JNDI property
+		 */
+		// System.setProperty("spring.profiles.active", );
+
+		embeddedServer.start();
+
+		return embeddedServer;
+	}
+
 	protected void startServerAndInitCLient(String remoteAppBaseUrl, boolean enableFastInfoset,
 			int domainSyncIntervalSec) throws Exception
 	{
-		// If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally
-		// (embedded))
+		/*
+		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally
+		 * (embedded))
+		 */
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			/*
-			 * Make sure the domains directory exists and is empty
-			 */
-			if (DOMAINS_DIR.exists())
-			{
-				// delete to start clean
-				FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
-			}
-
-			DOMAINS_DIR.mkdirs();
-
-			// For SSL debugging
-			// System.setProperty("javax.net.debug", "all");
-
-			/*
-			 * WORKAROUND to avoid accessExternalSchema error restricting protocols such as http://... in xacml schema:
-			 * schemaLocation="http://www.w3.org/2001/xml.xsd"
-			 */
-			System.setProperty("javax.xml.accessExternalSchema", "all");
-
-			// Create Jetty Server
-			// set 'catalina.base' for Tomcat work dir and property in server's logback.xml
-			System.setProperty("catalina.base", new File("target/server").getAbsolutePath());
-
-			// Initialize embedded Tomcat server
-			embeddedServer = new Tomcat();
-			/*
-			 * Increment server port after getting current value, to prepare for next server tests and avoid conflict
-			 * with this one
-			 */
-			embeddedServer.setPort(EMBEDDED_SERVER_PORT.incrementAndGet());
-			// enable JNDI
-			embeddedServer.enableNaming();
-			final Context webappCtx = embeddedServer.addWebapp(EMBEDDED_APP_CONTEXT_PATH,
-					new File("src/main/webapp").getAbsolutePath());
-			for (final LifecycleListener listener : webappCtx.findLifecycleListeners())
-			{
-				if (listener instanceof Tomcat.DefaultWebXmlListener)
-				{
-					webappCtx.removeLifecycleListener(listener);
-				}
-			}
-
-			// Initialize server JNDI properties for embedded Tomcat
-			final NamingResources webappNamingResources = webappCtx.getNamingResources();
-
-			/*
-			 * Override spring active profile context parameter with system property (no way to override context
-			 * parameter with Tomcat embedded API, otherwise error "Duplicate context initialization parameter")
-			 * spring.profiles.active may be set either via servletConfig init param or servletContext init param or
-			 * JNDI property java:comp/env/spring.profiles.active or system property
-			 */
-			ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
-			springActiveProfileEnv.setName("spring.profiles.active");
-			springActiveProfileEnv.setType("java.lang.String");
-			springActiveProfileEnv.setValue((enableFastInfoset ? "+" : "-") + "fastinfoset");
-			springActiveProfileEnv.setOverride(false);
-			webappNamingResources.addEnvironment(springActiveProfileEnv);
-
-			// override env-entry for domains sync interval
-			ContextEnvironment syncIntervalEnv = new ContextEnvironment();
-			syncIntervalEnv.setName("org.ow2.authzforce.domains.sync.interval");
-			syncIntervalEnv.setType("java.lang.Integer");
-			syncIntervalEnv.setValue(Integer.toString(domainSyncIntervalSec));
-			syncIntervalEnv.setOverride(false);
-			webappNamingResources.addEnvironment(syncIntervalEnv);
-
-			/*
-			 * Example using JNDI property
-			 */
-			// System.setProperty("spring.profiles.active", );
-
-			embeddedServer.start();
+			embeddedServer = startServer(-1, enableFastInfoset, domainSyncIntervalSec, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -388,6 +429,38 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 			IS_EMBEDDED_SERVER_STARTED.set(false);
 		}
+	}
+
+	public static void main(String... args) throws IllegalArgumentException, ServletException, IOException,
+			LifecycleException
+	{
+		final int port;
+		final boolean enableFastInfoset;
+		final int domainSyncIntervalSec;
+		if (args.length == 0)
+		{
+			port = 8080;
+			enableFastInfoset = false;
+			domainSyncIntervalSec = -1;
+		} else if (args.length < 2)
+		{
+			System.out.println("Usage: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec]");
+			System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
+			System.out
+					.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
+			System.out
+					.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
+			throw new IllegalArgumentException("Invalid args. Expected args: enableFastInfoset domainsSyncIntervalSec");
+		} else
+		{
+			port = Integer.parseInt(args[0], 10);
+			enableFastInfoset = Boolean.valueOf(args[1]);
+			domainSyncIntervalSec = Integer.parseInt(args[2], 10);
+		}
+
+		final Tomcat tomcat = startServer(port, enableFastInfoset, domainSyncIntervalSec, true);
+		System.out.println("Server up and listening!");
+		tomcat.getServer().await();
 	}
 
 	private static void checkFiInterceptors(ClientConfiguration cfg)

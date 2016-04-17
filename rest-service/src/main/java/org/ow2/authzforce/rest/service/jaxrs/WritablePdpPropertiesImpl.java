@@ -18,9 +18,9 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-
 import java.util.List;
+
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
@@ -35,9 +35,9 @@ class WritablePdpPropertiesImpl implements WritablePdpProperties
 	}
 
 	@Override
-	public IdReferenceType getRootPolicyRef()
+	public IdReferenceType getRootPolicyRefExpression()
 	{
-		return props.getRootPolicyRef();
+		return props.getRootPolicyRefExpression();
 	}
 
 	@Override

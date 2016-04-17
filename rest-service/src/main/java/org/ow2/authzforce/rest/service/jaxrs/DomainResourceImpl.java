@@ -31,6 +31,10 @@ import javax.ws.rs.Path;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+
 import org.ow2.authzforce.core.pap.api.dao.DomainDAO;
 import org.ow2.authzforce.core.pap.api.dao.DomainDAOClient;
 import org.ow2.authzforce.core.pap.api.dao.PolicyDAOClient;
@@ -49,6 +53,7 @@ import org.ow2.authzforce.rest.api.jaxrs.PdpResource;
 import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
 import org.ow2.authzforce.rest.api.jaxrs.PrpPropertiesResource;
+import org.ow2.authzforce.rest.api.xmlns.ApplicablePolicies;
 import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
 import org.ow2.authzforce.rest.api.xmlns.Domain;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
@@ -64,10 +69,6 @@ import org.w3._2005.atom.Relation;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
-
 /**
  * Domain Resource implementation. Each domain managed by {@link DomainsResourceImpl} is an instance of this class.
  * 
@@ -75,14 +76,19 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
  *            Domain DAO implementation class
  *
  */
-public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>> implements DomainDAOClient<DAO>, DomainResource, DomainPropertiesResource, PapResource, PdpResource, PoliciesResource, AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
+public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>> implements
+		DomainDAOClient<DAO>, DomainResource, DomainPropertiesResource, PapResource, PdpResource, PoliciesResource,
+		AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
 {
 
-	private static final InternalServerErrorException NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION = new InternalServerErrorException("PDP is in erroneous state. Please contact the domain or system administrator.");
-	private static final ClientErrorException ADD_POLICY_CONFLICT_EXCEPTION = new ClientErrorException("PolicySet already exists with same PolicySetId and Version", javax.ws.rs.core.Response.Status.CONFLICT);
+	private static final InternalServerErrorException NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION = new InternalServerErrorException(
+			"PDP is in erroneous state. Please contact the domain or system administrator.");
+	private static final ClientErrorException ADD_POLICY_CONFLICT_EXCEPTION = new ClientErrorException(
+			"PolicySet already exists with same PolicySetId and Version", javax.ws.rs.core.Response.Status.CONFLICT);
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 	private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
+			"Invalid argument");
 
 	private static final DatatypeFactory XML_DATATYPE_FACTORY;
 	static
@@ -98,7 +104,10 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
 
+	private static final String GET_PROPERTIES_RESOURCE_METHOD_NAME = "getDomainPropertiesResource";
 	private static final String GET_PAP_RESOURCE_METHOD_NAME = "getPapResource";
+	private static final String GET_PDP_PROPERTIES_RESOURCE_METHOD_NAME = "getPdpPropertiesResource";
+	private static final String GET_PRP_PROPERTIES_RESOURCE_METHOD_NAME = "getPrpPropertiesResource";
 	private static final String GET_PDP_RESOURCE_METHOD_NAME = "getPdpResource";
 	private static final String GET_POLICIES_RESOURCE_METHOD_NAME = "getPoliciesResource";
 	private static final String GET_ATTRIBUTE_PROVIDERS_RESOURCE_METHOD_NAME = "getAttributeProvidersResource";
@@ -111,10 +120,14 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	 * 
 	 *
 	 */
-	public static class Factory<DOMAIN_DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>> implements DomainDAOClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
+	public static class Factory<DOMAIN_DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>>
+			implements
+			DomainDAOClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
 	{
-		private static final IllegalArgumentException ILLEGAL_DOMAIN_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain ID for domain resource undefined");
-		private static final IllegalArgumentException ILLEGAL_DOMAIN_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain DAO for domain resource undefined");
+		private static final IllegalArgumentException ILLEGAL_DOMAIN_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException(
+				"Domain ID for domain resource undefined");
+		private static final IllegalArgumentException ILLEGAL_DOMAIN_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException(
+				"Domain DAO for domain resource undefined");
 
 		@Override
 		public DomainResourceImpl<DOMAIN_DAO> getInstance(String domainId, DOMAIN_DAO domainDAO)
@@ -153,15 +166,33 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public Domain getDomain()
 	{
+		// Links to child resources (properties, pap, pdp)
+		// domain properties link
+		final Link propsLink = new Link();
+		// For the link, get Path annotation of corresponding method
+		final Path propsResourcePath;
+		try
+		{
+			propsResourcePath = DomainResource.class.getDeclaredMethod(GET_PROPERTIES_RESOURCE_METHOD_NAME)
+					.getAnnotation(Path.class);
+		} catch (SecurityException | NoSuchMethodException e)
+		{
+			throw new InternalServerErrorException("Error getting the 'properties' resource of domain '" + domainId
+					+ "'", e);
+		}
 
-		// Links to child resources (pap, pdp)
+		propsLink.setHref(propsResourcePath.value());
+		propsLink.setTitle("Domain properties");
+		propsLink.setRel(Relation.ITEM);
+
 		// PAP link
 		final Link papLink = new Link();
 		// For the link, get Path annotation of getPap method
 		final Path papResourcePath;
 		try
 		{
-			papResourcePath = DomainResource.class.getDeclaredMethod(GET_PAP_RESOURCE_METHOD_NAME).getAnnotation(Path.class);
+			papResourcePath = DomainResource.class.getDeclaredMethod(GET_PAP_RESOURCE_METHOD_NAME).getAnnotation(
+					Path.class);
 		} catch (SecurityException | NoSuchMethodException e)
 		{
 			throw new InternalServerErrorException("Error getting the 'pap' resource of domain '" + domainId + "'", e);
@@ -177,7 +208,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final Path pdpResourcePath;
 		try
 		{
-			pdpResourcePath = DomainResource.class.getDeclaredMethod(GET_PDP_RESOURCE_METHOD_NAME).getAnnotation(Path.class);
+			pdpResourcePath = DomainResource.class.getDeclaredMethod(GET_PDP_RESOURCE_METHOD_NAME).getAnnotation(
+					Path.class);
 		} catch (SecurityException | NoSuchMethodException e)
 		{
 			throw new InternalServerErrorException("Error getting the 'pdp' resource of domain '" + domainId + "'", e);
@@ -187,7 +219,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		pdpLink.setTitle("Policy Decision Point");
 		pdpLink.setRel(Relation.ITEM);
 
-		final Resources childResources = new Resources(Arrays.asList(papLink, pdpLink));
+		final Resources childResources = new Resources(Arrays.asList(propsLink, papLink, pdpLink));
 		final ReadableDomainProperties props;
 		try
 		{
@@ -261,6 +293,41 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public ResourceContent getPAP()
 	{
+		// Link to child resource 'pdp.properties'
+		final Link pdpPropsLink = new Link();
+		// For the link, get Path annotation of corresponding method
+		final Path pdpPropsResourcePath;
+		try
+		{
+			pdpPropsResourcePath = PapResource.class.getDeclaredMethod(GET_PDP_PROPERTIES_RESOURCE_METHOD_NAME)
+					.getAnnotation(Path.class);
+		} catch (SecurityException | NoSuchMethodException e)
+		{
+			throw new InternalServerErrorException("Error getting the 'pdp.properties' resource of the domain '"
+					+ domainId + "'", e);
+		}
+
+		pdpPropsLink.setHref(pdpPropsResourcePath.value());
+		pdpPropsLink.setTitle("PDP properties");
+		pdpPropsLink.setRel(Relation.ITEM);
+
+		// Link to child resource 'prp.properties'
+		final Link prpPropsLink = new Link();
+		// For the link, get Path annotation of corresponding method
+		final Path prpPropsResourcePath;
+		try
+		{
+			prpPropsResourcePath = PapResource.class.getDeclaredMethod(GET_PRP_PROPERTIES_RESOURCE_METHOD_NAME)
+					.getAnnotation(Path.class);
+		} catch (SecurityException | NoSuchMethodException e)
+		{
+			throw new InternalServerErrorException("Error getting the 'prp.properties' resource of the domain '"
+					+ domainId + "'", e);
+		}
+
+		prpPropsLink.setHref(prpPropsResourcePath.value());
+		prpPropsLink.setTitle("PRP properties");
+		prpPropsLink.setRel(Relation.ITEM);
 
 		// Link to child resource 'policies'
 		final Link policiesLink = new Link();
@@ -268,13 +335,16 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final Path policiesResourcePath;
 		try
 		{
-			policiesResourcePath = PapResource.class.getDeclaredMethod(GET_POLICIES_RESOURCE_METHOD_NAME).getAnnotation(Path.class);
+			policiesResourcePath = PapResource.class.getDeclaredMethod(GET_POLICIES_RESOURCE_METHOD_NAME)
+					.getAnnotation(Path.class);
 		} catch (SecurityException | NoSuchMethodException e)
 		{
-			throw new InternalServerErrorException("Error getting the 'policies' resource of the domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error getting the 'policies' resource of the domain '" + domainId
+					+ "'", e);
 		}
 
 		policiesLink.setHref(policiesResourcePath.value());
+		policiesLink.setTitle("PRP policies");
 		policiesLink.setRel(Relation.ITEM);
 
 		// Link to child resource 'attributeProviders'
@@ -284,17 +354,20 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final Path attrProvidersResourcePath;
 		try
 		{
-			attrProvidersResourcePath = PapResource.class.getDeclaredMethod(GET_ATTRIBUTE_PROVIDERS_RESOURCE_METHOD_NAME).getAnnotation(Path.class);
+			attrProvidersResourcePath = PapResource.class.getDeclaredMethod(
+					GET_ATTRIBUTE_PROVIDERS_RESOURCE_METHOD_NAME).getAnnotation(Path.class);
 		} catch (SecurityException | NoSuchMethodException e)
 		{
-			throw new InternalServerErrorException("Error getting the 'attributeProviders' resource of the domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error getting the 'attributeProviders' resource of the domain '"
+					+ domainId + "'", e);
 		}
 
 		attrProvidersLink.setHref(attrProvidersResourcePath.value());
 		attrProvidersLink.setTitle("PDP Attribute Providers");
 		attrProvidersLink.setRel(Relation.ITEM);
 
-		final Resources childResources = new Resources(Arrays.asList(policiesLink, attrProvidersLink));
+		final Resources childResources = new Resources(Arrays.asList(pdpPropsLink, prpPropsLink, policiesLink,
+				attrProvidersLink));
 		return new ResourceContent(null, childResources);
 	}
 
@@ -363,7 +436,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			attributeProviders = domainDAO.getAttributeProviders();
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error getting the attributeProviders configuration of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error getting the attributeProviders configuration of domain '"
+					+ domainId + "'", e);
 		}
 
 		return new AttributeProviders(attributeProviders);
@@ -382,7 +456,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			domainDAO.setAttributeProviders(attributeproviders.getAttributeProviders());
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error updating the attributeProviders configuration of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error updating the attributeProviders configuration of domain '"
+					+ domainId + "'", e);
 		} catch (IllegalArgumentException e)
 		{
 			throw new BadRequestException(e);
@@ -496,7 +571,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			props = domainDAO.getOtherPdpProperties();
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error getting the properties of the PDP of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error getting the properties of the PDP of domain '" + domainId
+					+ "'", e);
 		}
 
 		if (props == null)
@@ -507,7 +583,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 		final GregorianCalendar cal = new GregorianCalendar(UTC_TZ);
 		cal.setTimeInMillis(props.getLastModified());
-		return new PdpProperties(props.getFeatureIDs(), props.getRootPolicyRef(), props.getRefPolicyRefs(), XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
+		return new PdpProperties(props.getFeatureIDs(), props.getRootPolicyRefExpression(), new ApplicablePolicies(props.getApplicableRootPolicyRef(), props.getApplicableRefPolicyRefs()),
+				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 
 	@Override
@@ -525,7 +602,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			allProps = domainDAO.setOtherPdpProperties(propsUpdate);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error updating the properties of the PDP of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error updating the properties of the PDP of domain '" + domainId
+					+ "'", e);
 		} catch (IllegalArgumentException e)
 		{
 			throw new BadRequestException(e);
@@ -533,7 +611,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 		final GregorianCalendar cal = new GregorianCalendar(UTC_TZ);
 		cal.setTimeInMillis(allProps.getLastModified());
-		return new PdpProperties(allProps.getFeatureIDs(), allProps.getRootPolicyRef(), allProps.getRefPolicyRefs(), XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
+		return new PdpProperties(allProps.getFeatureIDs(), allProps.getRootPolicyRefExpression(), new ApplicablePolicies(allProps.getApplicableRootPolicyRef(), allProps.getApplicableRefPolicyRefs()),
+				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 
 	@Override
@@ -557,7 +636,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			allProps = domainDAO.setOtherPrpProperties(propsUpdate);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error updating the properties of the PRP of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error updating the properties of the PRP of domain '" + domainId
+					+ "'", e);
 		} catch (IllegalArgumentException e)
 		{
 			throw new BadRequestException(e);
@@ -579,7 +659,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			props = domainDAO.getOtherPrpProperties();
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException("Error getting the properties of the PRP of domain '" + domainId + "'", e);
+			throw new InternalServerErrorException("Error getting the properties of the PRP of domain '" + domainId
+					+ "'", e);
 		}
 
 		if (props == null)
