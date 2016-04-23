@@ -83,6 +83,27 @@ public class DomainSetTest extends RestServiceTest
 	@AfterTest
 	public void afterTest() throws Exception
 	{
+		for (final String domainId : createdDomainIds)
+		{
+			LOGGER.debug("Deleting domain ID={}", domainId);
+			final DomainResource domainResource = domainsAPIProxyClient.getDomainResource(domainId);
+			final DomainProperties domainProperties = domainResource.deleteDomain();
+			assertNotNull(domainProperties, String.format("Error deleting domain ID=%s", domainId));
+
+			boolean isDeleted = false;
+			try
+			{
+				// try to do something on the domain expected to be deleted ->
+				// MUST fail
+				domainResource.getDomain();
+			} catch (NotFoundException nfe)
+			{
+				isDeleted = true;
+			}
+
+			assertTrue(isDeleted, String.format("Error deleting domain ID=%s", domainId));
+		}
+		
 		shutdownServer();
 	}
 
@@ -287,9 +308,35 @@ public class DomainSetTest extends RestServiceTest
 		assertEquals(matchedDomainId, SAMPLE_DOMAIN_ID, "Manual sync with getDomains() failed: getDomains(externalId = " + externalId + ") returned wrong domainId: " + matchedDomainId + " instead of " + SAMPLE_DOMAIN_ID);
 
 	}
+	
+	@Test(dependsOnMethods = { "getDomainByExternalId" })
+	public void deleteDomain()
+	{
+		String createdDomainId = createdDomainIds.iterator().next();
+		DomainResource domainRes = domainsAPIProxyClient.getDomainResource(createdDomainId);
+		DomainProperties deletedDomainProps = domainRes.deleteDomain();
+		// make sure it's done
+		try
+		{
+			// try to do something on the domain expected to be deleted ->
+			// MUST fail
+			domainRes.getDomain();
+			fail("Error deleting domain "+createdDomainId+" with API deleteDomain(): getDomain() still returns 200");
+		} catch (NotFoundException nfe)
+		{
+			// OK
+		}
+
+		// try with externalId
+		String externalId = deletedDomainProps.getExternalId();
+		List<Link> links = domainsAPIProxyClient.getDomains(externalId).getLinks();
+		assertTrue(links.isEmpty(), "Error deleting domain "+createdDomainId+" with API deleteDomain(): getDomains(externalId="+externalId+") still returns link to domain");
+
+		createdDomainIds.remove(createdDomainId);
+	}
 
 	@Parameters({ "remote.base.url" })
-	@Test(dependsOnMethods = { "getDomainsAfterFileModifications" })
+	@Test(dependsOnMethods = {"getDomainsAfterFileModifications", "deleteDomain" })
 	public void deleteDomainAfterDirectoryDeleted(@Optional String remoteAppBaseUrl) throws IllegalArgumentException, IOException
 	{
 		// skip test if server is remote (remoteAppBaseUrl != null)
@@ -354,31 +401,6 @@ public class DomainSetTest extends RestServiceTest
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
 
 		assertTrue(actualResponse != null, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
-	}
-
-	@Test(dependsOnMethods = { "getDomainsAfterFileModifications" })
-	public void deleteDomains()
-	{
-		for (final String domainId : createdDomainIds)
-		{
-			LOGGER.debug("Deleting domain ID={}", domainId);
-			final DomainResource domainResource = domainsAPIProxyClient.getDomainResource(domainId);
-			final DomainProperties domainProperties = domainResource.deleteDomain();
-			assertNotNull(domainProperties, String.format("Error deleting domain ID=%s", domainId));
-
-			boolean isDeleted = false;
-			try
-			{
-				// try to do something on the domain expected to be deleted ->
-				// MUST fail
-				domainResource.getDomain();
-			} catch (NotFoundException nfe)
-			{
-				isDeleted = true;
-			}
-
-			assertTrue(isDeleted, String.format("Error deleting domain ID=%s", domainId));
-		}
 	}
 
 }
