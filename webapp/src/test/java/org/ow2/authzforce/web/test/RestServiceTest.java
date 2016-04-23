@@ -77,12 +77,22 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	private static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
-	protected static final int MAX_XML_TEXT_LENGTH = 1000;
+	private static final int XML_MAX_CHILD_ELEMENTS = 10;
 
-	// For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length >
-	// 910! WHY? Possible issue with woodstox library.
-	// FIXME: report this issue to CXF/Woodstox
-	protected static final int MAX_XML_ATTRIBUTE_SIZE = 910;
+	/*
+	 * Below that value getWADL() test fails because WADL depth too big
+	 */
+	private static final int XML_MAX_ELEMENT_DEPTH = 10;
+	private static final int XML_MAX_ATTRIBUTE_COUNT = 100;
+	protected static final int XML_MAX_TEXT_LENGTH = 1000;
+
+	/* For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length >
+	* 911! WHY? Possible issue with woodstox library.
+	* FIXME: report this issue to CXF/Woodstox
+	*/
+	private static final int XML_MAX_ATTRIBUTE_SIZE = 500;
+	protected static final int XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE = 911;
+	
 
 	protected static final File DOMAINS_DIR = new File("target/server/conf/authzforce-ce/domains");
 
@@ -306,6 +316,45 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		syncIntervalEnv.setValue(Integer.toString(domainSyncIntervalSec));
 		syncIntervalEnv.setOverride(false);
 		webappNamingResources.addEnvironment(syncIntervalEnv);
+
+		// Override Anti-XML-DOS properties
+		ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
+		staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
+		staxMaxChildElementsEnv.setType("java.lang.Integer");
+		staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
+		staxMaxChildElementsEnv.setOverride(false);
+		webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
+
+		ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
+		staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
+		staxMaxElementDepthEnv.setType("java.lang.Integer");
+		staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
+		staxMaxElementDepthEnv.setOverride(false);
+		webappNamingResources.addEnvironment(staxMaxElementDepthEnv);
+
+		if (!enableFastInfoset)
+		{
+			ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
+			staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
+			staxMaxAttCountEnv.setType("java.lang.Integer");
+			staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
+			staxMaxAttCountEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxAttCountEnv);
+			
+			ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
+			staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
+			staxMaxAttSizeEnv.setType("java.lang.Integer");
+			staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
+			staxMaxAttSizeEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
+
+			ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
+			staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
+			staxMaxTextLengthEnv.setType("java.lang.Integer");
+			staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
+			staxMaxTextLengthEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxTextLengthEnv);
+		}
 
 		/*
 		 * Example using JNDI property

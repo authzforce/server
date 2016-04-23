@@ -114,7 +114,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
 		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
 	}
@@ -138,7 +138,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset" })
 	@BeforeClass
-	public void addDomain(@Optional String remoteAppBaseUrl, @Optional("true") boolean enableFastInfoset) throws Exception
+	public void addDomain(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset) throws Exception
 	{
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
@@ -868,6 +868,10 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		assertEquals(rootPolicyRef, testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef(), "rootPolicyRef changed although root policy update rejected");
 	}
 
+	/**
+	 * This tests property 'org.apache.cxf.stax.maxChildElements' = {@value #XML_MAX_CHILD_ELEMENTS}}
+	 * @throws JAXBException
+	 */
 	@Test(dependsOnMethods = { "addAndGetPolicy" }, expectedExceptions = NotFoundException.class)
 	public void addPolicyWithTooManyChildElements() throws JAXBException
 	{

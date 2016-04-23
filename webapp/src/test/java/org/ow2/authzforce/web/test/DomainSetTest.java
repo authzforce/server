@@ -7,7 +7,6 @@ package org.ow2.authzforce.web.test;
  *
  *
  */
-import static org.ow2.authzforce.web.test.RestServiceTest.SAMPLE_DOMAIN_ID;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -148,7 +147,7 @@ public class DomainSetTest extends RestServiceTest
 		 * FIXME: the CXF property 'org.apache.cxf.stax.maxTextLength' is not supported with Fastinfoset (you will get exception ... cannot be cast to
 		 * XmlStreamReader2). See https://issues.apache.org/jira/browse/CXF-6848.
 		 */
-		char[] chars = new char[MAX_XML_TEXT_LENGTH + 1];
+		char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
 		Arrays.fill(chars, 'a');
 		String description = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
@@ -170,10 +169,7 @@ public class DomainSetTest extends RestServiceTest
 			throw new SkipException("Not supported in FastInfoset mode");
 		}
 
-		// for maxAttributeSize = 500, exception raised only when chars.length >
-		// 910! WHY? Possible issue with woodstox library.
-		// FIXME: report this issue to CXF/Woodstox
-		char[] chars = new char[911];
+		char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE];
 		Arrays.fill(chars, 'a');
 		String externalId = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number

@@ -120,7 +120,7 @@ public class SecurityDemoTest extends RestServiceTest
 	@Test(expectedExceptions = BadRequestException.class)
 	public void addPolicyWithTooBigId()
 	{
-		char[] chars = new char[MAX_XML_ATTRIBUTE_SIZE + 1];
+		char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE + 1];
 		Arrays.fill(chars, 'a');
 		String policyId = new String(chars);
 		PolicySet policySet = RestServiceTest.createDumbPolicySet(policyId, "1.0");
@@ -130,7 +130,7 @@ public class SecurityDemoTest extends RestServiceTest
 	@Test(expectedExceptions = BadRequestException.class)
 	public void addPolicyWithTooBigDescription()
 	{
-		char[] chars = new char[MAX_XML_TEXT_LENGTH + 1];
+		char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
 		Arrays.fill(chars, 'a');
 		String description = new String(chars);
 		PolicySet policySet = RestServiceTest.createDumbPolicySet("policyWithBigDescription", "1.0", description);
