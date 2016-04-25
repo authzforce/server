@@ -254,7 +254,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	@Test(dependsOnMethods = { "getDomainProperties", "getPolicies" })
 	public void getRootPolicy()
 	{
-		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getRootPolicyRef();
+		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getRootPolicyRefExpression();
 		final List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicyResource(rootPolicyRef.getValue()).getPolicyVersions().getLinks();
 		assertTrue(links.size() > 0, "No root policy version found");
 	}

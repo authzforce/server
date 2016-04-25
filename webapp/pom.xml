@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
@@ -27,12 +26,9 @@
 		<!-- <groupId>com.sun.xml.bind</groupId> -->
 		<!-- <artifactId>jaxb-impl</artifactId> -->
 		<!-- <version>2.2.6</version> -->
-		<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: 
-			com.sun.xml.bind.v2.ClassFactory -->
-		<!-- has memory leak (upon webapp undeployment/redeployment). Therefore, 
-			jaxb RI from JDK >= 7 must be used so -->
-		<!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat 
-			lib directory to be loaded by common -->
+		<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: com.sun.xml.bind.v2.ClassFactory -->
+		<!-- has memory leak (upon webapp undeployment/redeployment). Therefore, jaxb RI from JDK >= 7 must be used so -->
+		<!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat lib directory to be loaded by common -->
 		<!-- classloader (shared libraries) -->
 		<!-- <scope>provided</scope> -->
 		<!-- </dependency> -->
@@ -79,8 +75,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 
-			, item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
+		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 , item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-service-description</artifactId>
@@ -127,11 +122,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>test</scope>
-        </dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-client</artifactId>
@@ -157,8 +152,7 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects 
-				Property ${currentYear} is defined in parent POM. -->
+			<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects Property ${currentYear} is defined in parent POM. -->
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -211,8 +205,7 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<!-- This execution of surefire is overwritten by a default one unless 
-					we specify a different version in pluginManagement. -->
+				<!-- This execution of surefire is overwritten by a default one unless we specify a different version in pluginManagement. -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
@@ -220,21 +213,16 @@
 						<!-- Parameters in the XML files seem to be ignore (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
 						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
 					</suiteXmlFiles>
+					<skipAfterFailureCount>1</skipAfterFailureCount>
+					<!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->
+					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 					<properties>
 						<property>
 							<name>surefire.testng.verbose</name>
-							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 
-								for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
+							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
 							<value>2</value>
 						</property>
 					</properties>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<packagingExcludes>META-INF/context.xml</packagingExcludes>
 				</configuration>
 			</plugin>
 		</plugins>

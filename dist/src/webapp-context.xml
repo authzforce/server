@@ -6,8 +6,8 @@
 	<Parameter name="logbackConfigLocation" description="Logging configuration file"
 		value="file:/opt/${productName}/conf/logback.xml" override="false" />
 
-	<Parameter name="spring.profiles.active" description="Application profile"
-		value="+fastinfoset" override="false" />
+	<Parameter name="spring.profiles.active" description="application profiles: '+fastinfoset' to enable FastInfoset support, '-fastinfoset' to disable FastInfoset support"
+		value="-fastinfoset" override="false" />
 
 	<!-- Override <env-entry>s in web.xml -->
 	<Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productName}/conf"
