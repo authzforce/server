@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Author: Cyril DANGERVILLE -->
-<!-- XACML 3.0 policy canonicalization, basically replace deprecated identifiers (XACML 3.0 Core Specification, §A.4) with new ones. -->
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!-- XACML 3.0 policy canonicalization, basically replace deprecated identifiers (XACML 3.0 Core Specification, §A.4) with new ones. Author: Cyril DANGERVILLE. -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
 

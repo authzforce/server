@@ -27,7 +27,7 @@ echo "Now you can start playing with the REST API as defined by the WADL documen
 echo "$ wget -v -O authzforce.wadl http://localhost:8080/authzforce-ce/?_wadl"
 echo "Reminder: Tomcat default setup is not suitable for production! We strongly recommend reading and applying - when relevant - the guidelines from the following links:"
 echo "Performance tuning best practices for VMware Apache Tomcat: http://kb.vmware.com/kb/2013486"
-echo "How to optimize tomcat performance in production: http://www.genericarticles.com/mediawiki/index.php?title=How_to_optimize_tomcat_performance_in_production"
+echo "How to optimize Tomcat performance in production: http://www.genericarticles.com/mediawiki/index.php?title=How_to_optimize_tomcat_performance_in_production"
 echo "Apache Tomcat Tuning Guide for REST/HTTP APIs: https://javamaster.wordpress.com/2013/03/13/apache-tomcat-tuning-guide/"
 
 

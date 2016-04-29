@@ -18,35 +18,46 @@
  */
 package org.ow2.authzforce.web.test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.ws.rs.core.MediaType;
 
 import org.apache.cxf.interceptor.AbstractOutDatabindingInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
 
-public class ContentTypeHeaderModifier extends AbstractOutDatabindingInterceptor
+public class FIContentTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 {
-	public ContentTypeHeaderModifier() {
-        super(Phase.PRE_LOGICAL);
-    }
-    
-    @Override
-	public void handleMessage(Message outMessage) throws Fault {
-    	Map<String, List<String>> headers = (Map<String, List<String>>)outMessage.get(Message.PROTOCOL_HEADERS);
+	public static final String FI_MEDIA_TYPE = "application/fastinfoset";
+
+	public FIContentTypeHeaderSetter()
+	{
+		super(Phase.PRE_LOGICAL);
+	}
+
+	@Override
+	public void handleMessage(Message outMessage) throws Fault
+	{
+		Map<String, List<String>> headers = (Map<String, List<String>>) outMessage.get(Message.PROTOCOL_HEADERS);
 		Map<String, List<String>> modifiedHeaders;
-		if (headers == null) {
+		if (headers == null)
+		{
 			modifiedHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 			outMessage.put(Message.PROTOCOL_HEADERS, modifiedHeaders);
-        } else {
-        	modifiedHeaders = headers;
-        }
-		modifiedHeaders.put(Message.CONTENT_TYPE, Collections.singletonList(MediaType.APPLICATION_XML));
-		modifiedHeaders.put(Message.ACCEPT_CONTENT_TYPE, Collections.singletonList(MediaType.APPLICATION_XML));
-    }
+		} else
+		{
+			modifiedHeaders = headers;
+		}
+		modifiedHeaders.put(Message.CONTENT_TYPE, Collections.singletonList(FI_MEDIA_TYPE));
+		/*
+		 * Put application/fastinfoset first (instead of application/xml because we want server to return fastinfoset response only We have to use a mutable list for Accept headers because
+		 * FIStaxOutInterceptor will want to modify it
+		 */
+		final List<String> accepts = new ArrayList<>(2);
+		accepts.add(FI_MEDIA_TYPE);
+		modifiedHeaders.put(Message.ACCEPT_CONTENT_TYPE, accepts);
+	}
 }

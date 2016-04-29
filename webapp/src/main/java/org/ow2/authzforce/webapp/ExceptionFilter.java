@@ -17,6 +17,7 @@
  * along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.webapp;
+
 /**
  * Copyright (C) 2012-2015 Thales Services SAS.
  *
@@ -34,7 +35,6 @@ package org.ow2.authzforce.webapp;
  * 
  */
 
-
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -49,8 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Servlet filter that catches any exception to hide it from client, and maps it to HTTP status Bad Request if {@code NoSuchMethodError}, else to Internal
- * Server Error; and logs the error using SLF4J.
+ * Servlet filter that catches any exception to hide it from client, and maps it to HTTP status Bad Request if {@code NoSuchMethodError}, else to Internal Server Error; and logs the error using SLF4J.
  * 
  */
 public class ExceptionFilter implements Filter
@@ -78,9 +77,8 @@ public class ExceptionFilter implements Filter
 	{
 		try
 		{
-			chain.doFilter(request, response); // this calls the servlet which is where your
-												// exceptions will bubble up from
-		} catch (Error ex)
+			chain.doFilter(request, response);
+		} catch (Throwable ex)
 		{
 			final int finalStatusCode;
 			if (ex instanceof NoSuchMethodError)

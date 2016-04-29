@@ -68,10 +68,12 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
+	 * 
+	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") Boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
 		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
 	}
@@ -163,17 +165,18 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 			linkedVersions.add(link.getHref());
 		}
 
-		assertEquals(linksAfterMaxReached.size(), maxVersionCountPerPolicy, "number of versions below or above value of property 'org.ow2.authzforce.domain.policy.maxVersionCount' (should be equal). Actual versions: " + linkedVersions);
+		assertEquals(linksAfterMaxReached.size(), maxVersionCountPerPolicy,
+				"number of versions below or above value of property 'org.ow2.authzforce.domain.policy.maxVersionCount' (should be equal). Actual versions: " + linkedVersions);
 
 		// first link expected to be the last in, since links are returned from last version to oldest
 		assertEquals(linksAfterMaxReached.get(0).getHref(), lastV, "First link returned by getPolicyResource(policyId) does not correspond to the latest version. Actual versions: " + linkedVersions);
 
 		// last link expected to be v1.1 instead of v1.0 (supposed to be removed)
-		assertEquals(linksAfterMaxReached.get(linksAfterMaxReached.size() - 1).getHref(), "1.1", "Last link returned by getPolicyResource(policyId) does not correspond to the oldest version. Actual versions: " + linkedVersions);
+		assertEquals(linksAfterMaxReached.get(linksAfterMaxReached.size() - 1).getHref(), "1.1",
+				"Last link returned by getPolicyResource(policyId) does not correspond to the oldest version. Actual versions: " + linkedVersions);
 
 		/*
-		 * Let's do it again, but this time since the oldest (1.1) is still used as root policy, it cannot be removed. So 1.1 remains the oldes, but the next
-		 * one - 1.2 is removed
+		 * Let's do it again, but this time since the oldest (1.1) is still used as root policy, it cannot be removed. So 1.1 remains the oldes, but the next one - 1.2 is removed
 		 */
 		String newLastV = "1." + (maxVersionCountPerPolicy + 1);
 		PolicySet newPolicySet = createDumbPolicySet(TEST_POLICY_ID, newLastV);
@@ -185,22 +188,27 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 			linkedVersions2.add(link.getHref());
 		}
 
-		assertEquals(linksAfterMaxReachedAgain.size(), maxVersionCountPerPolicy, "number of versions below or above value of property 'org.ow2.authzforce.domain.policy.maxVersionCount' (should be equal). Actual versions: " + linkedVersions2);
+		assertEquals(linksAfterMaxReachedAgain.size(), maxVersionCountPerPolicy,
+				"number of versions below or above value of property 'org.ow2.authzforce.domain.policy.maxVersionCount' (should be equal). Actual versions: " + linkedVersions2);
 
 		// first link expected to be the last in, since links are returned from last version to oldest
-		assertEquals(linksAfterMaxReachedAgain.get(0).getHref(), newLastV, "First link returned by getPolicyResource(policyId) does not correspond to the latest version. Actual versions: " + linkedVersions2);
+		assertEquals(linksAfterMaxReachedAgain.get(0).getHref(), newLastV, "First link returned by getPolicyResource(policyId) does not correspond to the latest version. Actual versions: "
+				+ linkedVersions2);
 
 		// last link expected to be v1.1 instead of v1.0 (supposed to be removed)
-		assertEquals(linksAfterMaxReachedAgain.get(linksAfterMaxReachedAgain.size() - 1).getHref(), "1.1", "Last link returned by getPolicyResource(policyId) does not correspond to the oldest version. Actual versions: " + linkedVersions2);
+		assertEquals(linksAfterMaxReachedAgain.get(linksAfterMaxReachedAgain.size() - 1).getHref(), "1.1",
+				"Last link returned by getPolicyResource(policyId) does not correspond to the oldest version. Actual versions: " + linkedVersions2);
 
 		// v1.2 should have been removed, therefore the second-to-last must be 1.3
-		assertEquals(linksAfterMaxReachedAgain.get(linksAfterMaxReachedAgain.size() - 2).getHref(), "1.3", "Second-to-last link returned by getPolicyResource(policyId) does not correspond not the second-to-oldest version. Actual versions: " + linkedVersions2);
+		assertEquals(linksAfterMaxReachedAgain.get(linksAfterMaxReachedAgain.size() - 2).getHref(), "1.3",
+				"Second-to-last link returned by getPolicyResource(policyId) does not correspond not the second-to-oldest version. Actual versions: " + linkedVersions2);
 
 	}
 
-	@Parameters({ "remote.base.url", "legacy.fs",  "org.ow2.authzforce.domains.sync.interval"  })
+	@Parameters({ "remote.base.url", "legacy.fs", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, description = "Check whether externalId-to-domain mapping updated automatically after any modification to domain's properties file")
-	public void syncExternalIdAfterDomainPropertiesFileChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
+	public void syncExternalIdAfterDomainPropertiesFileChanged(@Optional String remoteBaseUrl, @Optional("false") Boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec)
+			throws JAXBException, InterruptedException
 	{
 		// skip test if server not started locally
 		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
@@ -229,12 +237,14 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		// test externalId
 		final List<Link> domainLinks2 = domainsAPIProxyClient.getDomains(newExternalId).getLinks();
 		String matchedDomainId = domainLinks2.get(0).getHref();
-		assertEquals(matchedDomainId, testDomainId, "Auto sync of externalId with domain properties file failed: getDomains(externalId = " + newExternalId + ") returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
+		assertEquals(matchedDomainId, testDomainId, "Auto sync of externalId with domain properties file failed: getDomains(externalId = " + newExternalId + ") returned wrong domainId: "
+				+ matchedDomainId + " instead of " + testDomainId);
 	}
 
 	@Parameters({ "remote.base.url", "legacy.fs", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "syncExternalIdAfterDomainPropertiesFileChanged" })
-	public void syncPdpAfterConfFileChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
+	public void syncPdpAfterConfFileChanged(@Optional String remoteBaseUrl, @Optional("false") Boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException,
+			InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
@@ -245,7 +255,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyRootPolicyRefInPdpConfFile(isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(domainSyncIntervalSec*1000);
+		Thread.sleep(domainSyncIntervalSec * 1000);
 
 		// check PDP returned policy identifier
 		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, DomainSetTest.REQUEST_FILENAME));
@@ -258,7 +268,8 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 				String tagLocalName = jaxbElt.getName().getLocalPart();
 				if (tagLocalName.equals("PolicySetIdReference"))
 				{
-					assertEquals(jaxbElt.getValue(), newRootPolicyRef, "Auto sync with PDP configuration file failed: PolicySetIdReference returned by PDP does not match the root policyRef in PDP configuration file");
+					assertEquals(jaxbElt.getValue(), newRootPolicyRef,
+							"Auto sync with PDP configuration file failed: PolicySetIdReference returned by PDP does not match the root policyRef in PDP configuration file");
 					isNewRootPolicyRefMatched = true;
 					return;
 				}
@@ -268,7 +279,8 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 
 	@Parameters({ "remote.base.url", "legacy.fs", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS * 2, dependsOnMethods = { "syncPdpAfterConfFileChanged" })
-	public void syncPdpAfterUsedPolicyDirectoryChanged(@Optional String remoteBaseUrl, @Optional("false") boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException, InterruptedException
+	public void syncPdpAfterUsedPolicyDirectoryChanged(@Optional String remoteBaseUrl, @Optional("false") Boolean isFilesystemLegacy, @Optional("4") int domainSyncIntervalSec) throws JAXBException,
+			InterruptedException
 	{
 		// skip this if server not started locally (files not local)
 		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
@@ -281,7 +293,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, false, isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(domainSyncIntervalSec*1000);
+		Thread.sleep(domainSyncIntervalSec * 1000);
 
 		/*
 		 * We cannot check again with /domain/{domainId}/pap/properties because it will sync again and this is not what we intend to test here.
@@ -315,7 +327,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, true, isFilesystemLegacy);
 
 		// wait for sync
-		Thread.sleep(domainSyncIntervalSec*1000);
+		Thread.sleep(domainSyncIntervalSec * 1000);
 
 		/*
 		 * We cannot check again with /domain/{domainId}/pap/properties because it will sync again and this is not what we intend to test here.
@@ -345,7 +357,8 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 
 	/**
 	 * To be executed last since the domain is removed as a result if successful
-	 * @param remoteBaseUrl 
+	 * 
+	 * @param remoteBaseUrl
 	 * 
 	 * @throws InterruptedException
 	 * @throws IOException
@@ -354,7 +367,8 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 	 */
 	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "addTooManyPolicyVersions", "syncPdpAfterUsedPolicyDirectoryChanged" })
-	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(@Optional String remoteBaseUrl,@Optional("4") int domainSyncIntervalSec) throws InterruptedException, IllegalArgumentException, IOException, JAXBException
+	public void syncToRemoveDomainFromAPIAfterDirectorydeleted(@Optional String remoteBaseUrl, @Optional("4") int domainSyncIntervalSec) throws InterruptedException, IllegalArgumentException,
+			IOException, JAXBException
 	{
 		// skip test if server not started locally
 		if (remoteBaseUrl != null && !remoteBaseUrl.isEmpty())
@@ -366,7 +380,7 @@ public class DomainTestWithAutoSyncAndVersionRolling extends RestServiceTest
 		FlatFileDAOUtils.deleteDirectory(testDomainDir.toPath(), 3);
 
 		// wait for sync
-		Thread.sleep(domainSyncIntervalSec*1000);
+		Thread.sleep(domainSyncIntervalSec * 1000);
 
 		// check whether domain's PDP reachable
 		File testDir = new File(DomainSetTest.XACML_SAMPLES_DIR, "IIIG301");

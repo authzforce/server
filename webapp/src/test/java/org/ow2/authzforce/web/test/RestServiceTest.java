@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletException;
-import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -49,7 +48,6 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
-import org.apache.cxf.message.Message;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
@@ -69,8 +67,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected static final Random PRNG = new Random();
 
 	/*
-	 * Start embedded server on a random port between 9000 and 9999 (inclusive) to avoid conflict with another parallel
-	 * test run
+	 * Start embedded server on a random port between 9000 and 9999 (inclusive) to avoid conflict with another parallel test run
 	 */
 	private static final AtomicInteger EMBEDDED_SERVER_PORT = new AtomicInteger(9000 + PRNG.nextInt(1000));
 	private static final String EMBEDDED_APP_CONTEXT_PATH = "/";
@@ -86,13 +83,11 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	private static final int XML_MAX_ATTRIBUTE_COUNT = 100;
 	protected static final int XML_MAX_TEXT_LENGTH = 1000;
 
-	/* For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length >
-	* 911! WHY? Possible issue with woodstox library.
-	* FIXME: report this issue to CXF/Woodstox
-	*/
+	/*
+	 * For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length > 911! WHY? Possible issue with woodstox library. FIXME: report this issue to CXF/Woodstox
+	 */
 	private static final int XML_MAX_ATTRIBUTE_SIZE = 500;
 	protected static final int XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE = 911;
-	
 
 	protected static final File DOMAINS_DIR = new File("target/server/conf/authzforce-ce/domains");
 
@@ -114,19 +109,16 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR,
-			"pdp/PolicyReference.Valid");
+	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid");
 	static
 	{
 		if (!XACML_POLICYREFS_PDP_TEST_DIR.exists())
 		{
-			throw new RuntimeException("XACML POLICYREFS PDP TEST DIRECTORY NOT FOUND: "
-					+ XACML_POLICYREFS_PDP_TEST_DIR);
+			throw new RuntimeException("XACML POLICYREFS PDP TEST DIRECTORY NOT FOUND: " + XACML_POLICYREFS_PDP_TEST_DIR);
 		}
 	}
 
-	protected static final Path SAMPLE_DOMAIN_DIR = Paths
-			.get("src/test/resources/domain.samples/A0bdIbmGEeWhFwcKrC9gSQ");
+	protected static final Path SAMPLE_DOMAIN_DIR = Paths.get("src/test/resources/domain.samples/A0bdIbmGEeWhFwcKrC9gSQ");
 	static
 	{
 		if (!Files.exists(SAMPLE_DOMAIN_DIR))
@@ -147,16 +139,14 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	{
 		try
 		{
-			JAXB_CTX = JAXBContext.newInstance(PolicySet.class, Request.class, Resources.class, DomainProperties.class,
-					TestAttributeProvider.class);
+			JAXB_CTX = JAXBContext.newInstance(PolicySet.class, Request.class, Resources.class, DomainProperties.class, TestAttributeProvider.class);
 		} catch (JAXBException e)
 		{
 			throw new RuntimeException("Error instantiating JAXB context for XML to Java binding", e);
 		}
 	}
 
-	protected static final DateFormat UTC_DATE_WITH_MILLIS_FORMATTER = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss.SSS ('UTC')");
+	protected static final DateFormat UTC_DATE_WITH_MILLIS_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS ('UTC')");
 	static
 	{
 		UTC_DATE_WITH_MILLIS_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -168,8 +158,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected final static String REQUEST_FILENAME = "request.xml";
 
 	/**
-	 * XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists
-	 * in the test directory
+	 * XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists in the test directory
 	 */
 	protected final static String TEST_POLICY_FILENAME = "policy.xml";
 
@@ -200,8 +189,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected static PolicySet createDumbPolicySet(String policyId, String version, String description)
 	{
-		return new PolicySet(description, null, null, new Target(null), null, null, null, policyId, version,
-				"urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit", BigInteger.ZERO);
+		return new PolicySet(description, null, null, new Target(null), null, null, null, policyId, version, "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit",
+				BigInteger.ZERO);
 	}
 
 	@Autowired
@@ -239,8 +228,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * @throws IOException
 	 * @throws LifecycleException
 	 */
-	private static Tomcat startServer(int port, boolean enableFastInfoset, int domainSyncIntervalSec,
-			boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
+	private static Tomcat startServer(int port, boolean enableFastInfoset, int domainSyncIntervalSec, boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException,
+			LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -265,8 +254,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		// System.setProperty("javax.net.debug", "all");
 
 		/*
-		 * WORKAROUND to avoid accessExternalSchema error restricting protocols such as http://... in xacml schema:
-		 * schemaLocation="http://www.w3.org/2001/xml.xsd"
+		 * WORKAROUND to avoid accessExternalSchema error restricting protocols such as http://... in xacml schema: schemaLocation="http://www.w3.org/2001/xml.xsd"
 		 */
 		System.setProperty("javax.xml.accessExternalSchema", "all");
 
@@ -277,14 +265,12 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		// Initialize embedded Tomcat server
 		final Tomcat embeddedServer = new Tomcat();
 		/*
-		 * Increment server port after getting current value, to prepare for next server tests and avoid conflict with
-		 * this one
+		 * Increment server port after getting current value, to prepare for next server tests and avoid conflict with this one
 		 */
 		embeddedServer.setPort(port < 0 ? EMBEDDED_SERVER_PORT.incrementAndGet() : port);
 		// enable JNDI
 		embeddedServer.enableNaming();
-		final Context webappCtx = embeddedServer.addWebapp(EMBEDDED_APP_CONTEXT_PATH,
-				new File("src/main/webapp").getAbsolutePath());
+		final Context webappCtx = embeddedServer.addWebapp(EMBEDDED_APP_CONTEXT_PATH, new File("src/main/webapp").getAbsolutePath());
 		for (final LifecycleListener listener : webappCtx.findLifecycleListeners())
 		{
 			if (listener instanceof Tomcat.DefaultWebXmlListener)
@@ -297,10 +283,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		final NamingResources webappNamingResources = webappCtx.getNamingResources();
 
 		/*
-		 * Override spring active profile context parameter with system property (no way to override context parameter
-		 * with Tomcat embedded API, otherwise error "Duplicate context initialization parameter")
-		 * spring.profiles.active may be set either via servletConfig init param or servletContext init param or JNDI
-		 * property java:comp/env/spring.profiles.active or system property
+		 * Override spring active profile context parameter with system property (no way to override context parameter with Tomcat embedded API, otherwise error
+		 * "Duplicate context initialization parameter") spring.profiles.active may be set either via servletConfig init param or servletContext init param or JNDI property
+		 * java:comp/env/spring.profiles.active or system property
 		 */
 		ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
 		springActiveProfileEnv.setName("spring.profiles.active");
@@ -340,7 +325,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
 			staxMaxAttCountEnv.setOverride(false);
 			webappNamingResources.addEnvironment(staxMaxAttCountEnv);
-			
+
 			ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
 			staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
 			staxMaxAttSizeEnv.setType("java.lang.Integer");
@@ -366,12 +351,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return embeddedServer;
 	}
 
-	protected void startServerAndInitCLient(String remoteAppBaseUrl, boolean enableFastInfoset,
-			int domainSyncIntervalSec) throws Exception
+	protected void startServerAndInitCLient(String remoteAppBaseUrl, boolean enableFastInfoset, int domainSyncIntervalSec) throws Exception
 	{
 		/*
-		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally
-		 * (embedded))
+		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
 		 */
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
@@ -385,9 +368,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 */
 		// initialize client properties from Spring
 		/*
-		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest
-		 * https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404 (duplicate of previous issue)
-		 * springTestContextPrepareTestInstance() happens in
+		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404
+		 * (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
 		 * 
 		 * @BeforeClass before no access to Autowired beans by default in
 		 * 
@@ -395,15 +377,15 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 */
 		super.springTestContextPrepareTestInstance();
 		/*
-		 * WARNING: if tests are to be multi-threaded, modify according to Thread-safety section of CXF JAX-RS client
-		 * API documentation http://cxf .apache.org/docs/jax-rs-client-api.html#JAX-RSClientAPI-ThreadSafety
+		 * WARNING: if tests are to be multi-threaded, modify according to Thread-safety section of CXF JAX-RS client API documentation http://cxf
+		 * .apache.org/docs/jax-rs-client-api.html#JAX-RSClientAPI-ThreadSafety
 		 */
 		final String serverBaseAddress;
 		/*
 		 * Test if server is running embedded or not, i.e. remoteAppBaseUrl null/empty -> server embedded.
 		 * 
-		 * NB: member 'embeddedServer' may be null for this instance if embedded server was started by another class in
-		 * the same Test; so embeddedServer == null does not mean that no embedded server is started
+		 * NB: member 'embeddedServer' may be null for this instance if embedded server was started by another class in the same Test; so embeddedServer == null does not mean that no embedded server
+		 * is started
 		 */
 		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
 		{
@@ -420,26 +402,21 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (enableFastInfoset)
 		{
 			/*
-			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF:
-			 * https://github.
-			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache
-			 * /cxf/systest/jaxrs/JAXRSSoapBookTest.java WARNING: "application/fastinfoset" mediatype must be declared
-			 * before others for this to work (in WADL or Consumes annotations); if not (with CXF 3.1.0), the first
-			 * mediatype is set as Content-type, which causes exception on server-side such as:
-			 * com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0, byte #-1)
+			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
+			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
+			 * 
+			 * WARNING: FIContentTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
+			 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0,
+			 * byte #-1)
 			 */
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class,
-					Collections.singletonList(clientJaxbProviderFI));
+			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
 			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+			proxyClientConf.getOutInterceptors().add(new FIContentTypeHeaderSetter());
 			checkFiInterceptors(proxyClientConf);
 		} else
 		{
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class,
-					Collections.singletonList(clientJaxbProvider));
+			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
 			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			// if no fastinfoset, force to use only application/xml mediatype:
-			proxyClientConf.getRequestContext().put(Message.CONTENT_TYPE, MediaType.APPLICATION_XML);
-			proxyClientConf.getOutInterceptors().add(new ContentTypeHeaderModifier());
 		}
 
 		/**
@@ -480,8 +457,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	public static void main(String... args) throws IllegalArgumentException, ServletException, IOException,
-			LifecycleException
+	public static void main(String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
 	{
 		final int port;
 		final boolean enableFastInfoset;
@@ -495,10 +471,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		{
 			System.out.println("Usage: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec]");
 			System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
-			System.out
-					.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
-			System.out
-					.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
+			System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
+			System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
 			throw new IllegalArgumentException("Invalid args. Expected args: enableFastInfoset domainsSyncIntervalSec");
 		} else
 		{

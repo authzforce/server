@@ -46,7 +46,7 @@
 	<!-- </appender> -->
 	<!-- <appender name="accessAsync" class="ch.qos.logback.classic.AsyncAppender"> <appender-ref ref="access" /> </appender> -->
 
-	<!-- Dumping HTTP requests and response with their headers for access logging More info: http://blog.xebia.fr/2013/10/10/logs-daudit-pour-les-services-rest/ Use "accessAsync" appender for better performance (asynchronous logging) -->
+	<!-- Dumping HTTP requests and response with their headers for access logging. More info: http://blog.xebia.fr/2013/10/10/logs-daudit-pour-les-services-rest/ Use "accessAsync" appender for better performance (asynchronous logging) -->
 	<!-- <logger name="RequestLoggerFilter.request" level="DEBUG" additivity="false"> -->
 	<!-- <appender-ref ref="access"/> -->
 	<!-- </logger> -->

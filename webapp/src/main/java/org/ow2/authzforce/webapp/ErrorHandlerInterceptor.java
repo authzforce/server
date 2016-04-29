@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * CXF Interceptor for outbound faults that handles internal server errors. In particular, it remove sensitive info and maps it to Bad Request status code when
- * it is actually a bad request. Based on the CXF CustomOutFaultInterceptor example.
+ * CXF Interceptor for outbound faults that handles internal server errors. In particular, it remove sensitive info and maps it to Bad Request status code when it is actually a bad request. Based on
+ * the CXF CustomOutFaultInterceptor example.
  * 
  * @see <a href="http://svn.apache.org/repos/asf/cxf/trunk/systests/jaxrs/src/test/java/org/apache/cxf/systest/jaxrs/CustomOutFaultInterceptor.java">org.apache.
  *      cxf.systest.jaxrs.CustomOutFaultInterceptor</a>
@@ -41,6 +41,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ErrorHandlerInterceptor.class);
 	private final static String INTERNAL_SERVER_ERROR_MSG = "Internal Server error. Retry later or contact the administrator.";
+	private final static RuntimeException INTERNAL_SERVER_ERROR = new RuntimeException(INTERNAL_SERVER_ERROR_MSG);
 	private final static JAXBContext AUTHZ_API_JAXB_CONTEXT;
 	static
 	{
@@ -95,7 +96,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 			} catch (JAXBException | IOException | IllegalStateException e)
 			{
 				LOGGER.error("Failed to override service response", e);
-				throw new RuntimeException(INTERNAL_SERVER_ERROR_MSG);
+				throw INTERNAL_SERVER_ERROR;
 			}
 
 			message.getInterceptorChain().abort();

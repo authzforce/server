@@ -34,11 +34,10 @@ import org.apache.cxf.phase.Phase;
 import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
 
 /**
- * This modifies {@link FIStaxInInterceptor} to apply the {@link StaxInEndingInterceptor} to phase post-invoke instead of pre-invoke, in order to allow
- * {@link JAXBElementProvider} {@code doUnmarshal(...)} method, when called on a JAX-RS subresource operation invocation, to get the {@link StAXDocumentParser}
- * created here. Indeed, the default {@link StaxInEndingInterceptor} used by {@link FIStaxInInterceptor} applies to pre-invoke phase, and therefore removes the
- * FastInfoset {@link StAXDocumentParser} before any operation on a JAX-RS subresource is called and actually needs/uses it to unmarshal the XML inputstream in
- * argument, resulting in error.
+ * This modifies {@link FIStaxInInterceptor} to apply the {@link StaxInEndingInterceptor} to phase post-invoke instead of pre-invoke, in order to allow {@link JAXBElementProvider}
+ * {@code doUnmarshal(...)} method, when called on a JAX-RS subresource operation invocation, to get the {@link StAXDocumentParser} created here. Indeed, the default {@link StaxInEndingInterceptor}
+ * used by {@link FIStaxInInterceptor} applies to pre-invoke phase, and therefore removes the FastInfoset {@link StAXDocumentParser} before any operation on a JAX-RS subresource is called and actually
+ * needs/uses it to unmarshal the XML inputstream in argument, resulting in error.
  * 
  * This class also makes some optimizations compared to {@link FIStaxInInterceptor}.
  * 
@@ -47,23 +46,25 @@ import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
  */
 public final class JAXRSSubResourceCompatibleFIStaxInInterceptor extends FIStaxInInterceptor
 {
-	private static final StaxInEndingInterceptor ENDING_INTERCEPTOR = new StaxInEndingInterceptor(Phase.POST_INVOKE);
+	// private final static Logger LOGGER = LoggerFactory.getLogger(JAXRSSubResourceCompatibleFIStaxInInterceptor.class);
 
-	/**
-	 * Default constructor
-	 */
-	public JAXRSSubResourceCompatibleFIStaxInInterceptor()
-	{
-		super(Phase.POST_STREAM);
-	}
-
-	private static StAXDocumentParser getParser(InputStream in)
+	private static XMLStreamReader getParser(InputStream in)
 	{
 		final StAXDocumentParser parser = new StAXDocumentParser(in);
 		parser.setStringInterning(true);
 		parser.setForceStreamClose(true);
 		parser.setInputStream(in);
 		return parser;
+	}
+
+	private static final StaxInEndingInterceptor ENDING_INTERCEPTOR = new StaxInEndingInterceptor(Phase.POST_INVOKE);
+
+	/**
+	 * Default constructor. Enables FastInfoset support.
+	 */
+	public JAXRSSubResourceCompatibleFIStaxInInterceptor()
+	{
+		super(Phase.POST_STREAM);
 	}
 
 	@Override
