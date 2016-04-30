@@ -31,11 +31,10 @@
 	<!--<dependency org="net.sf.saxon" name="Saxon-HE" rev="9.7.0-2" transitive="false" />-->
 	<!-- 9.1 B is last free/open source version of Saxon supporting Java calls from XSLT, 9.0 is the last version available on Maven repositories with groupId=net.sf.saxon, and 9.1.0.8 the last with groupId=net.sourceforge.saxon -->
 	<dependency org="net.sourceforge.saxon" name="saxon" rev="9.1.0.8" transitive="false" />
-	<!-- For base64Url encoding of policy IDs -->
-	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-flat-file" rev="5.0.0" transitive="false" />
-			<!-- authzforce-ce-pap-dao-file's dependency necessary for base64 encoding 
+	<!-- authzforce-ce-pap-dao-file for base64Url encoding of policy IDs; depends on guava for base64 encoding 
 			WARNING: guava's packaging is bundle! So you have to add bundle in ivy:retrieve type attribute, e.g. "jar,bundle".
-			-->
+	-->
 	<dependency org="com.google.guava" name="guava" rev="18.0" transitive="false" />
+	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-flat-file" rev="5.0.0" transitive="false" />
 	</dependencies>
 </ivy-module>

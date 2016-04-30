@@ -1,17 +1,17 @@
 <assembly>
 	<id>upgrader</id>
-	<!-- Generates a zip package of Authzforce webapp + configuration files -->
+	<!-- Generates a package of Authzforce server upgrader tool -->
 	<formats>
-		<format>zip</format>
+		<format>tar.gz</format>
 	</formats>
 	<fileSets>
 		<fileSet>
 			<directory>${project.basedir}/src/main</directory>
-			<excludes>
-				<exclude>ivy</exclude>
-				<exclude>lib</exclude>
-			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
+      <fileSet>
+         <directory>${project.build.outputDirectory}/main</directory>
+         <outputDirectory>/</outputDirectory>
+      </fileSet>
 	</fileSets>
 </assembly>

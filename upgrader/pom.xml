@@ -59,6 +59,16 @@
       </dependency>
    </dependencies>
    <build>
+      <resources>
+         <!-- Replace variable 'project.version' in some source files. The result goes to ${project.build.directory}. -->
+         <resource>
+            <directory>src/main</directory>
+            <filtering>true</filtering>
+            <includes>
+               <include>README.md</include>
+            </includes>
+         </resource>
+      </resources>
       <plugins>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>

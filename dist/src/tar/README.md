@@ -1,5 +1,5 @@
-This document may be viewed in HTML form from:
-
+This document may be viewed in HTML form from this link: 
+https://github.com/authzforce/server/tree/release-${project.version}/dist/src/tar/README.md
 
 # AuthZForce Server - Manual installation
 

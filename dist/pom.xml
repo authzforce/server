@@ -36,7 +36,7 @@
 	<build>
 		<finalName>${productName}-${project.version}</finalName>
 		<resources>
-			<!-- Replace variable 'productName' in some source files. The result goes to ${project.build.directory}. -->
+			<!-- Replace variable 'productName' and 'project.version' in some source files. The result goes to ${project.build.directory}. -->
 			<resource>
 				<directory>src</directory>
 				<filtering>true</filtering>
