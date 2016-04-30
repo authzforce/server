@@ -1,223 +1,222 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.ow2.authzforce</groupId>
-		<artifactId>authzforce-ce-server</artifactId>
-		<version>5.1.0-SNAPSHOT</version>
-		<relativePath>..</relativePath>
-	</parent>
-	<artifactId>authzforce-ce-server-upgrader</artifactId>
-	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Distribution upgrader</description>
-	<url>https://github.com/authzforce/server/upgrader</url>
-	<scm>
-		<connection>scm:git:${git.url.base}.git</connection>
-		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
-		<tag>HEAD</tag>
-		<url>${git.url.base}/upgrader</url>
-	</scm>
-	<dependencies>
-		<!-- Test dependencies -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>6.9.8</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-client</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${artifactId.prefix}-core</artifactId>
-			<version>3.8.0</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${artifactId.prefix}-server-rest-service</artifactId>
-			<version>${project.parent.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.5</version>
-				<!-- target JDK already set by parent project's maven.compiler.target property -->
-				<configuration>
-					<verbose>true</verbose>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>check</goal>
-							<goal>cpd-check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.2</version>
-				<configuration>
-					<!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
-					<effort>Max</effort>
-					<!-- Reports all bugs (other values are medium and max) -->
-					<threshold>Low</threshold>
-					<failOnError>true</failOnError>
-					<plugins>
-						<plugin>
-							<groupId>com.h3xstream.findsecbugs</groupId>
-							<artifactId>findsecbugs-plugin</artifactId>
-							<!-- Auto-update to the latest stable -->
-							<version>LATEST</version>
-						</plugin>
-					</plugins>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<configuration>
-					<header>license/thales-gpl.header.txt</header>
-					<skipExistingHeaders>true</skipExistingHeaders>
-					<includes>
-						<include>src/test/java</include>
-					</includes>
-				</configuration>
-				<executions>
-					<execution>
-						<id>format-sources-license</id>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>format</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>format-test-sources-license</id>
-						<phase>process-test-sources</phase>
-						<goals>
-							<goal>format</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.6</version>
-				<dependencies>
-					<dependency>
-						<groupId>net.sourceforge.saxon</groupId>
-						<artifactId>saxon</artifactId>
-						<version>9.1.0.8</version>
-					</dependency>
-					<dependency>
-						<groupId>${project.groupId}</groupId>
-						<artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
-						<version>5.0.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.apache.ivy</groupId>
-						<artifactId>ivy</artifactId>
-						<version>2.4.0</version>
-					</dependency>
-					<dependency>
-						<groupId>ant-contrib</groupId>
-						<artifactId>ant-contrib</artifactId>
-						<version>1.0b3</version>
-						<!-- depends on ant 1.5 -->
-						<exclusions>
-							<exclusion>
-								<groupId>ant</groupId>
-								<artifactId>ant</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<phase>generate-test-resources</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<copy todir="${project.basedir}/target/server/conf">
-									<fileset dir="${project.basedir}/src/test/authzforce-ce-server-current/conf" />
-								</copy>
-								<taskdef resource="net/sf/antcontrib/antlib.xml" />
-								<ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
-									<property name="old.install.dir" value="${project.basedir}/src/test/authzforce-4.2.0" />
-									<property name="new.install.dir" value="${project.basedir}/target/server" />
-								</ant>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-<!-- 			<plugin> -->
-<!-- 			<groupId>org.apache.maven.plugin</groupId> -->
-<!-- 			<artifactId>maven-surefire-plugin</artifactId> -->
-<!-- 			<version>2.14.1</version> -->
-<!-- 			<configuration> -->
-<!-- 			<properties> -->
-<!-- 			<property> -->
-<!-- 			<name>surefire.testng.verbose</name> -->
-<!-- 			<value>5</value> -->
-<!-- 			</property> -->
-<!-- 			</properties> -->
-<!-- 			</configuration> -->
-<!-- 			</plugin> -->
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>distro-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<descriptors>
-								<descriptor>assembly.xml</descriptor>
-							</descriptors>
-							<appendAssemblyId>false</appendAssemblyId>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.ow2.authzforce</groupId>
+      <artifactId>authzforce-ce-server</artifactId>
+      <version>5.1.0-SNAPSHOT</version>
+      <relativePath>..</relativePath>
+   </parent>
+   <artifactId>authzforce-ce-server-upgrader</artifactId>
+   <name>${project.groupId}:${project.artifactId}</name>
+   <description>Distribution upgrader</description>
+   <url>https://github.com/authzforce/server/upgrader</url>
+   <scm>
+      <connection>scm:git:${git.url.base}.git</connection>
+      <developerConnection>scm:git:${git.url.base}.git</developerConnection>
+      <tag>HEAD</tag>
+      <url>${git.url.base}/upgrader</url>
+   </scm>
+   <dependencies>
+      <!-- Test dependencies -->
+      <dependency>
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-classic</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.springframework</groupId>
+         <artifactId>spring-context</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.springframework</groupId>
+         <artifactId>spring-test</artifactId>
+         <version>${spring.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.testng</groupId>
+         <artifactId>testng</artifactId>
+         <version>6.9.8</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-rs-client</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${artifactId.prefix}-core</artifactId>
+         <classifier>tests</classifier>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${artifactId.prefix}-server-rest-service</artifactId>
+         <version>${project.parent.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <version>3.5</version>
+            <!-- target JDK already set by parent project's maven.compiler.target property -->
+            <configuration>
+               <verbose>true</verbose>
+            </configuration>
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>check</goal>
+                     <goal>cpd-check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>3.0.2</version>
+            <configuration>
+               <!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
+               <effort>Max</effort>
+               <!-- Reports all bugs (other values are medium and max) -->
+               <threshold>Low</threshold>
+               <failOnError>true</failOnError>
+               <plugins>
+                  <plugin>
+                     <groupId>com.h3xstream.findsecbugs</groupId>
+                     <artifactId>findsecbugs-plugin</artifactId>
+                     <!-- Auto-update to the latest stable -->
+                     <version>LATEST</version>
+                  </plugin>
+               </plugins>
+            </configuration>
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>com.mycila</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <configuration>
+               <header>license/thales-gpl.header.txt</header>
+               <skipExistingHeaders>true</skipExistingHeaders>
+               <includes>
+                  <include>src/test/java</include>
+               </includes>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>format-sources-license</id>
+                  <phase>process-sources</phase>
+                  <goals>
+                     <goal>format</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>format-test-sources-license</id>
+                  <phase>process-test-sources</phase>
+                  <goals>
+                     <goal>format</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.6</version>
+            <dependencies>
+               <dependency>
+                  <groupId>net.sourceforge.saxon</groupId>
+                  <artifactId>saxon</artifactId>
+                  <version>9.1.0.8</version>
+               </dependency>
+               <dependency>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
+                  <version>5.0.1</version>
+               </dependency>
+               <dependency>
+                  <groupId>org.apache.ivy</groupId>
+                  <artifactId>ivy</artifactId>
+                  <version>2.4.0</version>
+               </dependency>
+               <dependency>
+                  <groupId>ant-contrib</groupId>
+                  <artifactId>ant-contrib</artifactId>
+                  <version>1.0b3</version>
+                  <!-- depends on ant 1.5 -->
+                  <exclusions>
+                     <exclusion>
+                        <groupId>ant</groupId>
+                        <artifactId>ant</artifactId>
+                     </exclusion>
+                  </exclusions>
+               </dependency>
+            </dependencies>
+            <executions>
+               <execution>
+                  <phase>generate-test-resources</phase>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+                  <configuration>
+                     <target>
+                        <copy todir="${project.basedir}/target/server/conf">
+                           <fileset dir="${project.basedir}/src/test/authzforce-ce-server-current/conf" />
+                        </copy>
+                        <taskdef resource="net/sf/antcontrib/antlib.xml" />
+                        <ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
+                           <property name="old.install.dir" value="${project.basedir}/src/test/authzforce-4.2.0" />
+                           <property name="new.install.dir" value="${project.basedir}/target/server" />
+                        </ant>
+                     </target>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <!-- <plugin> -->
+         <!-- <groupId>org.apache.maven.plugin</groupId> -->
+         <!-- <artifactId>maven-surefire-plugin</artifactId> -->
+         <!-- <version>2.14.1</version> -->
+         <!-- <configuration> -->
+         <!-- <properties> -->
+         <!-- <property> -->
+         <!-- <name>surefire.testng.verbose</name> -->
+         <!-- <value>5</value> -->
+         <!-- </property> -->
+         <!-- </properties> -->
+         <!-- </configuration> -->
+         <!-- </plugin> -->
+         <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>distro-assembly</id>
+                  <phase>package</phase>
+                  <goals>
+                     <goal>single</goal>
+                  </goals>
+                  <configuration>
+                     <descriptors>
+                        <descriptor>assembly.xml</descriptor>
+                     </descriptors>
+                     <appendAssemblyId>false</appendAssemblyId>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
 </project>

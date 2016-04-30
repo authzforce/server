@@ -72,7 +72,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	private static final AtomicInteger EMBEDDED_SERVER_PORT = new AtomicInteger(9000 + PRNG.nextInt(1000));
 	private static final String EMBEDDED_APP_CONTEXT_PATH = "/";
 
-	private static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
+	protected static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
 	private static final int XML_MAX_CHILD_ELEMENTS = 10;
 
@@ -404,19 +404,25 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			/*
 			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
 			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
-			 * 
-			 * WARNING: FIContentTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
-			 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0,
-			 * byte #-1)
 			 */
 			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
 			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			proxyClientConf.getOutInterceptors().add(new FIContentTypeHeaderSetter());
+			/*
+			 * WARNING: XmlMediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
+			 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0,
+			 * byte #-1)
+			 */
+			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(true));
 			checkFiInterceptors(proxyClientConf);
 		} else
 		{
 			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
 			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+			/*
+			 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which causes
+			 * error on this client-side since not supported
+			 */
+			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(false));
 		}
 
 		/**

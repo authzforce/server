@@ -44,6 +44,7 @@
 					<include>webapp-context.xml</include>
 					<include>debian/changelog</include>
 					<include>debian/changes.jdeb.txt</include>
+                    <include>tar/README.md</include>
 				</includes>
 			</resource>
 		</resources>
@@ -148,7 +149,7 @@
 								</data>
 								<data>
 									<!-- WAR deployed to Tomcat -->
-									<src>${project.build.directory}/${project.build.finalName}.zip</src>
+									<src>${project.build.directory}/${project.build.finalName}.tar.gz</src>
 									<type>archive</type>
 									<includes>${project.build.finalName}/webapp/**</includes>
 									<missingSrc>fail</missingSrc>

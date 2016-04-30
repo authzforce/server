@@ -996,7 +996,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		}
 	}
 
-	private void requestPDP(File testDirectory, List<String> pdpFeaturesToEnable) throws JAXBException
+	private void requestPDP(File testDirectory, List<String> pdpFeaturesToEnable, boolean isPdpRemote) throws JAXBException
 	{
 		testDomainHelper.resetPdpAndPrp(pdpFeaturesToEnable);
 		// reset attribute providers
@@ -1007,6 +1007,15 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		final File attributeProviderFile = new File(testDirectory, RestServiceTest.TEST_ATTRIBUTE_PROVIDER_FILENAME);
 		if (attributeProviderFile.exists())
 		{
+			/*
+			 * This requires Attribute Provider extension to be deployed/configured in advance on the PDP. If we are testing a remote PDP, this may not be done, in which case we would get error 400
+			 * when trying to use it; so we skip this test in this case.
+			 */
+			if (isPdpRemote)
+			{
+				return;
+			}
+
 			JAXBElement<AbstractAttributeProvider> jaxbElt = testDomainHelper.unmarshal(attributeProviderFile, AbstractAttributeProvider.class);
 			testDomain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> singletonList(jaxbElt.getValue())));
 		}
@@ -1042,16 +1051,17 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	public void requestPDPWithoutMDP(File testDirectory) throws JAXBException
 	{
 		// disable all features (incl. MDP) of PDP
-		requestPDP(testDirectory, null);
+		requestPDP(testDirectory, null, !IS_EMBEDDED_SERVER_STARTED.get());
 	}
 
+	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "enableMDP" })
-	public void requestPDPWithMDP() throws JAXBException
+	public void requestPDPWithMDP(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
 		// enable MDP on PDP
 		final List<String> inputFeatures = Collections.singletonList(MDP_REPEATED_ATTRIBUTE_CATEGORIES_PDP_FEATURE_ID);
 		final File testDirectory = new File(RestServiceTest.XACML_SAMPLES_DIR, "IIIE302(PolicySet)");
-		requestPDP(testDirectory, inputFeatures);
+		requestPDP(testDirectory, inputFeatures, !IS_EMBEDDED_SERVER_STARTED.get());
 	}
 
 	private void verifySyncAfterPdpConfFileModification(IdReferenceType newRootPolicyRef) throws JAXBException

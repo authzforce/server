@@ -1,31 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.ow2.authzforce</groupId>
-		<artifactId>authzforce-ce-parent</artifactId>
-		<version>3.3.7</version>
-	</parent>
-	<artifactId>authzforce-ce-server</artifactId>
-	<!-- FIWARE Versioning -->
-	<version>5.1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<name>${project.groupId}:${project.artifactId}</name>
-	<description>AuthZForce CE Server</description>
-	<url>https://github.com/authzforce/server</url>
-	<properties>
-		<git.url.base>https://github.com/authzforce/server</git.url.base>
-	</properties>
-	<scm>
-		<connection>scm:git:${git.url.base}.git</connection>
-		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
-		<tag>HEAD</tag>
-		<url>${git.url.base}</url>
-	</scm>
-	<modules>
-		<module>rest-service</module>
-		<module>webapp</module>
-		<module>upgrader</module>
-		<module>dist</module>
-	</modules>
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.ow2.authzforce</groupId>
+      <artifactId>authzforce-ce-parent</artifactId>
+      <version>3.3.7</version>
+   </parent>
+   <artifactId>authzforce-ce-server</artifactId>
+   <!-- FIWARE Versioning -->
+   <version>5.1.0-SNAPSHOT</version>
+   <packaging>pom</packaging>
+   <name>${project.groupId}:${project.artifactId}</name>
+   <description>AuthZForce CE Server</description>
+   <url>https://github.com/authzforce/server</url>
+   <properties>
+      <git.url.base>https://github.com/authzforce/server</git.url.base>
+   </properties>
+   <scm>
+      <connection>scm:git:${git.url.base}.git</connection>
+      <developerConnection>scm:git:${git.url.base}.git</developerConnection>
+      <tag>HEAD</tag>
+      <url>${git.url.base}</url>
+   </scm>
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>${artifactId.prefix}-core</artifactId>
+            <version>3.8.2</version>
+            <classifier>tests</classifier>
+         </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
+            <version>5.0.1</version>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+   <modules>
+      <module>rest-service</module>
+      <module>webapp</module>
+      <module>upgrader</module>
+      <module>dist</module>
+   </modules>
 </project>

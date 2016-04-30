@@ -41,7 +41,6 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
-			<version>5.0.0</version>
 		</dependency>
 	</dependencies>
 	<build>
