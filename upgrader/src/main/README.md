@@ -4,13 +4,14 @@ https://github.com/authzforce/server/tree/release-${project.version}/upgrader/sr
 # AuthZForce Upgrader
 
 To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
+
 1. Install Ivy and Ant-Contrib on your system:
 
-	```shell
-	$ sudo apt-get install ivy ant-contrib
-	```
-	
-1. Download AuthZForce server upgrader tool from the [Github project releases page](https://github.com/authzforce/server/releases/download/release-${project.version}/authzforce-ce-server-upgrader-${project.version}.tar.gz>). You get a file called ``authzforce-ce-server-upgrader-${project.version}.tar.gz``.
+    ```shell
+    $ sudo apt-get install ivy ant-contrib
+    ```
+    
+1. Download AuthZForce server upgrader tool from the [Github project releases page](https://github.com/authzforce/server/releases/download/release-${project.version}/authzforce-ce-server-upgrader-${project.version}.tar.gz). You get a file called ``authzforce-ce-server-upgrader-${project.version}.tar.gz``.
 1. Copy this file to the host where the old AuthZForce Server is installed, and unzip it and change directory:
 
     ```shell
@@ -41,12 +42,12 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
 
     *WARNING 2: the following command will replace all standard XACML identifiers planned for deprecation in Appendix A.4 of XACML 3.0 Core specification with the new XACML 3.0 identifiers.*
   
-```shell
-$ ant -Dold.data.dir=/path/to/old/opt/authzforce-4.2.0 \
+    ```shell
+    $ ant -Dold.data.dir=/path/to/old/opt/authzforce-4.2.0 \
       -Dnew.data.dir=/path/to/new/opt/authzforce-ce-server \
       -Dpdp.max.var.ref.depth=10 \
       -Dpdp.max.policy.ref.depth=10 \
       -Dpdp.request.filter=urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
-```
+    ```
 
-This generates new data (e.g. domain directories) compatible with AuthZForce > v4.2.0 in location specified by `new.data.dir`.
+1. This generates new data (e.g. domain directories) compatible with AuthZForce > v4.2.0 in location specified by `new.data.dir`. Restart Tomcat on the new AuthZForce server to load the new data.
