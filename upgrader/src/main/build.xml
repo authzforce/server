@@ -93,10 +93,10 @@
 		<property name="new.domain.tmpl.path" value="${new.install.dir}/conf/domain.tmpl" />
 		<echo message="Upgrading domain template directory '${old.domain.tmpl.path}' --> '${new.domain.tmpl.path}'" />
 		<property name="new.domain.tmpl.backup.path" value="${new.domain.tmpl.path}.old" />
-		<echo message="Creating backup of current domain template directory in target installation directory for recovery: '${new.domain.tmpl.path}' --> '${new.domain.tmpl.backup.path}'" />
-		<copy todir="${new.domain.tmpl.backup.path}"><fileset dir="${new.domain.tmpl.path}" /></copy>
+		<echo message="Creating backup of current domain template directory in target installation directory for recovery:" />
+		<copy verbose="true" todir="${new.domain.tmpl.backup.path}"><fileset dir="${new.domain.tmpl.path}" /></copy>
 		<!-- Clean directory 'policies' and remove pdp.xml whose content will be replaced from old domain template using XSLT task down below-->
-		<delete includeemptydirs="true">
+		<delete verbose="true" includeemptydirs="true">
 			<fileset dir="${new.domain.tmpl.path}" includes="policies/, pdp.xml" />
 		</delete>
 

@@ -10,7 +10,7 @@
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
       <fileSet>
-         <directory>${project.build.outputDirectory}/main</directory>
+         <directory>${project.build.outputDirectory}</directory>
          <outputDirectory>/</outputDirectory>
       </fileSet>
 	</fileSets>
