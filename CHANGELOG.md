@@ -16,7 +16,7 @@ All notable changes to this project are documented in this file following the [K
 		- `GET or HEAD /domain/{domainId}/pap/pdp.properties`; or `GET or HEAD /domain/{domainId}/pap/policies` forces re-synchronization of PDP with configuration file (`pdp.xml`) and policy files in subfolder `policies` of the domain directory
 		- `DELETE /domain/{domainId}` forces removal of the domain from cache, and the domain directory if it still exists (removes from cache only if directory already removed)
 	- Properties for controlling the size of incoming XML (`maxElementDepth`, `maxChildElements`, `maxAttributeCount`, `maxAttributeSize`, `maxTextLength`) corresponding to [CXF XML security properties](http://cxf.apache.org/docs/security.html#Security-XML) may be configured as [JavaEE Environment Entries](https://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Environment_Entries) in Tomcat-specific Authzforce webapp context file (`authzforce-ce.xml`). Only `maxElementDepth` and `maxChildElements` are supported in Fast Infoset mode (due to issue [CXF-6848](https://issues.apache.org/jira/browse/CXF-6848)).
-- Completed 100% compliance with XACML 3.0 Core Specification with support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
+- Completed 100% XACML 3.0 Core Specification compliance with support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
 - Distribution upgrader: tool to upgrade from Authzforce 4.2.0
 
 ### Changed
