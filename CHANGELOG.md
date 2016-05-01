@@ -25,7 +25,7 @@ All notable changes to this project are documented in this file following the [K
   - URL path `/domains/{domainId}/pap/attribute.providers` replaces `/domains/{domainId}/pap/attributeProviders` from previous version, in order to apply better practices of REST API design (case-insensitive URLs) and to be consistent with new API paths `pdp.properties` and `prp.properties` (see *Added* section)
 - Multiple Decision Profile disabled by default after domain creation (enabled by default in previous version)
 - Backend flat-file database (DAO):
-	- Format of `properties.xml` (domain properties): XML namespace changed from `http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6` to `http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6`
+	- Format of `properties.xml` (domain properties): XML namespace changed to `http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6` (instead of `http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6` in previous version)
 	- Format of `pdp.xml` (PDP): XML schema/namespace of PDP PolicyProvider configuration changed to `http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6` (instead of `http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6` in previous version)
 	- Strategy for synchronizing cached domain's PDP and externalId-to-domain mapping with configuration files: no longer using Java WatchService (not adapted to NFS or CIFS shares), but each domain has a specific thread polling files in the domain directory's and checking their `lastModifiedTime` attribute for change:
 		- If a given domain ID is requested and no matching domain in cache, but a matching domain directory is found, the domain is automatically synced to cache and the synchronizing thread created;
