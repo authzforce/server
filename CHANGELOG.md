@@ -3,35 +3,44 @@ All notable changes to this project are documented in this file following the [K
 
 ## Unreleased
 ### Added
-- Distribution upgrader: tool to upgrade from Authzforce 4.2.0 to later versions
-- Support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
-- Option to enable automatic removal of oldest unused version(s) of any updated policy if max number of versions is exceeded (specified by a global property 'org.ow2.authzforce.domain.policy.maxVersionCount')
-- Manual synchronization of domain cache with data directory via REST API, allows to force reloading domains' PDPs and externalIDs without restarting the webapp or server:
-	- GET or HEAD /domains forces re-synchronization of all domains
-	- GET or HEAD /domain/{domainId}/properties forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
-	- GET or HEAD /domain/{domainId}/pap/properties; or GET or HEAD /domain/{domainId}/pap/policies forces re-synchronization of PDP with configuration file (pdp.xml) and policy files in subfolder 'policies' of the domain directory
-	- DELETE /domain/{domainId} forces removal of the domain from cache, and the domain directory if it still exists (removes from cache only if directory already removed)
+- REST API features (see *Changed* section for API changes):
+	- URL path specific to PDP properties:
+		- `GET /domains/{domainId}/pap/pdp.properties` gives properties of the PDP, including date/time of last modification and active/applicable policies (root policy and policies referenced directly/indirectly from root)
+		- `PUT /domains/{domainId}/pap/pdp.properties` also allows to set PDP's root policy reference and enable PDP implementation-specific features in new <feature>* element, such as Multiple Decision Profile support (scheme 2.3 - repeated attribute categories)
+	- URL path specific to PRP (Policy Repository Point) properties: `GET or PUT /domains/{domainId}/pap/prp.properties`: set/get properties `maxPolicyCount` (maximum number of policies), `maxVersionCount` (maximum number of versions per policy), `versionRollingEnabled` (enable policy version rolling, i.e. oldest versions auto-removed when the number of versions of a policy is about to exceed `maxVersionCount`) 
+	- Special keyword `latest` usable as version ID pointing to the latest version of a given policy (in addition to XACML version IDs like before), e.g. URL path `/domains/{domainId}/pap/policies/P1/latest` points to the latest version of the policy `P1`
+	- Fast Infoset support with new data representation type `application/fastinfoset` (in addition to `application/xml`) for all API payloads. Requires Authzforce Server to be started in a specific mode using JavaEE environment entry `spring.profiles.active`. Default type remains `application/xml` (default type is used when a wildcard is received as Accept header value from the client) 
+	- API caches domains' PDPs and externalIds for performance reasons, but it is now possible to force re-synchronizing this domain cache after any change to the backend domain repository, i.e. reloading domains' PDPs and externalIDs without restarting the webapp or server:
+		- `GET or HEAD /domains` forces re-synchronization of all domains
+		- `GET or HEAD /domain/{domainId}/properties` forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
+		- `GET or HEAD /domain/{domainId}/pap/properties`; or `GET or HEAD /domain/{domainId}/pap/policies` forces re-synchronization of PDP with configuration file (`pdp.xml`) and policy files in subfolder `policies` of the domain directory
+		- `DELETE /domain/{domainId}` forces removal of the domain from cache, and the domain directory if it still exists (removes from cache only if directory already removed)
+	- Properties for controlling the size of incoming XML (`maxElementDepth`, `maxChildElements`, `maxAttributeCount`, `maxAttributeSize`, `maxTextLength`) corresponding to [CXF XML security properties](http://cxf.apache.org/docs/security.html#Security-XML) may be configured as [JavaEE Environment Entries](https://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Environment_Entries) in Tomcat-specific Authzforce webapp context file (`authzforce-ce.xml`). Only `maxElementDepth` and `maxChildElements` are supported in Fast Infoset mode (due to issue [CXF-6848](https://issues.apache.org/jira/browse/CXF-6848)).
+- Completed 100% compliance with XACML 3.0 Core Specification with support of Extended Indeterminate values in policy evaluation (XACML 3.0 Core specification, section 7.10-7.14, appendix C: combining algorithms)
+- Distribution upgrader: tool to upgrade from Authzforce 4.2.0
 
 ### Changed
-- Domain properties document's XML schema: namespace changed from "http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6" to "http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6"
-- Domain's PDP configuration document (pdp.xml) XML schema:
-	- Namespace of XML schema of refPolicyProvider (PDP extension) changed from "http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6" to "http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
-	- XML type of the refPolicyProvider (in previously mentioned schema) changed from 'StaticFileBasedDAORefPolicyProvider' to 'StaticFlatFileDAORefPolicyProvider'
-- Strategy for synchronizing cached domain's PDP and externalId-to-domain mapping with configuration files: no longer using Java WatchService, but each domain has a specific thread polling files in the domain directory's and checking their lastModifiedTime attribute for change:
-	- If a given domain ID is requested and no matching domain in cache, but a matching domain directory is found, the domain is automatically synced to cache and the synchronizing thread created;
-	- If the domain's directory found missing by the synchronizing thread, the thread deletes the domain from cache.
-	- If any change to properties.xml (domain description, externalId) detected, externalId updated in cache
-	- If any change to pdp.xml or the file of any policy used by the PDP, the PDP is reloaded.
-- Support of REST API model v5.0.0: 
-  - Root policy reference no longer set via path /domains/{domainId}/properties but via /domains/{domainId}/pap/properties
-  - API allows the special keyword "latest" as version ID to get the latest version of a given policy (in addition to XACML version IDs like before), e.g. URL path /domains/{domainId}/pap/policies/P1/latest represents the latest version of policy "P1"
-  - Path /domains/{domainId}/pap/properties gives the status of the PDP (date/time of last modification and active policies)
+- Supported REST API model (authzforce-ce-rest-api-model) upgraded to **v5.1.1** with following changes: 
+  - PDP's root policy reference set via method `PUT /domains/{domainId}/pap/pdp.properties` (instead of `PUT /domains/{domainId}/properties` in previous version)
+  - URL path `/domains/{domainId}/pap/attribute.providers` replaces `/domains/{domainId}/pap/attributeProviders` from previous version, in order to apply better practices of REST API design (case-insensitive URLs) and to be consistent with new API paths `pdp.properties` and `prp.properties` (see *Added* section)
+- Multiple Decision Profile disabled by default after domain creation (enabled by default in previous version)
+- Backend flat-file database (DAO):
+	- Format of `properties.xml` (domain properties): XML namespace changed from `http://authzforce.github.io/pap-dao-file/xmlns/properties/3.6` to `http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6`
+	- Format of `pdp.xml` (PDP): XML schema/namespace of PDP PolicyProvider configuration changed to `http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6` (instead of `http://authzforce.github.io/pap-dao-file/xmlns/pdp-ext/3.6` in previous version)
+	- Strategy for synchronizing cached domain's PDP and externalId-to-domain mapping with configuration files: no longer using Java WatchService (not adapted to NFS or CIFS shares), but each domain has a specific thread polling files in the domain directory's and checking their `lastModifiedTime` attribute for change:
+		- If a given domain ID is requested and no matching domain in cache, but a matching domain directory is found, the domain is automatically synced to cache and the synchronizing thread created;
+		- If the domain's directory found missing by the synchronizing thread, the thread deletes the domain from cache.
+		- If any change to `properties.xml` (domain description, externalId) detected, externalId updated in cache
+		- If any change to `pdp.xml` or the file of any policy used by the PDP, the PDP is reloaded.
+- ZIP distribution format (`.zip`) changed to tarball format (`.tar.gz`), more suitable for Unix/Linux environments.
 
 ### Removed
 - Dependency on commons-io, replaced with Java 7 java.nio.file API for recursive directory copy/deletion
 
 ### Fixed
-- Debian/Ubuntu package dependencies: java7-jdk replaced with 'openjdk-7-jdk | oracle-java7-installer' to fix issues with APT installation of virtual packages (e.g. java7-jdk)
+- Github #1: deleted domain ID still returned by GET /domains?externalId=...
+- FIWARE JIRA [SEC-870](https://jira.fiware.org/browse/SEC-870): Debian/Ubuntu package dependencies: `java7-jdk` replaced with `openjdk-7-jdk | oracle-java7-installer`
+- Policy versions returned in wrong order by API
 
 
 ## 4.4.1
