@@ -1,6 +1,6 @@
 # AuthZForce Server
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.org/en/latest/?badge=latest)
+[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=4.4.1d)](http://authzforce-ce-fiware.readthedocs.io/en/release-4.4.1d/?badge=latest)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/authzforce-ce-server.svg)](https://hub.docker.com/r/fiware/authzforce-ce-server/)
 [![Support badge]( https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
 
