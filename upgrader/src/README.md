@@ -1,5 +1,5 @@
 This document may be viewed in HTML form from this link: 
-https://github.com/authzforce/server/tree/release-${project.version}/upgrader/src/main/README.md
+https://github.com/authzforce/server/blob/release-${project.version}/upgrader/src/README.md
 
 # AuthZForce Upgrader
 
@@ -11,7 +11,7 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     $ sudo apt-get install ivy ant-contrib
     ```
     
-1. Download AuthZForce server upgrader tool from the [Github project releases page](https://github.com/authzforce/server/releases/download/release-${project.version}/authzforce-ce-server-upgrader-${project.version}.tar.gz). You get a file called ``authzforce-ce-server-upgrader-${project.version}.tar.gz``.
+1. Download AuthZForce server upgrader tool from [Maven Central Repository](http://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-upgrader/${project.version}/authzforce-ce-server-upgrader-${project.version}.tar.gz). You get a file called ``authzforce-ce-server-upgrader-${project.version}.tar.gz``.
 1. Copy this file to the host where the old AuthZForce Server is installed, and unzip it and change directory:
 
     ```shell
@@ -19,7 +19,7 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     $ cd authzforce-ce-server-upgrader-${project.version}
     ```
     
-1. If you have custom AuthZForce PDP attribute providers, for each one, you have to adapt them to the new PDP AttributeProvider's Java interface, deploy and enable them on the new AuthZForce Server. Please refer to the [online Programmers Guide](http://authzforce-ce-fiware.readthedocs.io/en/latest/UserAndProgrammersGuide.html) for more information on this process (select the version matching your software release at the bottom of the page). Then change the parent XML type in the XML schema to the AttributeProvider XML type from the new PDP extension model, then you have to add a new `xsl:when` element in the following form in the XSL template named *attribute-finders-upgrade* in XSL stylesheet `domain-pdp-upgrade.xsl` (in the current working directory), where you defined the transformation rules to upgrade the attribute finder configuration to the new model (the TestAttributeProvider below is just an example and may be ignored):
+1. If you have custom AuthZForce PDP attribute providers, for each one, you have to adapt them to the new PDP AttributeProvider's Java interface, deploy and enable them on the new AuthZForce Server. Please refer to the [online Programmers Guide](http://authzforce-ce-fiware.readthedocs.io/en/latest/UserAndProgrammersGuide.html) for more information on this process (select the version matching your AuthZForce Server release at the bottom of the page). Then change the parent XML type in the XML schema to the AttributeProvider XML type from the new PDP extension model, then you have to add a new `xsl:when` element in the following form in the XSL template named *attribute-finders-upgrade* in XSL stylesheet `domain-pdp-upgrade.xsl` (in the current working directory), where you defined the transformation rules to upgrade the attribute finder configuration to the new model (the TestAttributeProvider below is just an example and may be ignored):
 
     ```xml
     <xsl:when test="$typeLocalName = 'TestAttributeFinder'">
