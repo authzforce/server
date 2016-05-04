@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://java.sun.com/xml/ns/javaee"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
 	<display-name>Thales AuthzForce Web Application</display-name>
 	<env-entry>
 		<description>Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<env-entry-name>org.ow2.authzforce.config.dir</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce-ce</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>Data (e.g. data of domains created and managed by the API) directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<env-entry-name>org.ow2.authzforce.data.dir</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>file:///${catalina.base}/conf/authzforce</env-entry-value>
+		<env-entry-value>file:///${catalina.base}/conf/authzforce-ce</env-entry-value>
 	</env-entry>
 	<env-entry>
 		<description>UUID generator option for domain IDs, set to true if and only if Authzforce deployed in dev environment that is disconnected from the network, 
@@ -26,31 +23,68 @@
 		<env-entry-value>false</env-entry-value>
 	</env-entry>
 	<env-entry>
-		<description>Max number of policies per domain. -1 or any negative value means no max (unlimited).</description>
-		<env-entry-name>org.ow2.authzforce.domain.maxPolicyCount</env-entry-name>
-		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>-1</env-entry-value>
-	</env-entry>
-	<env-entry>
-		<description>Max number of versions per policy. -1 or any negative value means no max (unlimited).</description>
-		<env-entry-name>org.ow2.authzforce.domain.policy.maxVersionCount</env-entry-name>
-		<env-entry-type>java.lang.Integer</env-entry-type>
-		<env-entry-value>-1</env-entry-value>
-	</env-entry>
-	<env-entry>
 		<description>Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature.</description>
 		<env-entry-name>org.ow2.authzforce.domains.sync.interval</env-entry-name>
 		<env-entry-type>java.lang.Integer</env-entry-type>
 		<env-entry-value>0</env-entry-value>
 	</env-entry>
+	<!-- <env-entry> -->
+	<!-- <description>Optional Maximum number of child elements for a given parent element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
+	<!-- <env-entry-name>org.apache.cxf.stax.maxChildElements</env-entry-name> -->
+	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
+	<!-- <env-entry-value>1000</env-entry-value> -->
+	<!-- </env-entry> -->
+	<!-- <env-entry> -->
+	<!-- <description>Optional Maximum depth of an element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
+	<!-- <env-entry-name>org.apache.cxf.stax.maxElementDepth</env-entry-name> -->
+	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
+	<!-- <env-entry-value>100</env-entry-value> -->
+	<!-- </env-entry> -->
+	<!-- <env-entry> -->
+	<!-- <description>Optional Maximum number of attributes per element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
+		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
+	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
+	<!-- <env-entry-name>org.apache.cxf.stax.maxAttributeCount</env-entry-name> -->
+	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
+	<!-- <env-entry-value>100</env-entry-value> -->
+	<!-- </env-entry> -->
+	<!-- <env-entry> -->
+	<!-- <description>Optional Maximum size of a single attribute in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
+		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
+	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
+		as it makes believe you can use shortcut strings like '64K' or '128M' as values but you can't. For maxAttributeSize = 100, error raised only when attribute value length > 181! WHY? Possible issue with 
+		woodstox library. FIXME: report this issue to CXF/Woodstox.</description> -->
+	<!-- <env-entry-name>org.apache.cxf.stax.maxAttributeSize</env-entry-name> -->
+	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
+	<!-- <env-entry-value>1000</env-entry-value> -->
+	<!-- </env-entry> -->
+	<!-- <env-entry> -->
+	<!-- <description>Optional Maximum size of an element's (FIXME: typo in CXF doc) text value in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
+		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
+	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
+		as it makes believe you can use shortcut strings like '64K' or '128M' but you can't.</description> -->
+	<!-- <env-entry-name>org.apache.cxf.stax.maxTextLength</env-entry-name> -->
+	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
+	<!-- <env-entry-value>1000</env-entry-value> -->
+	<!-- </env-entry> -->
 	<context-param>
-		<description>Location of logging configuration file (any Spring resource path allowed) loaded by SSPG LogConfServletContextListener or LogbackConfigListener (if SSPG disabled) below. Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
+		<description>Spring default profile (may be overridden by system property 'spring.profiles.active'): '+fastinfoset' or '-fastinfoset'</description>
+		<param-name>spring.profiles.default</param-name>
+		<param-value>-fastinfoset</param-value>
+	</context-param>
+	<context-param>
+		<description>Location of logging configuration file (any Spring resource path allowed) loaded by LogbackConfigListener (if SSPG disabled) below. Replace Tomcat property 'catalina.base' with 'com.sun.aas.instanceRoot' for Glassfish.</description>
 		<param-name>logbackConfigLocation</param-name>
-		<param-value>file:///${catalina.base}/conf/authzforce/logback.xml</param-value>
+		<param-value>file:///${catalina.base}/conf/authzforce-ce/logback.xml</param-value>
 	</context-param>
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>WEB-INF/applicationContext.xml</param-value>
+		<param-value>WEB-INF/beans.xml</param-value>
 	</context-param>
 	<listener>
 		<listener-class>ch.qos.logback.ext.spring.web.LogbackConfigListener</listener-class>
@@ -62,14 +96,14 @@
 	<!-- <description>ServletContextListener that shuts down Ehcache CacheManager. Use this to shutdown Ehcache automatically when the web application is shutdown.</description> -->
 	<!-- <listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class> -->
 	<!-- </listener> -->
-<!-- 	<filter> -->
-<!-- 		<filter-name>requestLoggerFilter</filter-name> -->
-<!-- 		<filter-class>fr.xebia.extras.filters.logfilters.RequestLoggerFilter</filter-class> -->
-<!-- 		<init-param> -->
-<!-- 			<param-name>maxDumpSizeInKB</param-name> -->
-<!-- 			<param-value>500</param-value> -->
-<!-- 		</init-param> -->
-<!-- 	</filter> -->
+	<!-- <filter> -->
+	<!-- <filter-name>requestLoggerFilter</filter-name> -->
+	<!-- <filter-class>fr.xebia.extras.filters.logfilters.RequestLoggerFilter</filter-class> -->
+	<!-- <init-param> -->
+	<!-- <param-name>maxDumpSizeInKB</param-name> -->
+	<!-- <param-value>500</param-value> -->
+	<!-- </init-param> -->
+	<!-- </filter> -->
 	<filter>
 		<description>Filter hiding certain exceptions, internal server errors in particular</description>
 		<filter-name>exceptionFilter</filter-name>
@@ -84,10 +118,10 @@
 		<servlet-name>CXFServlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
-<!-- 	<filter-mapping> -->
-<!-- 		<filter-name>requestLoggerFilter</filter-name> -->
-<!-- 		<servlet-name>CXFServlet</servlet-name> -->
-<!-- 	</filter-mapping> -->
+	<!-- <filter-mapping> -->
+	<!-- <filter-name>requestLoggerFilter</filter-name> -->
+	<!-- <servlet-name>CXFServlet</servlet-name> -->
+	<!-- </filter-mapping> -->
 	<filter-mapping>
 		<filter-name>exceptionFilter</filter-name>
 		<servlet-name>CXFServlet</servlet-name>

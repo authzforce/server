@@ -1,35 +1,45 @@
 <assembly>
-	<id>webapp</id>
-	<!-- Generates a zip package of Authzforce webapp + configuration files -->
-	<formats>
-		<format>zip</format>
-	</formats>
+   <id>webapp</id>
+   <!-- Generates a package of Authzforce webapp + configuration files -->
+   <formats>
+      <format>tar.gz</format>
+   </formats>
 
-	<!-- Adds dependencies to zip package under lib directory -->
-	<dependencySets>
-		<dependencySet>
-			<includes>
-				<include>org.ow2.authzforce:authzforce-ce-server-webapp:war</include>
-			</includes>
-			<outputDirectory>webapp</outputDirectory>
-			<unpack>true</unpack>
-		</dependencySet>
-	</dependencySets>
-	<fileSets>
-		<fileSet>
-			<directory>${project.basedir}/src/conf</directory>
-			<outputDirectory>/conf</outputDirectory>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/src/data</directory>
-			<outputDirectory>/data</outputDirectory>
-		</fileSet>
-	</fileSets>
-	<files>
-		<file>
-			<source>${project.basedir}/src/webapp-context.xml</source>
-			<outputDirectory>/conf</outputDirectory>
-			<destName>context.xml.sample</destName>
-		</file>
-	</files>
+   <!-- Adds dependencies to zip package under lib directory -->
+   <dependencySets>
+      <dependencySet>
+         <includes>
+            <include>org.ow2.authzforce:authzforce-ce-server-webapp:war</include>
+         </includes>
+         <outputDirectory>webapp</outputDirectory>
+         <unpack>true</unpack>
+         <!-- Maven assembly does not provide a way set owner/group in permissions here:
+         https://issues.apache.org/jira/browse/MASSEMBLY-668
+         The uid/gid of the user running maven is used. 
+          -->
+         <fileMode>644</fileMode>
+         <directoryMode>755</directoryMode>
+      </dependencySet>
+   </dependencySets>
+   <fileSets>
+      <fileSet>
+         <directory>${project.basedir}/src/conf</directory>
+         <outputDirectory>/conf</outputDirectory>
+      </fileSet>
+      <fileSet>
+         <directory>${project.basedir}/src/data</directory>
+         <outputDirectory>/data</outputDirectory>
+      </fileSet>
+      <fileSet>
+         <directory>${project.build.outputDirectory}/tar</directory>
+         <outputDirectory>/</outputDirectory>
+      </fileSet>
+   </fileSets>
+   <files>
+      <file>
+         <source>${project.build.outputDirectory}/webapp-context.xml</source>
+         <outputDirectory>/conf</outputDirectory>
+         <destName>context.xml.sample</destName>
+      </file>
+   </files>
 </assembly>

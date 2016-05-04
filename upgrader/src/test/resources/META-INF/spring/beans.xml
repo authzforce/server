@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+	<!-- Default value other than classpath:... are not accepted, set the value 
+		via JNDI instead for other URL schemes (e.g. file:). -->
+	<jee:jndi-lookup id="jndi_configDir" jndi-name="org.ow2.authzforce.config.dir"
+		expected-type="java.lang.String" default-value="classpath:server/conf" />
+	<!-- File: prefix matters. If not present, the path is loaded as classpath 
+		resource by Spring -->
+	<jee:jndi-lookup id="jndi_dataDir" jndi-name="org.ow2.authzforce.data.dir"
+		expected-type="java.lang.String" default-value="file:target/server/data" />
+	<!-- If no "real" Ethernet address to use (host disconnected from the network), 
+		use random multicast address. -->
+	<jee:jndi-lookup id="jndi_useRandomAddressBasedUUID"
+		jndi-name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased"
+		expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
+	<!-- 0 means no sync -->
+	<jee:jndi-lookup id="jndi_syncIntervalSec"
+		jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer"
+		default-value="#{new Integer(0)}" />
+
+	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
+		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+		<constructor-arg name="extensionXsdLocation"
+			value="#{jndi_configDir}/authzforce-ext.xsd" />
+	</bean>
+
+	<bean id="domainDAOClientFactoryBean"
+		class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
+
+	<bean id="domainsDAOBean"
+		class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO"
+		destroy-method="closeDomains">
+		<!-- root directory of domain folders; a domain folder contains all configuration 
+			data of a specific domain, and is named after the domain ID encoded with 
+			base64url. -->
+		<constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
+		<!-- domain template directory for domain creation -->
+		<constructor-arg name="domainTmpl" value="#{jndi_configDir}/domain.tmpl" />
+		<!-- domains directory-to-memory synchronization interval in seconds -->
+		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
+		<constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+		<constructor-arg name="useRandomAddressBasedUUID"
+			value="#{jndi_useRandomAddressBasedUUID}" />
+		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
+	</bean>
+
+	<bean id="domainsResourceBean"
+		class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
+		<constructor-arg name="domainsDAO" ref="domainsDAOBean" />
+		<constructor-arg name="authorizedResourceAttribute"
+			value="authorizedResource" />
+		<constructor-arg name="anyResourceId">
+			<null />
+		</constructor-arg>
+	</bean>
+</beans>

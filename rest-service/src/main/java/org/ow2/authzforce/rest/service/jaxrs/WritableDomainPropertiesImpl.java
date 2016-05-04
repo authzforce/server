@@ -18,8 +18,6 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-
 import org.ow2.authzforce.core.pap.api.dao.WritableDomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 
@@ -42,12 +40,6 @@ class WritableDomainPropertiesImpl implements WritableDomainProperties
 	public String getDescription()
 	{
 		return props.getDescription();
-	}
-
-	@Override
-	public IdReferenceType getRootPolicyRef()
-	{
-		return props.getRootPolicyRef();
 	}
 
 }

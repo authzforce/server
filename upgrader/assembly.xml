@@ -1,0 +1,17 @@
+<assembly>
+	<id>upgrader</id>
+	<!-- Generates a package of Authzforce server upgrader tool -->
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<fileSets>
+		<fileSet>
+			<directory>${project.basedir}/src/main</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+      <fileSet>
+         <directory>${project.build.outputDirectory}</directory>
+         <outputDirectory>/</outputDirectory>
+      </fileSet>
+	</fileSets>
+</assembly>

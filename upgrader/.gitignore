@@ -1,0 +1,10 @@
+/.classpath
+/.project
+/.settings/
+/ivy/
+/build/
+/lib/
+/test-output/
+/.pmd
+/.pmdruleset.xml
+/target/

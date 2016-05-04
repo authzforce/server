@@ -36,8 +36,9 @@ public class ClientErrorExceptionMapper implements ExceptionMapper<ClientErrorEx
 		// on what resource could not be found, so return this message to the client
 		if (exception.getCause() != null)
 		{
-			final org.ow2.authzforce.rest.api.xmlns.Error errorEntity = new org.ow2.authzforce.rest.api.xmlns.Error(exception.getCause().getMessage());
-			return Response.status(Response.Status.BAD_REQUEST).entity(errorEntity).build();
+			final org.ow2.authzforce.rest.api.xmlns.Error errorEntity = new org.ow2.authzforce.rest.api.xmlns.Error(
+					exception.getCause().getMessage());
+			return Response.status(exception.getResponse().getStatus()).entity(errorEntity).build();
 		}
 
 		// if not, return response as is (no change)

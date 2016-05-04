@@ -1,0 +1,158 @@
+<!--
+
+    Copyright (C) 2012-2016 Thales Services SAS.
+
+    This file is part of AuthZForce CE.
+
+    AuthZForce CE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce CE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!-- On Ubuntu, do this first: $ sudo apt-get install ivy ant-contrib-->
+<project name="authzforce-upgrader" default="upgrade" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:ac="antlib:net.sf.antcontrib">
+	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant">
+		<classpath>
+			<!-- Valid path to ivy on Ubuntu when installed with APT -->
+			<pathelement location="/usr/share/java/ivy.jar" />
+		</classpath>
+	</taskdef>
+
+	<property name="build.dir" value="build" />
+	<property name="src.dir" value="src" />
+	<property name="old.install.dir" value="../test/authzforce-4.2.0" description="Old Authzforce (4.2.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce)" />
+	<property name="new.install.dir" value="../../target/server" description="Current Authzforce (>= 4.3.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
+
+	<!-- PDP properties (may be overridden by Java system properties): 
+	Possible values for 'pdp.request.filter':
+			urn:ow2:authzforce:xacml:request-filter:default-lax (default value)
+			urn:ow2:authzforce:xacml:request-filter:default-strict
+			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
+			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict
+	-->
+	<property name="pdp.max.var.ref.depth" value="10" />
+	<property name="pdp.max.policy.ref.depth" value="10" />
+	<property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:default-lax" />
+
+	<macrodef name="saxon-xslt">
+		<attribute name="basedir" />
+		<attribute name="destdir" />
+		<attribute name="includes" />
+		<attribute name="style" />
+		<sequential>
+			<xslt processor="trax" basedir="@{basedir}" destdir="@{destdir}" style="@{style}" includes="@{includes}" extension=".xml" classpathref="lib.path.id">
+				<!-- parameters used by pdp-upgrade.xsl -->
+				<param name="basedir" expression="@{basedir}" />
+				<param name="maxVariableRefDepth" expression="${pdp.max.var.ref.depth}" />
+				<param name="maxPolicyRefDepth" expression="${pdp.max.policy.ref.depth}" />
+				<param name="requestFilter" expression="${pdp.request.filter}" />
+				<!--
+        			    		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
+        			    		-->
+				<factory name="net.sf.saxon.TransformerFactoryImpl">
+					<!-- 
+        							For a full list of feature names in version 9.1, see http://www.saxonica.com/documentation9.1/javadoc/net/sf/saxon/FeatureKeys.html
+        							 
+        							 More info on using XSLT task with Saxon 9:
+        							 http://www.saxonica.com/documentation9.1/using-xsl/xsltfromant.html
+        							-->
+					<!-- Using a SAXON configuration file
+        							<attribute name="http://saxon.sf.net/feature/configuration-file" 
+        							               value="config-de.xml"/>
+        							               -->
+
+					<!--
+					<attribute name="http://saxon.sf.net/feature/traceListenerClass" value="net.sf.saxon.trace.XSLTTraceListener" />
+					-->
+					<!-- xsltSchemaAware available only in proprietary versions of Saxon (Professional/Enterprise) -->
+					<!--<attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true" />
+					<attribute name="http://saxon.sf.net/feature/schema-validation-mode" value="strict" />
+					<attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1" />
+					-->
+					<!--ignoreSAXSourceParser is necessary so parsers defined below are used
+        							            instead of ones passed by ant-->
+					<!--
+					<attribute name="http://saxon.sf.net/feature/ignoreSAXSourceParser" value="true" />
+					-->
+				</factory>
+			</xslt>
+		</sequential>
+	</macrodef>
+
+	<target name="upgrade-domain-tmpl" description="Upgrade domain template">
+		<property name="old.domain.tmpl.path" value="${old.install.dir}/conf/domain.tmpl" />
+		<property name="new.domain.tmpl.path" value="${new.install.dir}/conf/domain.tmpl" />
+		<echo message="Upgrading domain template directory '${old.domain.tmpl.path}' --> '${new.domain.tmpl.path}'" />
+		<property name="new.domain.tmpl.backup.path" value="${new.domain.tmpl.path}.old" />
+		<echo message="Creating backup of current domain template directory in target installation directory for recovery:" />
+		<copy verbose="true" todir="${new.domain.tmpl.backup.path}"><fileset dir="${new.domain.tmpl.path}" /></copy>
+		<!-- Clean directory 'policies' and remove pdp.xml whose content will be replaced from old domain template using XSLT task down below-->
+		<delete verbose="true" includeemptydirs="true">
+			<fileset dir="${new.domain.tmpl.path}" includes="policies/, pdp.xml" />
+		</delete>
+
+		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->
+		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="domain-pdp-upgrade.xsl" />
+	</target>
+
+	<target name="upgrade-domain" description="Upgrade domain">
+		<basename property="domain.dir.name" file="${old.domain.dir.path}" />
+		<property name="new.domain.dir.path" value="${new.install.dir}/data/domains/${domain.dir.name}" />
+		<echo message="Upgrading domain directory '${old.domain.dir.path}' --> '${new.domain.dir.path}'" />
+
+		<mkdir dir="${new.domain.dir.path}" />
+
+		<!-- Upgrade domain properties -->
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="domain-properties-upgrade.xsl" />
+
+		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them -->
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="domain-pdp-upgrade.xsl" />
+	</target>
+
+	<!-- ================================= 
+          Main target
+         ================================= -->
+	<!--
+	<target name="upgrade" depends="install-ivy, generate-src" 
+            description=" resolve dependencies and run the project: upgrade">-->
+	<target name="upgrade" description=" --> resolve dependencies and run the project: upgrade">
+		<echo message="using ivy to resolve dependencies..." />
+		<!--
+		http://www.codetab.org/apache-ivy-tutorial/apache-ivy-cachepath-and-retrieve/
+		Default ivy settings:  
+		ivy.project.dir = ${basedir}
+		ivy.lib.dir = ${ivy.project.dir}/lib
+		ivy.retrieve.pattern = ${ivy.lib.dir}/[artifact]-[revision].[ext]
+		
+		 ivy retrieve - default pattern = ${ivy.retrieve.pattern}
+    Sync set to true will ensure that any extra files in the lib directory is deleted.
+    Type set to jar tells ivy to copy only jar artifacts. Source and javadoc artifacts are ignored.
+		-->
+		<ivy:retrieve sync="true" type="jar,bundle" pathId="lib.path.id" />
+
+		<!-- inheritrefs="true" is required to pass ref 'lib.path.id' to tasks 'upgrade-domain-tmpl' and 'upgrade-domain' -->
+		<antcall target="upgrade-domain-tmpl" description="Upgrade domain template directory" inheritall="true" inheritrefs="true" />
+		<ac:foreach target="upgrade-domain" param="old.domain.dir.path" inheritall="true" inheritrefs="true">
+			<path>
+				<!-- includes parameter prevents recursive listing -->
+				<dirset dir="${old.install.dir}/data/domains" includes="*" />
+			</path>
+		</ac:foreach>
+	</target>
+
+	<!-- ================================= 
+          target: clean-cache              
+         ================================= -->
+	<target name="clean-cache" description="--> clean the ivy cache">
+		<ivy:cleancache />
+	</target>
+</project>

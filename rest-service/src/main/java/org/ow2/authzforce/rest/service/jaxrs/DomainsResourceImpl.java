@@ -67,7 +67,7 @@ public class DomainsResourceImpl implements DomainsResource
 	 * @param domainsDAO
 	 *            domain repository
 	 * @param authorizedResourceAttribute
-	 *            name of ServletRequest attribute expected to give the list of authorized resource (<code>java.util.List</code>) IDs for the current user
+	 *            name of ServletRequest attribute expected to give the list of authorized resource ( <code>java.util.List</code>) IDs for the current user
 	 * @param anyResourceId
 	 *            identifier for "any resource" (access to any one)
 	 */
@@ -82,7 +82,7 @@ public class DomainsResourceImpl implements DomainsResource
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#addDomain(com.thalesgroup.authzforce .model.Metadata)
+	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#addDomain(com. thalesgroup.authzforce .model.Metadata)
 	 */
 	@Override
 	public Link addDomain(DomainProperties props)
@@ -131,13 +131,22 @@ public class DomainsResourceImpl implements DomainsResource
 		// add domain on the fly
 		// rename to resourceCollection
 		final Set<String> authorizedDomainIDs = new HashSet<>();
-		final Object attrVal = messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
+		final Object attrVal = messageContext == null? null: messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
 		// attrVal may be null
 		if (attrVal == null)
 		{
 			if (anyResourceId == null)
 			{ // attrVal == anyResourceId
-				authorizedDomainIDs.addAll(domainRepo.getDomainIDs(externalId));
+				final Set<String> domainIDs;
+				try
+				{
+					domainIDs = domainRepo.getDomainIDs(externalId);
+				} catch (IOException e)
+				{
+					throw new InternalServerErrorException("Error getting domain info from domain repository", e);
+				}
+
+				authorizedDomainIDs.addAll(domainIDs);
 			}
 		} else
 		{
@@ -146,22 +155,36 @@ public class DomainsResourceImpl implements DomainsResource
 				final List<?> resourceIds = (List<?>) attrVal;
 				if (resourceIds.contains(anyResourceId))
 				{
-					authorizedDomainIDs.addAll(domainRepo.getDomainIDs(externalId));
+					final Set<String> domainIDs;
+					try
+					{
+						domainIDs = domainRepo.getDomainIDs(externalId);
+					} catch (IOException e)
+					{
+						throw new InternalServerErrorException("Error getting domain info from domain repository", e);
+					}
+
+					authorizedDomainIDs.addAll(domainIDs);
 				} else
 				{
 					for (final Object resourceId : resourceIds)
 					{
 						final String domainId = resourceId.toString();
-						if (domainRepo.containsDomain(domainId))
+						try
 						{
-							authorizedDomainIDs.add(domainId);
+							if (domainRepo.containsDomain(domainId))
+							{
+								authorizedDomainIDs.add(domainId);
+							}
+						} catch (IOException e)
+						{
+							throw new InternalServerErrorException("Error getting domain info from domain repository", e);
 						}
 					}
 				}
 			} else
 			{
-				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '"
-						+ authorizedResourceAttrId + "' = " + attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
+				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '" + authorizedResourceAttrId + "' = " + attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
 			}
 		}
 
@@ -182,7 +205,7 @@ public class DomainsResourceImpl implements DomainsResource
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#getEndUserDomain(java.lang.String)
+	 * @see com.thalesgroup.authzforce.api.jaxrs.EndUserDomainSet#getEndUserDomain (java.lang.String)
 	 */
 	@Override
 	public DomainResource getDomainResource(String domainId)
@@ -192,7 +215,15 @@ public class DomainsResourceImpl implements DomainsResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final DomainResource domainRes = domainRepo.getDomainDAOClient(domainId);
+		final DomainResource domainRes;
+		try
+		{
+			domainRes = domainRepo.getDomainDAOClient(domainId);
+		} catch (IOException e)
+		{
+			throw new InternalServerErrorException("Error getting domain info from domain repository", e);
+		}
+
 		if (domainRes == null)
 		{
 			throw NOT_FOUND_EXCEPTION;

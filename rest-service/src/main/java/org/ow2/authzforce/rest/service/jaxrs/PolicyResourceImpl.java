@@ -15,7 +15,6 @@ package org.ow2.authzforce.rest.service.jaxrs;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
 
@@ -39,9 +38,12 @@ import org.w3._2005.atom.Relation;
  */
 public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 {
+	private static final String LATEST_VERSION_ID = "latest";
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
-	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy ID for policy resource undefined");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
+			"Invalid argument");
+	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException(
+			"Policy ID for policy resource undefined");
 
 	private static final IllegalArgumentException ILLEGAL_POLICY_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException(
 			"Policy DAO for policy resource undefined");
@@ -89,14 +91,13 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 
 	private static Resources getVersionResources(NavigableSet<PolicyVersion> versions)
 	{
+		// versions expected to be ordered from latest to oldest
 		final List<Link> policyVersionLinks = new ArrayList<>(versions.size());
-		// Iterate from last version to oldest
-		final Iterator<PolicyVersion> versionIterator = versions.descendingIterator();
-		while (versionIterator.hasNext())
+		for (final PolicyVersion v : versions)
 		{
 			final Link link = new Link();
 			policyVersionLinks.add(link);
-			link.setHref(versionIterator.next().toString());
+			link.setHref(v.toString());
 			link.setRel(Relation.ITEM);
 		}
 
@@ -151,7 +152,28 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PolicyVersionResource versionResource = domainDAO.getVersionDAOClient(policyId, version);
+		final PolicyVersion policyVersion;
+		if (version.equals(LATEST_VERSION_ID))
+		{
+			try
+			{
+				policyVersion = domainDAO.getLatestPolicyVersionId(policyId);
+			} catch (IOException e)
+			{
+				throw new InternalServerErrorException("Error getting latest version of policy '" + policyId + "'", e);
+			}
+		} else
+		{
+			try
+			{
+				policyVersion = new PolicyVersion(version);
+			} catch (IllegalArgumentException e)
+			{
+				throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
+			}
+		}
+
+		final PolicyVersionResource versionResource = domainDAO.getVersionDAOClient(policyId, policyVersion);
 		if (versionResource == null)
 		{
 			throw NOT_FOUND_EXCEPTION;
@@ -159,11 +181,5 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 
 		return versionResource;
 	}
-
-	// @Override
-	// public DAO getDAO()
-	// {
-	// return domainDAO;
-	// }
 
 }

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2012-2015 Thales Services SAS.
+
+    This file is part of AuthZForce.
+
+    AuthZForce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AuthZForce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AuthZForce.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://thalesgroup.com/authz/model/3.0"
+	xmlns:tns="http://thalesgroup.com/authz/model/3.0" xmlns:authz-ext="http://thalesgroup.com/authz/model/ext/3.0"
+	xmlns:authz-res="http://thalesgroup.com/authz/model/3.0/resource" xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:xacml-policy="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
+	<xs:import namespace="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" />
+	<xs:import namespace="http://www.w3.org/2005/Atom" />
+	<xs:import namespace="http://thalesgroup.com/authz/model/3.0/resource" schemaLocation="authz-api-resource.xsd"/>
+	<xs:import namespace="http://thalesgroup.com/authz/model/ext/3.0" />
+	<!-- As an implementer of this API, replace the following schema import (example from Thales Authzforce 
+		implementation) with one that defines any API extension specific to your implementation such as PDP attribute/policy finders. 
+		Make sure the import namespace matches the one in your extension schema.
+		See authzforce-ext.xsd for example.
+		-->
+	<xs:import namespace="http://thalesgroup.com/authzforce/model/3.0" schemaLocation="authzforce-ext.xsd" />
+
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			Data Model for RESTful API of Authorization
+			Service
+		</xs:documentation>
+	</xs:annotation>
+	<xs:simpleType name="UUID">
+		<xs:annotation>
+			<xs:documentation>Universally Unique IDentifier, as defined in RFC
+				4122 / ISO/IEC 9834-8.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="AttributeFinderList">
+		<xs:sequence>
+			<xs:element name="attributeFinder" type="authz-ext:AbstractAttributeFinder" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PolicySetList">
+		<xs:sequence>
+			<xs:element ref="xacml-policy:PolicySet" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="error">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="message" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="domain" type="authz-res:ManagedResource" />
+	<xs:element name="attributeFinders" type="tns:AttributeFinderList" />
+	<xs:element name="policySets" type="tns:PolicySetList" />
+</xs:schema>
