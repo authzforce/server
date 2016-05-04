@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>5.1.2</version>
+		<version>5.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-dist</artifactId>
