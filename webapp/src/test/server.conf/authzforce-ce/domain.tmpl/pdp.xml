@@ -2,7 +2,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6"
 	xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
-	version="3.6.2"
+	version="3.6.4"
 	maxVariableRefDepth="1"
 	maxPolicyRefDepth="2"
 	strictAttributeIssuerMatch="false"

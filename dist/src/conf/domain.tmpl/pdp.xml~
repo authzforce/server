@@ -3,6 +3,7 @@
 	xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6"
 	xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	version="3.6.4"
+    maxVariableRefDepth="10"
 	maxPolicyRefDepth="10" 
 	strictAttributeIssuerMatch="false" 
 	requestFilter="urn:ow2:authzforce:xacml:request-filter:default-lax">

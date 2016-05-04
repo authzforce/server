@@ -7,3 +7,4 @@
 /test-output/
 /.pmd
 /.pmdruleset.xml
+/target/

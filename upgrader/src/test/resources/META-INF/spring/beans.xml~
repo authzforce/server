@@ -27,6 +27,8 @@
 
 	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
 		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+		<!-- <constructor-arg name="extensionXsdLocation" value="classpath:/authzforce-ext.xsd" 
+			/> -->
 		<constructor-arg name="extensionXsdLocation"
 			value="#{jndi_configDir}/authzforce-ext.xsd" />
 	</bean>

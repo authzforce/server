@@ -41,7 +41,7 @@
 	<xsl:template match="old:pdps">
 		<xsl:apply-templates select="document($refPoliciesFileURI)/oldapi:policySets/xacml:PolicySet" />
 		<xsl:apply-templates select="$rootPolicy" />
-		<pdp version="3.6.4" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" strictAttributeIssuerMatch="false" requestFilter="{$requestFilter}">
+		<pdp version="3.6.4" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" requestFilter="{$requestFilter}">
 			<xsl:apply-templates select="old:attributeFactory/old:datatype" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:function|old:functionFactory/old:condition/old:function|old:functionFactory/old:general/old:function" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:abstractFunction|old:functionFactory/old:condition/old:abstractFunction|old:functionFactory/old:general/old:abstractFunction" />

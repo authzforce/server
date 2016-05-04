@@ -155,7 +155,7 @@
                <dependency>
                   <groupId>${project.groupId}</groupId>
                   <artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
-                  <version>5.0.1</version>
+                  <version>5.0.2</version>
                </dependency>
                <dependency>
                   <groupId>org.apache.ivy</groupId>
