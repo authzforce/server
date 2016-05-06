@@ -29,21 +29,21 @@
 		<env-entry-value>0</env-entry-value>
 	</env-entry>
 	<!-- <env-entry> -->
-	<!-- <description>Optional Maximum number of child elements for a given parent element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- <description>Optional maximum number of child elements for a given parent element in incoming XML. More info on "Controlling Large Request Payloads" -->
 	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
 	<!-- <env-entry-name>org.apache.cxf.stax.maxChildElements</env-entry-name> -->
 	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
 	<!-- <env-entry-value>1000</env-entry-value> -->
 	<!-- </env-entry> -->
 	<!-- <env-entry> -->
-	<!-- <description>Optional Maximum depth of an element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- <description>Optional maximum depth of an element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
 	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
 	<!-- <env-entry-name>org.apache.cxf.stax.maxElementDepth</env-entry-name> -->
 	<!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
 	<!-- <env-entry-value>100</env-entry-value> -->
 	<!-- </env-entry> -->
 	<!-- <env-entry> -->
-	<!-- <description>Optional Maximum number of attributes per element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- <description>Optional maximum number of attributes per element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
 	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
 		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
 	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
@@ -52,7 +52,7 @@
 	<!-- <env-entry-value>100</env-entry-value> -->
 	<!-- </env-entry> -->
 	<!-- <env-entry> -->
-	<!-- <description>Optional Maximum size of a single attribute in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- <description>Optional maximum size of a single attribute in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
 	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
 		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
 	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
@@ -63,7 +63,7 @@
 	<!-- <env-entry-value>1000</env-entry-value> -->
 	<!-- </env-entry> -->
 	<!-- <env-entry> -->
-	<!-- <description>Optional Maximum size of an element's (FIXME: typo in CXF doc) text value in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
+	<!-- <description>Optional maximum size of an element's (FIXME: typo in CXF doc) text value in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
 	<!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
 		if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
 	<!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
