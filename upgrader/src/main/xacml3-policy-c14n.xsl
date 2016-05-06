@@ -19,7 +19,7 @@
     along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<!-- XACML 3.0 policy canonicalization, basically replace deprecated identifiers (XACML 3.0 Core Specification, §A.4) with new ones. Author: Cyril DANGERVILLE. -->
+<!-- XACML 3.0 policy canonicalization, basically replacing deprecated identifiers (XACML 3.0 Core Specification, §A.4) with new ones. Author: Cyril DANGERVILLE. -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
 
