@@ -48,6 +48,7 @@ import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
 import org.ow2.authzforce.rest.api.jaxrs.PrpPropertiesResource;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
+import org.ow2.authzforce.rest.api.xmlns.Feature;
 import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
@@ -106,7 +107,7 @@ class DomainAPIHelper
 		return false;
 	}
 
-	protected void resetPdpAndPrp(List<String> pdpFeaturesToEnable) throws JAXBException
+	protected void resetPdpAndPrp(List<Feature> pdpFeaturesToEnable) throws JAXBException
 	{
 		final JAXBElement<PolicySet> jaxbElt = unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, RestServiceTest.TEST_DEFAULT_POLICYSET_FILENAME), PolicySet.class);
 		final PolicySet newRootPolicySet = jaxbElt.getValue();
@@ -145,7 +146,7 @@ class DomainAPIHelper
 
 	protected void resetPdpAndPrp() throws JAXBException
 	{
-		resetPdpAndPrp(Collections.<String> emptyList());
+		resetPdpAndPrp(Collections.<Feature> emptyList());
 	}
 
 	protected <T> JAXBElement<T> unmarshal(File file, Class<T> clazz) throws JAXBException
@@ -370,7 +371,7 @@ class DomainAPIHelper
 		return setRootPolicy(policySet.getPolicySetId(), ignoreVersion ? null : policySet.getVersion());
 	}
 
-	protected String getRequestFilterFromPdpConfFile() throws JAXBException
+	protected Pdp getPdpConfFromFile() throws JAXBException
 	{
 		if (pdpModelHandler == null)
 		{
@@ -378,11 +379,10 @@ class DomainAPIHelper
 		}
 
 		// change maxPolicyRefDepth in PDP conf file
-		Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
-		return pdpConf.getRequestFilter();
+		return pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
 	}
 
-	protected PdpPropertiesResource updatePdpFeatures(List<String> features)
+	protected PdpPropertiesResource updatePdpFeatures(List<Feature> features)
 	{
 		PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
 		PdpProperties oldProps = propsRes.getOtherPdpProperties();
@@ -390,7 +390,7 @@ class DomainAPIHelper
 		return propsRes;
 	}
 
-	protected List<String> updateAndGetPdpFeatures(List<String> features)
+	protected List<Feature> updateAndGetPdpFeatures(List<Feature> features)
 	{
 		PdpPropertiesResource propsRes = updatePdpFeatures(features);
 		return propsRes.getOtherPdpProperties().getFeatures();

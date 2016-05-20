@@ -37,9 +37,6 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
 
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
-
 /**
  * Client/End-User-managed domains resource implementation
  *
@@ -49,8 +46,6 @@ public class DomainsResourceImpl implements DomainsResource
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 
 	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
-
-	private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
 
 	@Context
 	private MessageContext messageContext;
@@ -93,11 +88,10 @@ public class DomainsResourceImpl implements DomainsResource
 		}
 
 		/*
-		 * If the 'rootPolicyRef' element is missing, a default root policy must be automatically created for the domain by the domainsDAO and a corresponding
-		 * rootPolicyRef set by the Service Provider of this API in the domain properties. If the 'rootPolicyRef' element is present, it assumes that the
-		 * Service Provider of this API initializes the domain with a fixed set of policies, and the client knows about those policies and therefore how to set
-		 * the 'rootPolicyRef' properly to match one of those pre-set policies. If the 'rootPolicyRef' does not match any, the domain creation request will be
-		 * rejected.
+		 * If the 'rootPolicyRef' element is missing, a default root policy must be automatically created for the domain by the domainsDAO and a corresponding rootPolicyRef set by the Service Provider
+		 * of this API in the domain properties. If the 'rootPolicyRef' element is present, it assumes that the Service Provider of this API initializes the domain with a fixed set of policies, and
+		 * the client knows about those policies and therefore how to set the 'rootPolicyRef' properly to match one of those pre-set policies. If the 'rootPolicyRef' does not match any, the domain
+		 * creation request will be rejected.
 		 */
 		final String domainId;
 		try
@@ -111,7 +105,7 @@ public class DomainsResourceImpl implements DomainsResource
 			throw new BadRequestException(e);
 		}
 
-		final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(domainId);
+		final String encodedUrlPathSegment = DomainResourceImpl.URL_PATH_SEGMENT_ESCAPER.escape(domainId);
 		final Link link = new Link();
 		link.setHref(encodedUrlPathSegment);
 		link.setRel(Relation.ITEM);
@@ -131,7 +125,7 @@ public class DomainsResourceImpl implements DomainsResource
 		// add domain on the fly
 		// rename to resourceCollection
 		final Set<String> authorizedDomainIDs = new HashSet<>();
-		final Object attrVal = messageContext == null? null: messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
+		final Object attrVal = messageContext == null ? null : messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
 		// attrVal may be null
 		if (attrVal == null)
 		{
@@ -184,14 +178,15 @@ public class DomainsResourceImpl implements DomainsResource
 				}
 			} else
 			{
-				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '" + authorizedResourceAttrId + "' = " + attrVal + " used to specify autorized resource. Expected: java.util.List<String>"));
+				throw new InternalServerErrorException(new IllegalArgumentException("Invalid type of value for ServletRequest attribute '" + authorizedResourceAttrId + "' = " + attrVal
+						+ " used to specify autorized resource. Expected: java.util.List<String>"));
 			}
 		}
 
 		final List<Link> domainResourceLinks = new ArrayList<>(authorizedDomainIDs.size());
 		for (final String domainId : authorizedDomainIDs)
 		{
-			final String encodedUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(domainId);
+			final String encodedUrlPathSegment = DomainResourceImpl.URL_PATH_SEGMENT_ESCAPER.escape(domainId);
 			final Link link = new Link();
 			link.setHref(encodedUrlPathSegment);
 			link.setRel(Relation.ITEM);

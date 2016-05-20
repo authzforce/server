@@ -74,7 +74,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
-	private static final int XML_MAX_CHILD_ELEMENTS = 10;
+	private static final int XML_MAX_CHILD_ELEMENTS = 20;
 
 	/*
 	 * Below that value getWADL() test fails because WADL depth too big

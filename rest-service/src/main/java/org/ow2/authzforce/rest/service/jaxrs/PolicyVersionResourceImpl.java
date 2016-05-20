@@ -22,24 +22,20 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 
 import org.ow2.authzforce.core.pap.api.dao.DomainDAO;
 import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDAOClient;
-import org.ow2.authzforce.core.pdp.api.PolicyVersion;
+import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 
 /**
- * Policy Version resource implementation. Each policy version managed by
- * {@link PolicyResourceImpl} is an instance of this class.
+ * Policy Version resource implementation. Each policy version managed by {@link PolicyResourceImpl} is an instance of this class.
  *
  */
-public class PolicyVersionResourceImpl implements PolicyVersionDAOClient,
-		PolicyVersionResource
+public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, PolicyVersionResource
 {
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 
-	private static final IllegalArgumentException ILLEGAL_VERSION_ARGUMENT_EXCEPTION = new IllegalArgumentException(
-			"Version for policy version resource undefined");
+	private static final IllegalArgumentException ILLEGAL_VERSION_ARGUMENT_EXCEPTION = new IllegalArgumentException("Version for policy version resource undefined");
 
-	private static final IllegalArgumentException ILLEGAL_VERSION_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException(
-			"Policy version DAO for policy version resource undefined");
+	private static final IllegalArgumentException ILLEGAL_VERSION_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy version DAO for policy version resource undefined");
 
 	/**
 	 * Policy version resource Factory
@@ -49,8 +45,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient,
 	{
 
 		@Override
-		public PolicyVersionResourceImpl getInstance(String policyId,
-				PolicyVersion versionId, DomainDAO<?, ?> domainDAO)
+		public PolicyVersionResourceImpl getInstance(String policyId, PolicyVersion versionId, DomainDAO<?, ?> domainDAO)
 		{
 			if (versionId == null)
 			{
@@ -72,8 +67,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient,
 
 	private final String policyId;
 
-	private PolicyVersionResourceImpl(String policyId, PolicyVersion versionId,
-			DomainDAO<?, ?> domainDAO)
+	private PolicyVersionResourceImpl(String policyId, PolicyVersion versionId, DomainDAO<?, ?> domainDAO)
 	{
 		assert versionId != null && domainDAO != null;
 		this.policyId = policyId;
@@ -90,8 +84,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient,
 			policyVersion = domainDAO.getPolicyVersion(policyId, versionId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException(
-					"Error getting policy version '" + versionId + "'", e);
+			throw new InternalServerErrorException("Error getting policy version '" + versionId + "'", e);
 		}
 
 		if (policyVersion == null)
@@ -108,12 +101,10 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient,
 		final PolicySet deletedPolicyVersion;
 		try
 		{
-			deletedPolicyVersion = domainDAO.removePolicyVersion(policyId,
-					versionId);
+			deletedPolicyVersion = domainDAO.removePolicyVersion(policyId, versionId);
 		} catch (IOException e)
 		{
-			throw new InternalServerErrorException(
-					"Error removing policy version '" + versionId + "'", e);
+			throw new InternalServerErrorException("Error removing policy version '" + versionId + "'", e);
 		}
 
 		if (deletedPolicyVersion == null)

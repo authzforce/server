@@ -19,7 +19,7 @@
     along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<properties xmlns="http://thalesgroup.com/authz/model/3.0/resource">
+<ns0:properties xmlns:ns0="http://thalesgroup.com/authz/model/3.0/resource">
 	<name>TestDomain</name>
 	<description>This is the test domain.</description>
-</properties>
+</ns0:properties>

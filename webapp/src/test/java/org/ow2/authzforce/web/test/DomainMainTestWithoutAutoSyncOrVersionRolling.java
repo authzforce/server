@@ -42,8 +42,15 @@ import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.ow2.authzforce.core.pdp.impl.DefaultRequestFilter;
 import org.ow2.authzforce.core.pdp.impl.MultiDecisionRequestFilter;
+import org.ow2.authzforce.core.test.custom.TestCombinedDecisionResultFilter;
+import org.ow2.authzforce.core.test.custom.TestDNSNameValueEqualFunction;
+import org.ow2.authzforce.core.test.custom.TestDNSNameWithPortValue;
+import org.ow2.authzforce.core.test.custom.TestOnPermitApplySecondCombiningAlg;
 import org.ow2.authzforce.core.test.utils.TestUtils;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
+import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO;
+import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO.PdpCoreFeature;
+import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO.PdpFeatureType;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
@@ -55,6 +62,7 @@ import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
 import org.ow2.authzforce.rest.api.xmlns.Domain;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
+import org.ow2.authzforce.rest.api.xmlns.Feature;
 import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.ResourceContent;
@@ -62,6 +70,7 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
@@ -89,8 +98,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		}
 
 	};
-
-	private static final String MDP_REPEATED_ATTRIBUTE_CATEGORIES_PDP_FEATURE_ID = "urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories";
 
 	private WebClient httpHeadClient;
 
@@ -964,39 +971,318 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		assertEquals(normalizedExpectedResponse, normalizedActualResponse, "Actual and expected responses don't match (Status elements removed/ignored for comparison)");
 	}
 
+	private void testSetFeature(String featureId, PdpFeatureType featureType, boolean enabled)
+	{
+		final Feature setFeature = new Feature(featureId, featureType.toString(), enabled);
+		final List<Feature> inputFeatures = Collections.singletonList(setFeature);
+		List<Feature> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
+		boolean featureMatched = false;
+		final Set<String> features = new HashSet<>();
+		for (Feature outputFeature : outputFeatures)
+		{
+			final String featureID = outputFeature.getValue();
+			assertTrue(features.add(featureID), "Duplicate feature: " + featureID);
+			if (outputFeature.getType().equals(featureType.toString()) && outputFeature.getValue().equals(featureId))
+			{
+				assertEquals(outputFeature.isEnabled(), enabled, "Enabled values of input feature (" + featureId + ") and matching output feature don't match");
+				featureMatched = true;
+			}
+		}
+
+		assertTrue(featureMatched, "No feature '" + featureId + "' found");
+	}
+
+	/**
+	 * Test enable/disable a PDP core feature: XPath eval (AttributeSelector, XPath datatype/functions)
+	 */
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
-	public void enableMDP(@Optional String remoteAppBaseUrl) throws JAXBException
+	public void enableThenDisableXPath(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
-		final List<String> inputFeatures = Collections.singletonList(MDP_REPEATED_ATTRIBUTE_CATEGORIES_PDP_FEATURE_ID);
-		List<String> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
-		assertEquals(inputFeatures, outputFeatures, "Features set with PUT and features retrieved with GET don't match");
+		testSetFeature(PdpCoreFeature.XPATH_EVAL.toString(), PdpFeatureType.CORE, true);
 
 		// verify on disk if the server is local
 		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
 		{
-			String requestFilterId = testDomainHelper.getRequestFilterFromPdpConfFile();
+			boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isEnableXPath();
+			assertTrue(xpathEvalEnabled, "Failed to enable XPath support in PDP configuration");
+		}
+
+		// Disable XPath support
+		testSetFeature(PdpCoreFeature.XPATH_EVAL.toString(), PdpFeatureType.CORE, false);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isEnableXPath();
+			assertFalse(xpathEvalEnabled, "Failed to disable XPath support in PDP configuration");
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP core feature: strict Attribute Issuer matching
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableThenDisableStrictAttributeIssuerMatch(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		testSetFeature(PdpCoreFeature.STRICT_ATTRIBUTE_ISSUER_MATCH.toString(), PdpFeatureType.CORE, true);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isStrictAttributeIssuerMatch();
+			assertTrue(xpathEvalEnabled, "Failed to enable strictAttributeIssuerMatch in PDP configuration");
+		}
+
+		// Disable XPath support
+		testSetFeature(PdpCoreFeature.STRICT_ATTRIBUTE_ISSUER_MATCH.toString(), PdpFeatureType.CORE, false);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isStrictAttributeIssuerMatch();
+			assertFalse(xpathEvalEnabled, "Failed to disable strictAttributeIssuerMatch in PDP configuration");
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP datatype feature (extension for custom datatype): dnsName-value
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableThenDisableCustomDatatype(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		testSetFeature(TestDNSNameWithPortValue.ID, PdpFeatureType.DATATYPE, true);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customDatatypes = testDomainHelper.getPdpConfFromFile().getAttributeDatatypes();
+			assertTrue(customDatatypes.contains(TestDNSNameWithPortValue.ID), "Failed to enable custom datatype '" + TestDNSNameWithPortValue.ID + "' in PDP configuration");
+		}
+
+		// Disable XPath support
+		testSetFeature(TestDNSNameWithPortValue.ID, PdpFeatureType.DATATYPE, false);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customDatatypes = testDomainHelper.getPdpConfFromFile().getAttributeDatatypes();
+			assertFalse(customDatatypes.contains(TestDNSNameWithPortValue.ID), "Failed to disable custom datatype '" + TestDNSNameWithPortValue.ID + "' in PDP configuration");
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP function feature (extension for custom function): dnsName-value-equal
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableThenDisableCustomFunction(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		testSetFeature(TestDNSNameValueEqualFunction.ID, PdpFeatureType.FUNCTION, true);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customFunctions = testDomainHelper.getPdpConfFromFile().getFunctions();
+			assertTrue(customFunctions.contains(TestDNSNameValueEqualFunction.ID), "Failed to enable custom function '" + TestDNSNameValueEqualFunction.ID + "' in PDP configuration");
+		}
+
+		// Disable XPath support
+		testSetFeature(TestDNSNameValueEqualFunction.ID, PdpFeatureType.FUNCTION, false);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customFunctions = testDomainHelper.getPdpConfFromFile().getFunctions();
+			assertFalse(customFunctions.contains(TestDNSNameValueEqualFunction.ID), "Failed to disable custom function '" + TestDNSNameValueEqualFunction.ID + "' in PDP configuration");
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP combining algorithm feature (extension for custom policy/rule combining algorithm): on-permit-apply-second
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableThenDisableCustomCombiningAlgorithm(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		testSetFeature(TestOnPermitApplySecondCombiningAlg.ID, PdpFeatureType.COMBINING_ALGORITHM, true);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customAlgorithms = testDomainHelper.getPdpConfFromFile().getCombiningAlgorithms();
+			assertTrue(customAlgorithms.contains(TestOnPermitApplySecondCombiningAlg.ID), "Failed to enable custom combining algorithm '" + TestOnPermitApplySecondCombiningAlg.ID
+					+ "' in PDP configuration");
+		}
+
+		// Disable XPath support
+		testSetFeature(TestOnPermitApplySecondCombiningAlg.ID, PdpFeatureType.COMBINING_ALGORITHM, false);
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			List<String> customAlgorithms = testDomainHelper.getPdpConfFromFile().getCombiningAlgorithms();
+			assertFalse(customAlgorithms.contains(TestOnPermitApplySecondCombiningAlg.ID), "Failed to disable custom combining algorithm '" + TestOnPermitApplySecondCombiningAlg.ID
+					+ "' in PDP configuration");
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP result-filter feature (extension for custom XACML decision result filter): Multiple Decision Request Profile / CombinedDecision
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableMDPResultFilter(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		final Feature mdpFeature = new Feature(TestCombinedDecisionResultFilter.ID, PdpFeatureType.RESULT_FILTER.toString(), true);
+		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
+		List<Feature> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
+		boolean mdpFeatureFound = false;
+		final Set<String> features = new HashSet<>();
+		for (Feature outputFeature : outputFeatures)
+		{
+			final String featureID = outputFeature.getValue();
+			assertTrue(features.add(featureID), "Duplicate feature: " + featureID);
+			if (outputFeature.getType().equals(FlatFileBasedDomainsDAO.PdpFeatureType.RESULT_FILTER.toString()))
+			{
+				if (outputFeature.getValue().equals(TestCombinedDecisionResultFilter.ID))
+				{
+					assertTrue(outputFeature.isEnabled(), "Returned feature (" + TestCombinedDecisionResultFilter.ID + ") disabled!");
+					mdpFeatureFound = true;
+				} else
+				{
+					// another requestFilter. Must not be enabled.
+					assertFalse(outputFeature.isEnabled(), "Returned other resultFilter (not MDP) feature enabled! (" + featureID + ")");
+				}
+			}
+		}
+
+		assertTrue(mdpFeatureFound, "No enabled feature '" + TestCombinedDecisionResultFilter.ID + "' found");
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			String resultFilterId = testDomainHelper.getPdpConfFromFile().getResultFilter();
+			assertEquals(resultFilterId, TestCombinedDecisionResultFilter.ID, "Result filter in PDP conf file does not match features " + inputFeatures);
+		}
+	}
+
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "enableMDPResultFilter" })
+	public void disableMDPResultFilter(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		final Feature mdpFeature = new Feature(TestCombinedDecisionResultFilter.ID, PdpFeatureType.RESULT_FILTER.toString(), false);
+		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
+		List<Feature> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
+		boolean mdpFeatureFound = false;
+		final Set<String> features = new HashSet<>();
+		for (Feature outputFeature : outputFeatures)
+		{
+			final String featureID = outputFeature.getValue();
+			assertTrue(features.add(featureID), "Duplicate feature: " + featureID);
+			if (outputFeature.getType().equals(PdpFeatureType.RESULT_FILTER.toString()))
+			{
+				assertFalse(outputFeature.isEnabled(), "Returned resultFilter feature enabled! (" + featureID + ")");
+				if (featureID.equals(TestCombinedDecisionResultFilter.ID))
+				{
+					mdpFeatureFound = true;
+				}
+			}
+		}
+
+		assertTrue(mdpFeatureFound, "No feature '" + TestCombinedDecisionResultFilter.ID + "' found");
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			String resultFilterId = testDomainHelper.getPdpConfFromFile().getResultFilter();
+			Assert.assertNull(resultFilterId, "Result filter ('" + resultFilterId + "') != null in PDP configuration file, therefore does not match features " + inputFeatures);
+		}
+	}
+
+	/**
+	 * Test enable/disable a PDP request-filter feature: Multiple Decision Request Profile / repeated attribute categories
+	 */
+	@Parameters({ "remote.base.url" })
+	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
+	public void enableMDPRequestFilter(@Optional String remoteAppBaseUrl) throws JAXBException
+	{
+		final Feature mdpFeature = new Feature(MultiDecisionRequestFilter.LaxFilterFactory.ID, PdpFeatureType.REQUEST_FILTER.toString(), true);
+		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
+		List<Feature> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
+		boolean mdpFeatureFound = false;
+		final Set<String> features = new HashSet<>();
+		for (Feature outputFeature : outputFeatures)
+		{
+			final String featureID = outputFeature.getValue();
+			assertTrue(features.add(featureID), "Duplicate feature: " + featureID);
+			if (outputFeature.getType().equals(FlatFileBasedDomainsDAO.PdpFeatureType.REQUEST_FILTER.toString()))
+			{
+				if (outputFeature.getValue().equals(MultiDecisionRequestFilter.LaxFilterFactory.ID))
+				{
+					assertTrue(outputFeature.isEnabled(), "Returned feature (" + MultiDecisionRequestFilter.LaxFilterFactory.ID + ") disabled!");
+					mdpFeatureFound = true;
+				} else
+				{
+					// another requestFilter. Must not be enabled.
+					assertFalse(outputFeature.isEnabled(), "Returned other requestFilter (not MDP) feature enabled! (" + featureID + ")");
+				}
+			}
+		}
+
+		assertTrue(mdpFeatureFound, "No enabled feature '" + MultiDecisionRequestFilter.LaxFilterFactory.ID + "' found");
+
+		// verify on disk if the server is local
+		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
+		{
+			String requestFilterId = testDomainHelper.getPdpConfFromFile().getRequestFilter();
 			assertEquals(requestFilterId, MultiDecisionRequestFilter.LaxFilterFactory.ID, "Request filter in PDP conf file does not match features " + inputFeatures);
 		}
 	}
 
 	@Parameters({ "remote.base.url" })
-	@Test(dependsOnMethods = { "enableMDP" })
-	public void disableMDP(@Optional String remoteAppBaseUrl) throws JAXBException
+	@Test(dependsOnMethods = { "enableMDPRequestFilter" })
+	public void disableMDPRequestFilter(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
-		final List<String> inputFeatures = Collections.emptyList();
-		List<String> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
-		assertEquals(inputFeatures, outputFeatures, "Features set with PUT and features retrieved with GET don't match");
+		final Feature mdpFeature = new Feature(MultiDecisionRequestFilter.LaxFilterFactory.ID, PdpFeatureType.REQUEST_FILTER.toString(), false);
+		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
+		List<Feature> outputFeatures = testDomainHelper.updateAndGetPdpFeatures(inputFeatures);
+		boolean mdpFeatureFound = false;
+		final Set<String> features = new HashSet<>();
+		for (Feature outputFeature : outputFeatures)
+		{
+			final String featureID = outputFeature.getValue();
+			assertTrue(features.add(featureID), "Duplicate feature: " + featureID);
+			if (outputFeature.getType().equals(FlatFileBasedDomainsDAO.PdpFeatureType.REQUEST_FILTER.toString()))
+			{
+				if (featureID.equals(DefaultRequestFilter.LaxFilterFactory.ID))
+				{
+					// another requestFilter. Must not be enabled.
+					assertTrue(outputFeature.isEnabled(), "Returned default requestFilter feature disabled! (" + featureID + ")");
+				} else
+				{
+					assertFalse(outputFeature.isEnabled(), "Returned non-default requestFilter feature enabled! (" + featureID + ")");
+					if (featureID.equals(MultiDecisionRequestFilter.LaxFilterFactory.ID))
+					{
+						mdpFeatureFound = true;
+					}
+				}
+			}
+		}
+
+		assertTrue(mdpFeatureFound, "No feature '" + MultiDecisionRequestFilter.LaxFilterFactory.ID + "' found");
 
 		// verify on disk if the server is local
 		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
 		{
-			String requestFilterId = testDomainHelper.getRequestFilterFromPdpConfFile();
+			String requestFilterId = testDomainHelper.getPdpConfFromFile().getRequestFilter();
 			assertEquals(requestFilterId, DefaultRequestFilter.LaxFilterFactory.ID, "Request filter in PDP conf file does not match features " + inputFeatures);
 		}
 	}
 
-	private void requestPDP(File testDirectory, List<String> pdpFeaturesToEnable, boolean isPdpRemote) throws JAXBException
+	private void requestPDP(File testDirectory, List<Feature> pdpFeaturesToEnable, boolean isPdpRemote) throws JAXBException
 	{
 		testDomainHelper.resetPdpAndPrp(pdpFeaturesToEnable);
 		// reset attribute providers
@@ -1055,11 +1341,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	}
 
 	@Parameters({ "remote.base.url" })
-	@Test(dependsOnMethods = { "enableMDP" })
+	@Test(dependsOnMethods = { "enableMDPRequestFilter" })
 	public void requestPDPWithMDP(@Optional String remoteAppBaseUrl) throws JAXBException
 	{
 		// enable MDP on PDP
-		final List<String> inputFeatures = Collections.singletonList(MDP_REPEATED_ATTRIBUTE_CATEGORIES_PDP_FEATURE_ID);
+		final Feature mdpFeature = new Feature(MultiDecisionRequestFilter.LaxFilterFactory.ID, FlatFileBasedDomainsDAO.PdpFeatureType.REQUEST_FILTER.toString(), true);
+		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
 		final File testDirectory = new File(RestServiceTest.XACML_SAMPLES_DIR, "IIIE302(PolicySet)");
 		requestPDP(testDirectory, inputFeatures, !IS_EMBEDDED_SERVER_STARTED.get());
 	}

@@ -47,9 +47,21 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     ```shell
     $ sudo ant -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
+    ```
+    
+    Another example with extra options `pdp.max.var.ref.depth`, `pdp.max.policy.ref.depth` and `pdp.request.filter`:
+    
+    ```shell
+    $ sudo ant -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
+      -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
       -Dpdp.max.var.ref.depth=10 \
       -Dpdp.max.policy.ref.depth=10 \
       -Dpdp.request.filter=urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
+    ```
+    
+1. Set the permissions properly on the new data:  
+  
+    ```shell
     $ sudo chown -RH tomcat7 /path/to/new/opt/authzforce-ce-server
     $ sudo chgrp -RH tomcat7 /path/to/new/opt/authzforce-ce-server
     ```
