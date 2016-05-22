@@ -34,29 +34,27 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     </xsl:when>
     ```
 
-3. Run the following command (only `new.data.dir` and `old.data.dir` properties are mandatory; `pdp.max.var.ref.depth` is required only if you want to set a specific maximum for VariableReference depth in XACML Policies, default is 10; `pdp.max.policy.ref.depth` is required only if you want to set a specific maximum for policy reference depth in XACML policies, default is 10; `pdp.request.filter` is required only if you want to enable support for the Multiple Decision Profile scheme based on repeated attribute categories, other schemes of this profile are not supported):
+1. Run the following command:
 
-    *NB: `pdp.max.var.ref.depth`, `pdp.max.policy.ref.depth` and `pdp.request.filter` are optional. Remove them from the command to use default settings.*
-
-    *WARNING 1: for each domain, the following command will replace the old domain property 'name' with the new 'externalId' property (the value is copied from one to the other during the upgrade).*
+    *WARNING 1: by default, for each domain, the following command will convert the old domain property 'name' to the new 'externalId' property (the value is copied from one to the other during the upgrade).* **Make each old domain 'name' is UNIQUE.** *Indeed, each 'externalId' MUST BE UNIQUE after the upgrade. If this is not the case, either fix it or skip this conversion by adding the following argument: `-Dignore.domain.name=true`. In this case, the 'externalId' will not be set by the upgrader tool. This is not an issue for new AuthZForce versions since 'externalId' values are optional. You may set them later with the API if you need to.*
 
     *WARNING 2: the following command will replace all standard XACML identifiers planned for deprecation in Appendix A.4 of XACML 3.0 Core specification with the new XACML 3.0 identifiers.*
     
-    *WARNING 3: if you don't use `sudo`, make sure you are executing the command as a user with read-write permissions on `new.install.dir`.
-  
+    *WARNING 3: if you don't use `sudo`, make sure you are executing the command as a user with read-write permissions on `new.install.dir`.*
+    
     ```shell
-    $ sudo ant -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
+    $ sudo ant -Dold.version=4.2.0 \
+      -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
     ```
     
-    Another example with extra options `pdp.max.var.ref.depth`, `pdp.max.policy.ref.depth` and `pdp.request.filter`:
+    Another example with extra argument `ignore.domain.name` to skip domain name-to-externalId conversion:
     
     ```shell
-    $ sudo ant -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
+    $ sudo ant -Dold.version=4.2.0 \
+      -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
-      -Dpdp.max.var.ref.depth=10 \
-      -Dpdp.max.policy.ref.depth=10 \
-      -Dpdp.request.filter=urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
+      -Dignore.domain.name=true
     ```
     
 1. Set the permissions properly on the new data:  

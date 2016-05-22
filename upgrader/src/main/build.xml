@@ -29,19 +29,75 @@
 
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
-	<property name="old.install.dir" value="../test/authzforce-4.2.0" description="Old Authzforce (4.2.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce)" />
-	<property name="new.install.dir" value="../../target/server" description="Current Authzforce (>= 4.3.0) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
 
-	<!-- PDP properties (may be overridden by Java system properties): 
-	Possible values for 'pdp.request.filter':
-			urn:ow2:authzforce:xacml:request-filter:default-lax (default value)
-			urn:ow2:authzforce:xacml:request-filter:default-strict
-			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax
-			urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict
-	-->
-	<property name="pdp.max.var.ref.depth" value="10" />
-	<property name="pdp.max.policy.ref.depth" value="10" />
-	<property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:default-lax" />
+	<property name="old.version" value="" description="Old Authzforce major/minor version: (4.2|4.3|4.4).*" />
+	<condition property="old.version.Mm" value="4.2">
+		<matches pattern="4\.2\..*" string="${old.version}" />
+	</condition>
+	<condition property="old.version.Mm" value="4.3">
+		<matches pattern="4\.3\..*" string="${old.version}" />
+	</condition>
+	<condition property="old.version.Mm" value="4.4">
+		<matches pattern="4\.4\..*" string="${old.version}" />
+	</condition>
+	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 4.2.x, 4.3.x or 4.4.x" unless="old.version.Mm" />
+
+	<property name="old.install.dir" value="" description="Old Authzforce (4.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
+	<fail message="Invalid old.install.dir arg: undefined, or file does not exist">
+		<condition>
+			<not>
+				<resourceexists>
+					<file file="${old.install.dir}" />
+				</resourceexists>
+			</not>
+		</condition>
+	</fail>
+
+	<property name="new.install.dir" value="" description="Current Authzforce (5.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
+	<fail message="Invalid new.install.dir arg: undefined, or file does not exist">
+		<condition>
+			<not>
+				<resourceexists>
+					<file file="${new.install.dir}" />
+				</resourceexists>
+			</not>
+		</condition>
+	</fail>
+
+	<property name="ignore.domain.name" value="" description="If &lt;name&gt; elements in properties.xml files of domains in input old.install.dir/data are NOT unique, ignore them, i.e. do not convert to externalId values (which must be unique), by setting option below to 'true' (leave empty to disable)" />
+
+	<!-- PDP properties (may be overridden by Java system properties): -->
+	<property name="pdp.max.var.ref.depth" value="10" description="PDP property: maximum length of (XACML) PolicySetIdReference chain" />
+	<fail message="Invalid pdp.max.var.ref.depth arg: not a positive integer">
+		<condition>
+			<not>
+				<matches pattern="^(0|[1-9][0-9]*)$" string="${pdp.max.var.ref.depth}" />
+			</not>
+		</condition>
+	</fail>
+
+	<property name="pdp.max.policy.ref.depth" value="10" description="PDP property: maximum length of VariableReference chain" />
+	<fail message="Invalid pdp.max.policy.ref.depth arg: not a positive integer">
+		<condition>
+			<not>
+				<matches pattern="^(0|[1-9][0-9]*)$" string="${pdp.max.policy.ref.depth}" />
+			</not>
+		</condition>
+	</fail>
+
+	<property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:default-lax" description="PDP property: request filter" />
+	<fail message="Invalid pdp.request.filter arg: not one of: 'urn:ow2:authzforce:xacml:request-filter:default-lax', 'urn:ow2:authzforce:xacml:request-filter:default-strict', 'urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax', 'urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict'.">
+		<condition>
+			<not>
+				<or>
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:default-lax" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:default-strict" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict" />
+				</or>
+			</not>
+		</condition>
+	</fail>
 
 	<macrodef name="saxon-xslt">
 		<attribute name="basedir" />
@@ -52,6 +108,7 @@
 			<xslt processor="trax" basedir="@{basedir}" destdir="@{destdir}" style="@{style}" includes="@{includes}" extension=".xml" classpathref="lib.path.id">
 				<!-- parameters used by pdp-upgrade.xsl -->
 				<param name="basedir" expression="@{basedir}" />
+				<param name="ignoreDomainName" expression="${ignore.domain.name}" />
 				<param name="maxVariableRefDepth" expression="${pdp.max.var.ref.depth}" />
 				<param name="maxPolicyRefDepth" expression="${pdp.max.policy.ref.depth}" />
 				<param name="requestFilter" expression="${pdp.request.filter}" />
@@ -94,14 +151,16 @@
 		<echo message="Upgrading domain template directory '${old.domain.tmpl.path}' --> '${new.domain.tmpl.path}'" />
 		<property name="new.domain.tmpl.backup.path" value="${new.domain.tmpl.path}.old" />
 		<echo message="Creating backup of current domain template directory in target installation directory for recovery:" />
-		<copy verbose="true" todir="${new.domain.tmpl.backup.path}"><fileset dir="${new.domain.tmpl.path}" /></copy>
+		<copy verbose="true" todir="${new.domain.tmpl.backup.path}">
+			<fileset dir="${new.domain.tmpl.path}" />
+		</copy>
 		<!-- Clean directory 'policies' and remove pdp.xml whose content will be replaced from old domain template using XSLT task down below-->
-		<delete verbose="true" includeemptydirs="true">
+		<delete verbose="true" includeemptydirs="true" description="">
 			<fileset dir="${new.domain.tmpl.path}" includes="policies/, pdp.xml" />
 		</delete>
 
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->
-		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="domain-pdp-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="${old.version.Mm}.x/domain-pdp-upgrade.xsl" />
 	</target>
 
 	<target name="upgrade-domain" description="Upgrade domain">
@@ -112,10 +171,10 @@
 		<mkdir dir="${new.domain.dir.path}" />
 
 		<!-- Upgrade domain properties -->
-		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="domain-properties-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="${old.version.Mm}.x/domain-properties-upgrade.xsl" />
 
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them -->
-		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="domain-pdp-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="${old.version.Mm}.x/domain-pdp-upgrade.xsl" />
 	</target>
 
 	<!-- ================================= 
