@@ -75,21 +75,22 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	 * 
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
+	 * @param serverRootDir
+	 * 
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "server.root.dir", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(String serverRootDir, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
 		final File targetDir = new File("target");
 		// set catalina.base property in server's logback.xml
 		System.setProperty("catalina.base", targetDir.toURI().toString());
-		
-		final File confDir = new File("target/server/conf");
+
+		final File confDir = new File(serverRootDir + "/conf");
 		final String confURI = confDir.toURI().toString();
-		final File dataDir = new File("target/server/data");
+		final File dataDir = new File(serverRootDir + "/data");
 		final String dataURI = dataDir.toURI().toString();
 
 		// Set some server properties via JNDI
@@ -106,8 +107,8 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		}
 
 		/*
-		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072
-		 * https://jira.spring.io/browse/SPR-5404 (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
+		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404
+		 * (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
 		 * 
 		 * @BeforeClass before no access to Autowired beans by default in
 		 * 

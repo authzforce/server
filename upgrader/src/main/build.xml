@@ -30,17 +30,18 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 
-	<property name="old.version" value="" description="Old Authzforce major/minor version: (4.2|4.3|4.4).*" />
-	<condition property="old.version.Mm" value="4.2">
+	<property name="old.version" value="" description="Old Authzforce version: 4.2.x, 4.3.x or 4.4.x" />
+	<condition property="old.version.pattern" value="4.2.x">
 		<matches pattern="4\.2\..*" string="${old.version}" />
 	</condition>
-	<condition property="old.version.Mm" value="4.3">
+	<condition property="old.version.pattern" value="4.3.x">
 		<matches pattern="4\.3\..*" string="${old.version}" />
 	</condition>
-	<condition property="old.version.Mm" value="4.4">
+	<condition property="old.version.pattern" value="4.4.x">
 		<matches pattern="4\.4\..*" string="${old.version}" />
 	</condition>
-	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 4.2.x, 4.3.x or 4.4.x" unless="old.version.Mm" />
+	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 4.2.x, 4.3.x or 4.4.x" unless="old.version.pattern" />
+	<property name="xslt.dir" location="xslt/${old.version.pattern}" />
 
 	<property name="old.install.dir" value="" description="Old Authzforce (4.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
 	<fail message="Invalid old.install.dir arg: undefined, or file does not exist">
@@ -160,7 +161,7 @@
 		</delete>
 
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->
-		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="${old.version.Mm}.x/domain-pdp-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="${xslt.dir}/domain-pdp-upgrade.xsl" />
 	</target>
 
 	<target name="upgrade-domain" description="Upgrade domain">
@@ -171,10 +172,10 @@
 		<mkdir dir="${new.domain.dir.path}" />
 
 		<!-- Upgrade domain properties -->
-		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="${old.version.Mm}.x/domain-properties-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="${xslt.dir}/domain-properties-upgrade.xsl" />
 
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them -->
-		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="${old.version.Mm}.x/domain-pdp-upgrade.xsl" />
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="${xslt.dir}/domain-pdp-upgrade.xsl" />
 	</target>
 
 	<!-- ================================= 

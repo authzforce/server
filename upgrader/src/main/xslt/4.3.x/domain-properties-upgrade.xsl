@@ -8,9 +8,7 @@
 	xmlns="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6"
 	exclude-result-prefixes="old">
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
-	<xsl:param name="ignoreDomainName" />
-	<xsl:variable name="setExternalId" select="not(boolean($ignoreDomainName))" />
-
+   
 	<xsl:template match="old:domainProperties">
 		<domainProperties maxPolicyCount="10"
 			maxVersionCountPerPolicy="10" versionRollingEnabled="true">
