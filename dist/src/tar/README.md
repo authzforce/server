@@ -22,13 +22,13 @@ This guide provides the procedure to install the AuthZForce server from the `tar
    * If you prefer OpenJDK: `$ sudo aptitude install openjdk-7-jdk`
    * If you prefer Oracle JDK, follow the instructions from [WEB UPD8](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html). In the end, you should have the package `oracle-java7-installer` installed.
 1. If you don't have Tomcat 7 already installed, you may do it on the command-line: `$ sudo aptitude install tomcat7`
-1. Download AuthZForce server `tar.gz` distribution from the [Github project releases page](https://github.com/authzforce/server/releases/download/release-${project.version}/authzforce-ce-server-${project.version}.tar.gz>). You get a file called ``authzforce-ce-server-${project.version}.tar.gz``.
+1. Download AuthZForce server `tar.gz` distribution from the [Maven Central Repository](http://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/5.1.2/authzforce-ce-server-dist-5.1.2.tar.gz). You get a file called ``authzforce-ce-server-dist-${project.version}.tar.gz``.
 1. Copy this file to the host where you want to install AuthZForce Server.
 1. For security purposes, Tomcat should be run as an unprivileged user (i.e. not `root`). If you installed Tomcat as shown above, this user is `tomcat7`. Let us assume that `tomcat7` is the user (and group) that will run the Tomcat service in your case, and `/opt` is the directory where you want to install AuthZForce server. Please replace both names according to your setup. `$CATALINA_BASE` is a Tomcat environment-specific property, usually equal to `$CATALINA_HOME`, i.e. the root directory of your Tomcat installation ([more information](https://tomcat.apache.org/tomcat-7.0-doc/introduction.html)). If you installed Tomcat as shown above, `$CATALINA_BASE = /var/lib/tomcat7`. From the directory where you copied the `tar.gz` for installation, run the following commands:  
 
     ```shell
-    $ sudo tar xvzf authzforce-ce-server-${project.version}.tar.gz --directory /opt
-    $ sudo ln -s authzforce-ce-server-${project.version}.tar.gz authzforce-ce-server
+    $ sudo tar xvzf authzforce-ce-server-dist-${project.version}.tar.gz --directory /opt
+    $ sudo ln -s authzforce-ce-server-${project.version} authzforce-ce-server
     $ sudo chown -RH tomcat7 authzforce-ce-server
     $ sudo chgrp -RH tomcat7 authzforce-ce-server
     $ sudo cp /opt/authzforce-ce-server/conf/context.xml.sample $CATALINA_BASE/conf/Catalina/localhost/authzforce-ce.xml
@@ -38,6 +38,7 @@ This guide provides the procedure to install the AuthZForce server from the `tar
     ```shell
     $ sudo service tomcat7 restart
     ```
+   **Known issue: lack of entropy may cause delays in Tomcat 7+ start up on virtual machines in particular: [more info on Entropy Source issue](https://wiki.apache.org/tomcat/HowTo/FasterStartUp#Entropy_Source). So beware.**
 
 1. When the webapp is up and running, you should get a HTTP response with status code 200 to this HTTP request with curl tool (replace 8080 with the port that Tomcat is listening to):
     ```shell
