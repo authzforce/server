@@ -31,8 +31,6 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.ws.rs.NotFoundException;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -53,6 +51,8 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
+
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/beans.xml" })
 public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
@@ -84,6 +84,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	@BeforeTest
 	public void beforeTest(String serverRootDir, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
+		System.out.println("Testing data in directory: " + serverRootDir);
 		final File targetDir = new File("target");
 		// set catalina.base property in server's logback.xml
 		System.setProperty("catalina.base", targetDir.toURI().toString());
@@ -107,8 +108,8 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		}
 
 		/*
-		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404
-		 * (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
+		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072
+		 * https://jira.spring.io/browse/SPR-5404 (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
 		 * 
 		 * @BeforeClass before no access to Autowired beans by default in
 		 * 

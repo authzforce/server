@@ -34,6 +34,10 @@
 	<condition property="old.version.pattern" value="4.2.x">
 		<matches pattern="4\.2\..*" string="${old.version}" />
 	</condition>
+	<condition property="no.old.policies.dir" value="true">
+		<equals arg1="${old.version.pattern}" arg2="4.2.x" />
+	</condition>
+
 	<condition property="old.version.pattern" value="4.3.x">
 		<matches pattern="4\.3\..*" string="${old.version}" />
 	</condition>
@@ -146,22 +150,30 @@
 		</sequential>
 	</macrodef>
 
-	<target name="upgrade-domain-tmpl" description="Upgrade domain template">
-		<property name="old.domain.tmpl.path" value="${old.install.dir}/conf/domain.tmpl" />
-		<property name="new.domain.tmpl.path" value="${new.install.dir}/conf/domain.tmpl" />
-		<echo message="Upgrading domain template directory '${old.domain.tmpl.path}' --> '${new.domain.tmpl.path}'" />
-		<property name="new.domain.tmpl.backup.path" value="${new.domain.tmpl.path}.old" />
-		<echo message="Creating backup of current domain template directory in target installation directory for recovery:" />
-		<copy verbose="true" todir="${new.domain.tmpl.backup.path}">
-			<fileset dir="${new.domain.tmpl.path}" />
+	<target name="copy-policies-dir" unless="no.old.policies.dir">
+		<copy verbose="true" todir="${new.policies.dir}">
+			<fileset dir="${old.domain.dir.path}/policies" />
 		</copy>
-		<!-- Clean directory 'policies' and remove pdp.xml whose content will be replaced from old domain template using XSLT task down below-->
-		<delete verbose="true" includeemptydirs="true" description="">
-			<fileset dir="${new.domain.tmpl.path}" includes="policies/, pdp.xml" />
-		</delete>
+	</target>
 
+	<target name="upgrade-domain-tmpl" description="Upgrade domain template">
+		<property name="old.domain.dir.path" value="${old.install.dir}/conf/domain.tmpl" />
+		<property name="new.domain.dir.path" value="${new.install.dir}/conf/domain.tmpl" />
+		<echo message="Upgrading domain template directory '${old.domain.dir.path}' --> '${new.domain.dir.path}'" />
+		<property name="new.domain.dir.backup.path" value="${new.domain.dir.path}.old" />
+		<echo message="Creating backup of current domain template directory in target installation directory for recovery:" />
+		<copy verbose="true" todir="${new.domain.dir.backup.path}">
+			<fileset dir="${new.domain.dir.path}" />
+		</copy>
+		<!-- Clean directory 'policies' and remove pdp.xml to allow replacement from old domain template using XSLT task down below-->
+		<!-- If pdp.xml is not removed before xslt task, xslt task will be skipped because includes specifies pdp.xml as output  -->
+		<delete verbose="true" includeemptydirs="true" description="Cleaning policies directory before replacing">
+			<fileset dir="${new.domain.dir.path}" includes="policies/,pdp.xml" />
+		</delete>
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->
-		<saxon-xslt basedir="${old.domain.tmpl.path}" destdir="${new.domain.tmpl.path}" includes="pdp.xml" style="${xslt.dir}/domain-pdp-upgrade.xsl" />
+		<property name="new.policies.dir" value="${new.domain.dir.path}/policies" />
+		<antcall target="copy-policies-dir" description="Copy domain policies directory (except for v4.2.x)" inheritall="true" inheritrefs="true" />
+		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="${xslt.dir}/domain-pdp-upgrade.xsl" />
 	</target>
 
 	<target name="upgrade-domain" description="Upgrade domain">
@@ -170,6 +182,10 @@
 		<echo message="Upgrading domain directory '${old.domain.dir.path}' --> '${new.domain.dir.path}'" />
 
 		<mkdir dir="${new.domain.dir.path}" />
+
+		<!-- Clean directory 'policies' whose content will be replaced from old domain template using XSLT task down below-->
+		<property name="new.policies.dir" value="${new.domain.dir.path}/policies" />
+		<antcall target="copy-policies-dir" description="Copy domain policies directory (except for v4.2.x)" inheritall="true" inheritrefs="true" />
 
 		<!-- Upgrade domain properties -->
 		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="${xslt.dir}/domain-properties-upgrade.xsl" />

@@ -11,7 +11,7 @@
    <parameter name="enableFastInfoset" value="false" />
    <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
-   <test name="Test_upgrade_from_4.2.x" preserve-order="true" enabled="false">
+   <test name="Test_upgrade_from_4.2.x" preserve-order="true" enabled="true">
       <parameter name="server.root.dir" value="target/server/from-4.2.x" />
       <classes>
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
@@ -23,7 +23,7 @@
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
       </classes>
    </test>
-   <test name="Test_upgrade_from_4.4.x" preserve-order="true" enabled="false">
+   <test name="Test_upgrade_from_4.4.x" preserve-order="true" enabled="true">
       <parameter name="server.root.dir" value="target/server/from-4.4.x" />
       <classes>
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
