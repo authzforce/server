@@ -34,9 +34,9 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     </xsl:when>
     ```
 
-1. Run the following command:
+1. Run the following command, where argument `old.version` is the old version (in the form `4.x.y`) of Authzforce you are upgrading from, argument `old.install.dir` is the installation directory of the old version, and argument `new.install.dir` is the new installation directory of the Authzforce version corresponding to this upgrade tool:
 
-    *WARNING 1: by default, for each domain, the following command will convert the old domain property 'name' to the new 'externalId' property (the value is copied from one to the other during the upgrade).* **Make each old domain 'name' is UNIQUE.** *Indeed, each 'externalId' MUST BE UNIQUE after the upgrade. If this is not the case, either fix it or skip this conversion by adding the following argument: `-Dignore.domain.name=true`. In this case, the 'externalId' will not be set by the upgrader tool. This is not an issue for new AuthZForce versions since 'externalId' values are optional. You may set them later with the API if you need to.*
+    *WARNING 1: by default, for each domain, the following command will convert the old domain property 'name' to the new 'externalId' property (the value is copied from one to the other during the upgrade).* **Make sure that each old domain 'name' is UNIQUE.** *Indeed, each 'externalId' MUST BE UNIQUE after the upgrade. If this is not the case, either fix it or skip this conversion step by adding the following argument: `-Dignore.domain.name=true`. In this case, the 'externalId' will not be set by the upgrader tool. This is not an issue for new AuthZForce versions since 'externalId' values are optional. You may set them later with the API if you need to.*
 
     *WARNING 2: the following command will replace all standard XACML identifiers planned for deprecation in Appendix A.4 of XACML 3.0 Core specification with the new XACML 3.0 identifiers.*
     
@@ -48,7 +48,7 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
     ```
     
-    Another example with extra argument `ignore.domain.name` to skip domain name-to-externalId conversion:
+    Another example with extra argument `ignore.domain.name` to skip domain name-to-externalId conversion, in case domain name properties of the old Authzforce installation are not unique:
     
     ```shell
     $ sudo ant -Dold.version=4.2.0 \
@@ -64,4 +64,4 @@ To upgrade AuhZForce data from version 4.2.0 to later, proceed as follows:
     $ sudo chgrp -RH tomcat7 /path/to/new/opt/authzforce-ce-server
     ```
 
-1. This generates new data (e.g. domain directories) compatible with AuthZForce > v4.2.0 in location specified by `new.data.dir`. Restart Tomcat on the new AuthZForce server to load the new data.
+1. Restart Tomcat on the new AuthZForce server to load the new data.
