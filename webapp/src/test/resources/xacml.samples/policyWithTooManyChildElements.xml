@@ -27,63 +27,153 @@
     <PolicySet PolicySetId="PS1" Version="1.0"
         PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
         <Description>
-           Too many Match elements (> 10). Make sure maxChildElements set to 10 in DomainSetTest class.
+           Too many Match elements (> 20). Make sure maxChildElements set to value below or equal to 20 in test class.
         </Description>
         <Target>
             <AnyOf>
                 <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role1</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role2</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role3</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role4</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role5</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role6</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role7</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role8</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role9</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role10</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>
+                </AllOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Employee</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role11</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role12</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role13</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role14</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role15</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role16</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role17</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role18</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role19</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role20</AttributeValue>
+                        <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
+                    </Match>
+                </AllOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Role21</AttributeValue>
                         <AttributeDesignator Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role"
                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true" />
                     </Match>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="AuthZForce.PDP.REST.API.TestSuite" parallel="false" verbose="4">
+   <!-- If you uncomment the <parameter>s below left here as a reminder, it overrides any JVM argument with same name passed on the command-line (e.g. -Dremote.base.url for parameter 'remote.base.url'). 
+      So leave it commented out with you want to pass the parameter on the command-line. -->
+   <!-- True iff the filesystem local to the server is a "legacy" filesystem, meaning here that millisecond or higher resolution of file timestamps is not supported. This is the case of 'ext3'; whereas 
+      'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the 
+      last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results. -->
+   <parameter name="legacy.fs" value="true" />
+   <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
+   <parameter name="enableFastInfoset" value="false" />
+   <!-- Domains sync interval (seconds) -->
+   <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
+   <test name="Test_upgrade_from_4.2.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-4.2.x" />
+      <classes>
+         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
+      </classes>
+   </test>
+   <test name="Test_upgrade_from_4.3.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-4.3.x" />
+      <classes>
+         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
+      </classes>
+   </test>
+   <test name="Test_upgrade_from_4.4.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-4.4.x" />
+      <classes>
+         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
+      </classes>
+   </test>
+</suite> 
+

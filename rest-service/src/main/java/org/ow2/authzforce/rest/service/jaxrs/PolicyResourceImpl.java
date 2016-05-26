@@ -25,7 +25,7 @@ import javax.ws.rs.NotFoundException;
 import org.ow2.authzforce.core.pap.api.dao.DomainDAO;
 import org.ow2.authzforce.core.pap.api.dao.PolicyDAOClient;
 import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDAOClient;
-import org.ow2.authzforce.core.pdp.api.PolicyVersion;
+import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
@@ -40,13 +40,10 @@ public class PolicyResourceImpl implements PolicyDAOClient, PolicyResource
 {
 	private static final String LATEST_VERSION_ID = "latest";
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
-	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException(
-			"Invalid argument");
-	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException(
-			"Policy ID for policy resource undefined");
+	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
+	private static final IllegalArgumentException ILLEGAL_POLICY_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy ID for policy resource undefined");
 
-	private static final IllegalArgumentException ILLEGAL_POLICY_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException(
-			"Policy DAO for policy resource undefined");
+	private static final IllegalArgumentException ILLEGAL_POLICY_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy DAO for policy resource undefined");
 
 	/**
 	 * Policy Resource Factory

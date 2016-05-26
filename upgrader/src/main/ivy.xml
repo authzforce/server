@@ -35,6 +35,6 @@
 			WARNING: guava's packaging is bundle! So you have to add bundle in ivy:retrieve type attribute, e.g. "jar,bundle".
 	-->
 	<dependency org="com.google.guava" name="guava" rev="18.0" transitive="false" />
-	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-flat-file" rev="5.0.2" transitive="false" />
+	<dependency org="org.ow2.authzforce" name="authzforce-ce-pap-dao-flat-file" rev="5.1.0" transitive="false" />
 	</dependencies>
 </ivy-module>

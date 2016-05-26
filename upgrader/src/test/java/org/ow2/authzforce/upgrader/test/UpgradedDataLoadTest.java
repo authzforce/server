@@ -31,8 +31,6 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.ws.rs.NotFoundException;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -53,6 +51,8 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
+
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/beans.xml" })
 public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
@@ -75,21 +75,23 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	 * 
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
+	 * @param serverRootDir
+	 * 
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "server.root.dir", "org.ow2.authzforce.domains.sync.interval" })
 	@BeforeTest
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(String serverRootDir, @Optional("-1") int domainSyncIntervalSec) throws Exception
 	{
+		System.out.println("Testing data in directory: " + serverRootDir);
 		final File targetDir = new File("target");
 		// set catalina.base property in server's logback.xml
 		System.setProperty("catalina.base", targetDir.toURI().toString());
-		
-		final File confDir = new File("target/server/conf");
+
+		final File confDir = new File(serverRootDir + "/conf");
 		final String confURI = confDir.toURI().toString();
-		final File dataDir = new File("target/server/data");
+		final File dataDir = new File(serverRootDir + "/data");
 		final String dataURI = dataDir.toURI().toString();
 
 		// Set some server properties via JNDI

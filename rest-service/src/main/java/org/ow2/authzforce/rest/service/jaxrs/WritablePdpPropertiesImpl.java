@@ -18,31 +18,41 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
+import org.ow2.authzforce.core.pap.api.dao.PdpFeature;
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
+import org.ow2.authzforce.rest.api.xmlns.Feature;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 
 class WritablePdpPropertiesImpl implements WritablePdpProperties
 {
-	private final PdpPropertiesUpdate props;
+	private final IdReferenceType rootPolicyRefExpression;
+	private final List<PdpFeature> features;
 
 	WritablePdpPropertiesImpl(PdpPropertiesUpdate props)
 	{
-		this.props = props;
+		this.rootPolicyRefExpression = props.getRootPolicyRefExpression();
+		final List<Feature> inputFeatures = props.getFeatures();
+		this.features = new ArrayList<>(inputFeatures.size());
+		for (final Feature inputFeature : inputFeatures)
+		{
+			this.features.add(new PdpFeature(inputFeature.getValue(), inputFeature.getType(), inputFeature.isEnabled()));
+		}
 	}
 
 	@Override
 	public IdReferenceType getRootPolicyRefExpression()
 	{
-		return props.getRootPolicyRefExpression();
+		return rootPolicyRefExpression;
 	}
 
 	@Override
-	public List<String> getFeatureIDs() {
-		return props.getFeatures();
+	public List<PdpFeature> getFeatures()
+	{
+		return features;
 	}
-
 }

@@ -26,7 +26,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MediaType;
 
 /**
- * FastInfoset request bloquer
+ * FastInfoset request blocker
  *
  */
 public class XmlOnlyMediaTypeRequestFilter implements ContainerRequestFilter

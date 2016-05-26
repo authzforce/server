@@ -1,0 +1,12 @@
+<pdps xmlns="http://thalesgroup.com/authzforce/pdp/model/2014/12"
+	defaultAttributeFactory="attr" defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"
+	defaultPDP="domain-root-policy"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<pdp name="domain-root-policy">
+		<attributeFinder xsi:type="CurrentDateTimeFinder" />
+		<attributeFinder xsi:type="AttributeSelectorXPathFinder" />
+	</pdp>
+	<attributeFactory name="attr" useStandardDatatypes="true" />
+	<combiningAlgFactory name="comb" useStandardAlgorithms="true" />
+	<functionFactory name="func" useStandardFunctions="true" />
+</pdps>
