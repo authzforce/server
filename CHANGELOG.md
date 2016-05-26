@@ -1,6 +1,21 @@
 # Change log
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [Semantic Versioning](http://semver.org) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
+
+## Unreleased
+### Added
+- REST API spec (authzforce-ce-rest-api-model) v5.1.0 support: enhanced management of PDP features, i.e. all supported features may be listed, and each feature may have a 'type' and an 'enabled' (true or false) state that can be updated via the API
+- Supported PDP features by type: 
+  - Type `urn:ow2:authzforce:feature-type:pdp:core` (PDP core engine features, as opposed to extensions below): `urn:ow2:authzforce:feature:pdp:core:xpath-eval` (experimental support for XACML AttributeSelector, xpathExpression datatype and xpath-node-count function), `urn:ow2:authzforce:feature:pdp:core:strict-attribute-issuer-match` (enable strict Attribute Issuer matching, i.e. AttributeDesignators without Issuer only match request Attributes with same AttributeId/Category but without Issuer)
+  - Type `urn:ow2:authzforce:feature-type:pdp:data-type`: any custom XACML Data type extension
+  - Type `urn:ow2:authzforce:feature-type:pdp:function`: any custom XACML function extension
+  - Type `urn:ow2:authzforce:feature-type:pdp:function-set`: any set of custom XACML function extensions
+  - Type `urn:ow2:authzforce:feature-type:pdp:combining-algorithm`: any custom XACML policy/rule combining algorithm extension
+  - Type `urn:ow2:authzforce:feature-type:pdp:request-filter`: any custom XACML request filter + native ones, i.e. `urn:ow2:authzforce:xacml:request-filter:default-lax` (default XACML Core-compliant Individual Decision Request filter), `urn:ow2:authzforce:xacml:request-filter:default-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` (request filter implenting XACML profile `urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories`), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed)
+  - Type `urn:ow2:authzforce:feature-type:pdp:result-filter`: any custom XACML Result filter extension
+-  Distribution upgrader now supporting all 4.x versions as old versions
+
+
 ## 5.1.2
 ### Added
 - REST API features (see *Changed* section for API changes):
@@ -85,6 +100,7 @@ All notable changes to this project are documented in this file following the [K
 - Detection of circular references in Policy(Set)IdReferences or VariableReference
 - Configurable max allowed depth of PolicySetIdReference or VariableReference
 
+
 ## 4.2.0
 ### Added
 - Distribution as Debian package
@@ -92,6 +108,7 @@ All notable changes to this project are documented in this file following the [K
 - XACML 3.0: Ordered-deny-overrides policy/rule combining algorithm
 - XACML 3.0: Ordered-permit-overrides policy/rule combining algorithm
 - XACML 3.0: Multiple Decision Profile, scheme 2.3 (repetition of attribute categories)
+
 
 ## 4.1.0
 ### Changed

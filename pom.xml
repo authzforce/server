@@ -17,8 +17,8 @@
 	<url>https://github.com/authzforce/server</url>
 	<properties>
 		<git.url.base>https://github.com/authzforce/server</git.url.base>
-		<authzforce-ce-core.version>3.9.0-SNAPSHOT</authzforce-ce-core.version>
-		<authzforce-ce-pap-dao-flat-file.version>5.1.0-SNAPSHOT</authzforce-ce-pap-dao-flat-file.version>
+		<authzforce-ce-core.version>3.9.0</authzforce-ce-core.version>
+		<authzforce-ce-pap-dao-flat-file.version>5.1.0</authzforce-ce-pap-dao-flat-file.version>
 	</properties>
 	<scm>
 		<connection>scm:git:${git.url.base}.git</connection>

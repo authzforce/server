@@ -15,8 +15,9 @@
 		<productName>${project.parent.artifactId}</productName>
 		<productMaintainer>Thales Services SAS</productMaintainer>
 		<!-- Timestamp to be used in debian/changes.jdeb.txt -->
-		<maven.build.timestamp.format>HH:mm dd.MM.yyyy</maven.build.timestamp.format>
+		<!--<maven.build.timestamp.format>HH:mm dd.MM.yyyy</maven.build.timestamp.format>
 		<jdeb.changelog.timestamp>${maven.build.timestamp}</jdeb.changelog.timestamp>
+-->
 	</properties>
 	<url>https://github.com/authzforce/server/dist</url>
 	<scm>
@@ -44,20 +45,36 @@
 					<include>webapp-context.xml</include>
 					<include>debian/changelog</include>
 					<include>debian/changes.jdeb.txt</include>
-                    <include>tar/README.md</include>
+                                        <include>tar/README.md</include>
 				</includes>
 			</resource>
 		</resources>
 		<plugins>
-			<plugin>
-			<!-- Set timestamp property to be used in debian/changelog -->
+<plugin>
+<!-- 
+Compute timestamp to be used in debian/changes.jdeb.txt
+We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' property inherited from authzforce-ce-parent, with a different format, so we use a plugin.
+-->        
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
 				<version>1.10</version>
 				<executions>
+<execution>
+            <id>jdeb-changelog-timestamp-property</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>timestamp-property</goal>
+            </goals>
+            <configuration>
+              <name>jdeb.changelog.timestamp</name>
+              <pattern>HH:mm dd.MM.yyyy</pattern>
+            </configuration>
+          </execution>
 					<execution>
-						<id>timestamp-property</id>
-						<goals>
+			<!-- Set timestamp property to be used in debian/changelog -->
+						<id>debian-changelog-timestamp-property</id>
+<phase>process-sources</phase>						
+<goals>
 							<goal>timestamp-property</goal>
 						</goals>
 						<configuration>
@@ -72,10 +89,38 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.7</version>
+<executions>
+                                        <execution>
+                                                <phase>process-sources</phase>
+                                        </execution>
+                                </executions>
 				<configuration>
 					<escapeString>\</escapeString>
 				</configuration>
 			</plugin>
+                        <plugin>
+                                <groupId>com.ruleoftech</groupId>
+                                <artifactId>markdown-page-generator-plugin</artifactId>
+                                <version>0.10</version>
+                                <executions>
+                                        <execution>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>generate</goal>
+                                                </goals>
+                                        </execution>
+                                </executions>
+                                <configuration>
+                                        <headerHtmlFile>${project.basedir}/html/header.html</headerHtmlFile>
+                                        <footerHtmlFile>${project.basedir}/html/footer.html</footerHtmlFile>
+                                        <!-- <copyDirectories>css,js</copyDirectories> -->
+                                        <inputDirectory>${project.build.outputDirectory}/tar</inputDirectory>
+                                        <outputDirectory>${project.build.directory}/html/tar</outputDirectory>
+                                        <inputEncoding>UTF-8</inputEncoding>
+                                        <outputEncoding>UTF-8</outputEncoding>
+                                        <pegdownExtensions>SMARTS,QUOTES,ANCHORLINKS,FENCED_CODE_BLOCKS,AUTOLINKS</pegdownExtensions>
+                                </configuration>
+                        </plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>

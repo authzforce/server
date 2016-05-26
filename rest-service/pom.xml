@@ -42,12 +42,12 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-         <version>5.2.0-SNAPSHOT</version>
+         <version>5.2.0</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-core-pap-api</artifactId>
-         <version>5.1.0-SNAPSHOT</version>
+         <version>5.1.0</version>
       </dependency>
    </dependencies>
    <build>
