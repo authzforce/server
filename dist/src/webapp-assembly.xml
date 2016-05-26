@@ -31,7 +31,7 @@
          <outputDirectory>/data</outputDirectory>
       </fileSet>
       <fileSet>
-         <directory>${project.build.outputDirectory}/tar</directory>
+         <directory>${project.build.directory}/html/tar</directory>
          <outputDirectory>/</outputDirectory>
       </fileSet>
    </fileSets>
