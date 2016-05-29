@@ -21,7 +21,7 @@
 	<xsl:param name="maxPolicyRefDepth" select="10" />
 	<!-- Single quotes to escape special character ':' -->
 	<xsl:param name="requestFilter"
-		select="'urn:ow2:authzforce:xacml:request-filter:default-lax'" />
+		select="'urn:ow2:authzforce:feature:pdp:request-filter:default-lax'" />
 
 	<!-- Force xsi and flat-file-dao namespaces on root tag -->
 	<xsl:template match="/*">

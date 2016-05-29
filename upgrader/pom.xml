@@ -212,7 +212,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>
@@ -236,7 +236,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>
@@ -260,7 +260,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>

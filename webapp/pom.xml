@@ -207,7 +207,7 @@
                </suiteXmlFiles>
                <skipAfterFailureCount>1</skipAfterFailureCount>
                <!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->
-               <redirectTestOutputToFile>false</redirectTestOutputToFile>
+               <redirectTestOutputToFile>true</redirectTestOutputToFile>
                <properties>
                   <property>
                      <name>surefire.testng.verbose</name>
