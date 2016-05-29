@@ -139,7 +139,6 @@
 				<artifactId>license-maven-plugin</artifactId>
 				<configuration>
 					<header>license/thales-gpl.header.txt</header>
-					<skipExistingHeaders>true</skipExistingHeaders>
 					<includes>
 						<include>src/test/java</include>
 					</includes>

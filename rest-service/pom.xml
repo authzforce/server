@@ -47,7 +47,6 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-core-pap-api</artifactId>
-         <version>5.1.0</version>
       </dependency>
    </dependencies>
    <build>
@@ -103,7 +102,6 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
-               <skipExistingHeaders>true</skipExistingHeaders>
                <includes>
                   <include>src/**</include>
                </includes>
