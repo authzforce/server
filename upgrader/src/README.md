@@ -10,14 +10,6 @@ To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project
     $ sudo apt-get install ivy ant-contrib
     ```
     
-1. Download AuthZForce server upgrader tool from [Maven Central Repository](http://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-upgrader/${project.version}/authzforce-ce-server-upgrader-${project.version}.tar.gz). You get a file called ``authzforce-ce-server-upgrader-${project.version}.tar.gz``.
-1. Copy this file to the host where the old AuthZForce Server is installed, and unzip it and change directory:
-
-    ```shell
-    $ tar xvzf authzforce-ce-server-upgrader-${project.version}.tar.gz
-    $ cd authzforce-ce-server-upgrader-${project.version}
-    ```
-    
 1. If you have custom AuthZForce PDP attribute providers, for each one, you have to adapt them to the new PDP AttributeProvider's Java interface, deploy and enable them on the new AuthZForce Server. Please refer to the [online User and Programmer Guide](http://readthedocs.org/projects/authzforce-ce-fiware/versions/) for more information on this process (select the latest version with the 3 first dot-separated numbers -- MAJOR.MINOR.PATCH -- matching your AuthZForce Server version). Then you have to add a new `xsl:when` element in the following form in the XSL template named `attribute-finders-upgrade` in XSL stylesheet `xslt/M.m.x/domain-pdp-upgrade.xsl` (path relative to the current working directory) -- replace `M.m` with the MAJOR.MINOR version of your old Authzforce version to be upgraded -- where you defined the transformation rules to upgrade the attribute provider configuration to the new model (the `TestAttributeProvider` below is just an example and may be ignored):
 
     ```xml
