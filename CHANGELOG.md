@@ -2,7 +2,7 @@
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [Semantic Versioning](http://semver.org) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
 
-## Unreleased
+## 5.3.0
 ### Changed
 - Version of dependency `authzforce-ce-pap-dao-flat-file` to `6.0.0`, causing changes to the REST API URL `/domains/{domainId}/pap/pdp.properties` regarding IDs of features of type `urn:ow2:authzforce:feature-type:pdp:request-filter`:
 	- `urn:ow2:authzforce:xacml:request-filter:default-lax` changed to `urn:ow2:authzforce:feature:pdp:request-filter:default-lax`;
