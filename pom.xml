@@ -8,7 +8,7 @@
    </parent>
    <artifactId>authzforce-ce-server</artifactId>
    <!-- FIWARE Versioning + Version must be equal or higher than 'authzforce-ce-rest-api-model' dependency in 'rest-service' module -->
-   <version>5.2.1-SNAPSHOT</version>
+   <version>5.3.0-SNAPSHOT</version>
    <packaging>pom</packaging>
    <name>${project.groupId}:${project.artifactId}</name>
    <description>AuthZForce CE Server</description>
