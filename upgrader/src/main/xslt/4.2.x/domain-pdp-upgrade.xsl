@@ -36,7 +36,7 @@
 	<xsl:param name="maxVariableRefDepth" select="10" />
 	<xsl:param name="maxPolicyRefDepth" select="10" />
 	<!-- Single quotes to escape special character ':' -->
-	<xsl:param name="requestFilter" select="'urn:ow2:authzforce:xacml:request-filter:default-lax'" />
+	<xsl:param name="requestFilter" select="'urn:ow2:authzforce:feature:pdp:request-filter:default-lax'" />
 	<!-- WARNING 1: old policyFinder, resourceFinder, cache elements ignored/not supported. WARNING 2: if you use custom attribute finders, i.e. other than native CurrentDateTimeFinder or AttributeSelectorXPathFinder (in 'old' namespace), or if you use NON-standard datatypes / combining algorithms / functions, you have to add transformation rules to handle each of those. WARNING 3: old 'useStandard*' attributes are ignored (assume it is true always) -->
 	<xsl:template match="old:pdps">
 		<xsl:apply-templates select="document($refPoliciesFileURI)/oldapi:policySets/xacml:PolicySet" />

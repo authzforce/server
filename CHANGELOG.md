@@ -2,6 +2,15 @@
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [Semantic Versioning](http://semver.org) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
 
+## 5.3.0
+### Changed
+- Version of dependency `authzforce-ce-pap-dao-flat-file` to `6.0.0`, causing changes to the REST API URL `/domains/{domainId}/pap/pdp.properties` regarding IDs of features of type `urn:ow2:authzforce:feature-type:pdp:request-filter`:
+	- `urn:ow2:authzforce:xacml:request-filter:default-lax` changed to `urn:ow2:authzforce:feature:pdp:request-filter:default-lax`;
+	- `urn:ow2:authzforce:xacml:request-filter:default-strict` changed to `urn:ow2:authzforce:feature:pdp:request-filter:default-strict`;
+	- `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` changed to `urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-strict`;
+	- `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` changed to `urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax`.
+
+
 ## 5.2.0
 ### Added
 - REST API spec (authzforce-ce-rest-api-model) v5.1.0 support: enhanced management of PDP features, i.e. all supported features may be listed, and each feature may have a 'type' and an 'enabled' (true or false) state that can be updated via the API

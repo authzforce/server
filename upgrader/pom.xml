@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>5.2.0</version>
+		<version>5.3.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-upgrader</artifactId>
@@ -139,7 +139,6 @@
 				<artifactId>license-maven-plugin</artifactId>
 				<configuration>
 					<header>license/thales-gpl.header.txt</header>
-					<skipExistingHeaders>true</skipExistingHeaders>
 					<includes>
 						<include>src/test/java</include>
 					</includes>
@@ -213,7 +212,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>
@@ -237,7 +236,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>
@@ -261,7 +260,7 @@
 									<!-- <property name="ignore.domain.name" value="true" /> -->
 									<!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
 									<!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
-									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+									<!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
 								</ant>
 							</target>
 						</configuration>

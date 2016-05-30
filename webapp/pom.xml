@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>5.2.0</version>
+      <version>5.3.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-webapp</artifactId>
@@ -151,7 +151,6 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
-               <skipExistingHeaders>true</skipExistingHeaders>
                <includes>
                   <include>src/main/java/**</include>
                </includes>
@@ -208,7 +207,7 @@
                </suiteXmlFiles>
                <skipAfterFailureCount>1</skipAfterFailureCount>
                <!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->
-               <redirectTestOutputToFile>false</redirectTestOutputToFile>
+               <redirectTestOutputToFile>true</redirectTestOutputToFile>
                <properties>
                   <property>
                      <name>surefire.testng.verbose</name>

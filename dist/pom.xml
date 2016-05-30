@@ -1,230 +1,225 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.ow2.authzforce</groupId>
-		<artifactId>authzforce-ce-server</artifactId>
-		<version>5.2.0</version>
-		<relativePath>..</relativePath>
-	</parent>
-	<artifactId>authzforce-ce-server-dist</artifactId>
-	<!-- If using 'pom' packaging, jdeb refuses to execute. -->
-	<packaging>jar</packaging>
-	<name>${project.groupId}:${project.artifactId}</name>
-	<description>AuthZForce CE server distribution (zip and deb)</description>
-	<properties>
-		<productName>${project.parent.artifactId}</productName>
-		<productMaintainer>Thales Services SAS</productMaintainer>
-		<!-- Timestamp to be used in debian/changes.jdeb.txt -->
-		<!--<maven.build.timestamp.format>HH:mm dd.MM.yyyy</maven.build.timestamp.format>
-		<jdeb.changelog.timestamp>${maven.build.timestamp}</jdeb.changelog.timestamp>
--->
-	</properties>
-	<url>https://github.com/authzforce/server/dist</url>
-	<scm>
-		<connection>scm:git:${git.url.base}.git</connection>
-		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
-		<tag>HEAD</tag>
-		<url>${git.url.base}/dist</url>
-	</scm>
-	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${project.parent.artifactId}-webapp</artifactId>
-			<version>${project.parent.version}</version>
-			<type>war</type>
-		</dependency>
-	</dependencies>
-	<build>
-		<finalName>${productName}-${project.version}</finalName>
-		<resources>
-			<!-- Replace variable 'productName' and 'project.version' in some source files. The result goes to ${project.build.directory}. -->
-			<resource>
-				<directory>src</directory>
-				<filtering>true</filtering>
-				<includes>
-					<include>webapp-context.xml</include>
-					<include>debian/changelog</include>
-					<include>debian/changes.jdeb.txt</include>
-                                        <include>tar/README.md</include>
-				</includes>
-			</resource>
-		</resources>
-		<plugins>
-<plugin>
-<!-- 
-Compute timestamp to be used in debian/changes.jdeb.txt
-We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' property inherited from authzforce-ce-parent, with a different format, so we use a plugin.
--->        
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.10</version>
-				<executions>
-<execution>
-            <id>jdeb-changelog-timestamp-property</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>timestamp-property</goal>
-            </goals>
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.ow2.authzforce</groupId>
+      <artifactId>authzforce-ce-server</artifactId>
+      <version>5.3.0</version>
+      <relativePath>..</relativePath>
+   </parent>
+   <artifactId>authzforce-ce-server-dist</artifactId>
+   <!-- If using 'pom' packaging, jdeb refuses to execute. -->
+   <packaging>jar</packaging>
+   <name>${project.groupId}:${project.artifactId}</name>
+   <description>AuthZForce CE server distribution (zip and deb)</description>
+   <properties>
+      <productName>${project.parent.artifactId}</productName>
+      <productMaintainer>Thales Services SAS</productMaintainer>
+   </properties>
+   <url>https://github.com/authzforce/server/dist</url>
+   <scm>
+      <connection>scm:git:${git.url.base}.git</connection>
+      <developerConnection>scm:git:${git.url.base}.git</developerConnection>
+      <tag>HEAD</tag>
+      <url>${git.url.base}/dist</url>
+   </scm>
+   <dependencies>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${project.parent.artifactId}-webapp</artifactId>
+         <version>${project.parent.version}</version>
+         <type>war</type>
+      </dependency>
+   </dependencies>
+   <build>
+      <finalName>${productName}-${project.version}</finalName>
+      <resources>
+         <!-- Replace variable 'productName' and 'project.version' in some source files. The result goes to ${project.build.directory}. -->
+         <resource>
+            <directory>src</directory>
+            <filtering>true</filtering>
+            <includes>
+               <include>webapp-context.xml</include>
+               <include>debian/changelog</include>
+               <include>debian/changes.jdeb.txt</include>
+               <include>tar/README.md</include>
+            </includes>
+         </resource>
+      </resources>
+      <plugins>
+         <plugin>
+            <!-- Compute timestamp to be used in debian/changes.jdeb.txt We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' property inherited from 
+               authzforce-ce-parent, with a different format, so we use a plugin. -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.10</version>
+            <executions>
+               <execution>
+                  <id>jdeb-changelog-timestamp-property</id>
+                  <phase>process-sources</phase>
+                  <goals>
+                     <goal>timestamp-property</goal>
+                  </goals>
+                  <configuration>
+                     <name>jdeb.changelog.timestamp</name>
+                     <pattern>HH:mm dd.MM.yyyy</pattern>
+                  </configuration>
+               </execution>
+               <execution>
+                  <!-- Set timestamp property to be used in debian/changelog -->
+                  <id>debian-changelog-timestamp-property</id>
+                  <phase>process-sources</phase>
+                  <goals>
+                     <goal>timestamp-property</goal>
+                  </goals>
+                  <configuration>
+                     <name>debian.changelog.timestamp</name>
+                     <locale>en,US</locale>
+                     <pattern>E, dd MMM yyyy HH:mm:ss Z</pattern>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.7</version>
+            <executions>
+               <execution>
+                  <phase>process-sources</phase>
+               </execution>
+            </executions>
             <configuration>
-              <name>jdeb.changelog.timestamp</name>
-              <pattern>HH:mm dd.MM.yyyy</pattern>
+               <escapeString>\</escapeString>
             </configuration>
-          </execution>
-					<execution>
-			<!-- Set timestamp property to be used in debian/changelog -->
-						<id>debian-changelog-timestamp-property</id>
-<phase>process-sources</phase>						
-<goals>
-							<goal>timestamp-property</goal>
-						</goals>
-						<configuration>
-							<name>debian.changelog.timestamp</name>
-							<locale>en,US</locale>
-							<pattern>E, dd MMM yyyy HH:mm:ss Z</pattern>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.7</version>
-<executions>
-                                        <execution>
-                                                <phase>process-sources</phase>
-                                        </execution>
-                                </executions>
-				<configuration>
-					<escapeString>\</escapeString>
-				</configuration>
-			</plugin>
-                        <plugin>
-                                <groupId>com.ruleoftech</groupId>
-                                <artifactId>markdown-page-generator-plugin</artifactId>
-                                <version>0.10</version>
-                                <executions>
-                                        <execution>
-                                                <phase>package</phase>
-                                                <goals>
-                                                        <goal>generate</goal>
-                                                </goals>
-                                        </execution>
-                                </executions>
-                                <configuration>
-                                        <headerHtmlFile>${project.basedir}/html/header.html</headerHtmlFile>
-                                        <footerHtmlFile>${project.basedir}/html/footer.html</footerHtmlFile>
-                                        <!-- <copyDirectories>css,js</copyDirectories> -->
-                                        <inputDirectory>${project.build.outputDirectory}/tar</inputDirectory>
-                                        <outputDirectory>${project.build.directory}/html/tar</outputDirectory>
-                                        <inputEncoding>UTF-8</inputEncoding>
-                                        <outputEncoding>UTF-8</outputEncoding>
-                                        <pegdownExtensions>SMARTS,QUOTES,ANCHORLINKS,FENCED_CODE_BLOCKS,AUTOLINKS</pegdownExtensions>
-                                </configuration>
-                        </plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>distro-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<descriptors>
-								<!-- Authzforce webapp + configuration files -->
-								<descriptor>src/webapp-assembly.xml</descriptor>
-							</descriptors>
-							<appendAssemblyId>false</appendAssemblyId>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>jdeb</artifactId>
-				<groupId>org.vafer</groupId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jdeb</goal>
-						</goals>
-						<configuration>
-							<verbose>true</verbose>
-							<snapshotExpand>true</snapshotExpand>
-							<deb>${project.build.directory}/${productName}_${project.version}_all.deb</deb>
-							<changesIn>${project.build.outputDirectory}/debian/changes.jdeb.txt</changesIn>
-							<changesOut>${project.build.directory}/${productName}_${project.version}_all.changes</changesOut>
-							<!-- expand "SNAPSHOT" to what is in the "USER" env variable. Expanded to timestamp by default. -->
-							<!-- <snapshotEnv>USER</snapshotEnv> -->
-							<!-- In control files, you can use any variable defined by initializeVariableResolver(...) method in https://github.com/tcurdt/jdeb/blob/master/src/main/java/org/vafer/jdeb/maven/DebMojo.java Surround the variable name with double square brackets "[[" "]]" to have it replaced by the variable value. -->
-							<controlDir>${project.basedir}/src/debian/control</controlDir>
-							<dataSet>
-								<data>
-									<!-- lintian will complain changelog-not-compressed-with-max-compression . Fix to come: https://github.com/tcurdt/jdeb/issues/157 -->
-									<src>${project.build.outputDirectory}/debian/changelog</src>
-									<dst>/usr/share/doc/${productName}/changelog</dst>
-									<type>file</type>
-								</data>
-								<data>
-									<src>${project.basedir}/src/debian/copyright</src>
-									<dst>/usr/share/doc/${productName}/copyright</dst>
-									<type>file</type>
-								</data>
-								<data>
-									<!-- Configuration directory -->
-									<src>${project.basedir}/src/conf</src>
-									<type>directory</type>
-									<conffile>true</conffile>
-									<mapper>
-										<type>perm</type>
-										<!-- Starting '.' necessary to get absolute paths, otherwise lintian complains "relative-conffile" -->
-										<prefix>./opt/${productName}/conf</prefix>
-										<user>root</user>
-										<group>tomcat7</group>
-									</mapper>
-								</data>
-								<data>
-									<!-- Webapp-specific context for Tomcat, after replacing 'productName' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
-									<src>${project.build.outputDirectory}/webapp-context.xml</src>
-									<dst>/etc/tomcat7/Catalina/localhost/authzforce-ce.xml</dst>
-									<type>file</type>
-									<conffile>true</conffile>
-								</data>
-								<data>
-									<!-- WAR deployed to Tomcat -->
-									<src>${project.build.directory}/${project.build.finalName}.tar.gz</src>
-									<type>archive</type>
-									<includes>${project.build.finalName}/webapp/**</includes>
-									<missingSrc>fail</missingSrc>
-									<mapper>
-										<type>perm</type>
-										<prefix>./opt/${productName}/webapp</prefix>
-										<user>root</user>
-										<group>tomcat7</group>
-										<!-- filemode/dirmode set to 000 by default. Issue: https://github.com/tcurdt/jdeb/issues/55 -->
-										<filemode>644</filemode>
-										<dirmode>755</dirmode>
-										<strip>2</strip>
-									</mapper>
-								</data>
-								<data>
-									<!-- Configuration directory -->
-									<src>${project.basedir}/src/data/domains</src>
-									<type>directory</type>
-									<mapper>
-										<type>perm</type>
-										<prefix>./opt/${productName}/data/domains</prefix>
-										<user>tomcat7</user>
-										<group>tomcat7</group>
-									</mapper>
-								</data>
-							</dataSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+         </plugin>
+         <plugin>
+            <groupId>com.ruleoftech</groupId>
+            <artifactId>markdown-page-generator-plugin</artifactId>
+            <version>0.10</version>
+            <executions>
+               <execution>
+                  <phase>package</phase>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <configuration>
+               <headerHtmlFile>${project.basedir}/html/header.html</headerHtmlFile>
+               <footerHtmlFile>${project.basedir}/html/footer.html</footerHtmlFile>
+               <!-- <copyDirectories>css,js</copyDirectories> -->
+               <inputDirectory>${project.build.outputDirectory}/tar</inputDirectory>
+               <outputDirectory>${project.build.directory}/html/tar</outputDirectory>
+               <inputEncoding>UTF-8</inputEncoding>
+               <outputEncoding>UTF-8</outputEncoding>
+               <pegdownExtensions>SMARTS,QUOTES,ANCHORLINKS,FENCED_CODE_BLOCKS,AUTOLINKS</pegdownExtensions>
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>distro-assembly</id>
+                  <phase>package</phase>
+                  <goals>
+                     <goal>single</goal>
+                  </goals>
+                  <configuration>
+                     <descriptors>
+                        <!-- Authzforce webapp + configuration files -->
+                        <descriptor>src/webapp-assembly.xml</descriptor>
+                     </descriptors>
+                     <appendAssemblyId>false</appendAssemblyId>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <artifactId>jdeb</artifactId>
+            <groupId>org.vafer</groupId>
+            <version>1.4</version>
+            <executions>
+               <execution>
+                  <phase>package</phase>
+                  <goals>
+                     <goal>jdeb</goal>
+                  </goals>
+                  <configuration>
+                     <verbose>true</verbose>
+                     <snapshotExpand>true</snapshotExpand>
+                     <deb>${project.build.directory}/${productName}_${project.version}_all.deb</deb>
+                     <changesIn>${project.build.outputDirectory}/debian/changes.jdeb.txt</changesIn>
+                     <changesOut>${project.build.directory}/${productName}_${project.version}_all.changes</changesOut>
+                     <!-- expand "SNAPSHOT" to what is in the "USER" env variable. Expanded to timestamp by default. -->
+                     <!-- <snapshotEnv>USER</snapshotEnv> -->
+                     <!-- In control files, you can use any variable defined by initializeVariableResolver(...) method in https://github.com/tcurdt/jdeb/blob/master/src/main/java/org/vafer/jdeb/maven/DebMojo.java 
+                        Surround the variable name with double square brackets "[[" "]]" to have it replaced by the variable value. -->
+                     <controlDir>${project.basedir}/src/debian/control</controlDir>
+                     <dataSet>
+                        <data>
+                           <!-- lintian will complain changelog-not-compressed-with-max-compression . Fix to come: https://github.com/tcurdt/jdeb/issues/157 -->
+                           <src>${project.build.outputDirectory}/debian/changelog</src>
+                           <dst>/usr/share/doc/${productName}/changelog</dst>
+                           <type>file</type>
+                        </data>
+                        <data>
+                           <src>${project.basedir}/src/debian/copyright</src>
+                           <dst>/usr/share/doc/${productName}/copyright</dst>
+                           <type>file</type>
+                        </data>
+                        <data>
+                           <!-- Configuration directory -->
+                           <src>${project.basedir}/src/conf</src>
+                           <type>directory</type>
+                           <conffile>true</conffile>
+                           <mapper>
+                              <type>perm</type>
+                              <!-- Starting '.' necessary to get absolute paths, otherwise lintian complains "relative-conffile" -->
+                              <prefix>./opt/${productName}/conf</prefix>
+                              <user>root</user>
+                              <group>tomcat7</group>
+                           </mapper>
+                        </data>
+                        <data>
+                           <!-- Webapp-specific context for Tomcat, after replacing 'productName' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
+                           <src>${project.build.outputDirectory}/webapp-context.xml</src>
+                           <dst>/etc/tomcat7/Catalina/localhost/authzforce-ce.xml</dst>
+                           <type>file</type>
+                           <conffile>true</conffile>
+                        </data>
+                        <data>
+                           <!-- WAR deployed to Tomcat -->
+                           <src>${project.build.directory}/${project.build.finalName}.tar.gz</src>
+                           <type>archive</type>
+                           <includes>${project.build.finalName}/webapp/**</includes>
+                           <missingSrc>fail</missingSrc>
+                           <mapper>
+                              <type>perm</type>
+                              <prefix>./opt/${productName}/webapp</prefix>
+                              <user>root</user>
+                              <group>tomcat7</group>
+                              <!-- filemode/dirmode set to 000 by default. Issue: https://github.com/tcurdt/jdeb/issues/55 -->
+                              <filemode>644</filemode>
+                              <dirmode>755</dirmode>
+                              <strip>2</strip>
+                           </mapper>
+                        </data>
+                        <data>
+                           <!-- Configuration directory -->
+                           <src>${project.basedir}/src/data/domains</src>
+                           <type>directory</type>
+                           <mapper>
+                              <type>perm</type>
+                              <prefix>./opt/${productName}/data/domains</prefix>
+                              <user>tomcat7</user>
+                              <group>tomcat7</group>
+                           </mapper>
+                        </data>
+                     </dataSet>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
 </project>

@@ -7,7 +7,7 @@
 Server components and distribution of AuthZForce authorization service (FIWARE Authorization PDP GEri). 
 
 This project also provides the Reference Implementation (GEri) of [FIWARE](https://www.fiware.org) *Authorization PDP* Generic Enabler (GE). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).
-The manuals are available on [readthedocs.org](http://authzforce-ce-fiware.readthedocs.org/).
+The manuals are available on [readthedocs.org](http://readthedocs.org/projects/authzforce-ce-fiware/versions/).
 
 Note for contributers:
 The sources for the manuals are located in [fiware repository](http://github.com/authzforce/fiware/doc).

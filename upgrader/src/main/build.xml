@@ -90,15 +90,15 @@
 		</condition>
 	</fail>
 
-	<property name="pdp.request.filter" value="urn:ow2:authzforce:xacml:request-filter:default-lax" description="PDP property: request filter" />
-	<fail message="Invalid pdp.request.filter arg: not one of: 'urn:ow2:authzforce:xacml:request-filter:default-lax', 'urn:ow2:authzforce:xacml:request-filter:default-strict', 'urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax', 'urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict'.">
+	<property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:default-lax" description="PDP property: request filter" />
+	<fail message="Invalid pdp.request.filter arg: not one of: 'urn:ow2:authzforce:feature:pdp:request-filter:default-lax', 'urn:ow2:authzforce:feature:pdp:request-filter:default-strict', 'urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax', 'urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-strict'.">
 		<condition>
 			<not>
 				<or>
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:default-lax" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:default-strict" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:default-lax" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:default-strict" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" />
+					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-strict" />
 				</or>
 			</not>
 		</condition>

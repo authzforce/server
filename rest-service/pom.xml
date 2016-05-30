@@ -4,7 +4,7 @@
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
       <!-- Version must be equal or higher than authzforce-ce-rest-api-model dependency -->
-      <version>5.2.0</version>
+      <version>5.3.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-rest-service</artifactId>
@@ -47,7 +47,6 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-core-pap-api</artifactId>
-         <version>5.1.0</version>
       </dependency>
    </dependencies>
    <build>
@@ -103,7 +102,6 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
-               <skipExistingHeaders>true</skipExistingHeaders>
                <includes>
                   <include>src/**</include>
                </includes>
