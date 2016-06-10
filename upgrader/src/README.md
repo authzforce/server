@@ -61,4 +61,4 @@ To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project
    ```shell
     $ sudo aptitude purge authzforce
     ```
-    *Note: until 4.2.0, the Ubuntu package name was called `authzforce`, then it was renamed `authzforce-ce-server` in later versions. Therefore, the command above should remove only the old v4.2.0.*
+    *Note: in v4.2.0, the Ubuntu package name was called `authzforce`, then it was renamed `authzforce-ce-server` in later versions. Therefore, the command above should remove only the old v4.2.0.*
