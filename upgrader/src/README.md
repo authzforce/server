@@ -56,3 +56,9 @@ To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project
     ```
 
 1. Restart Tomcat on the new AuthZForce server to load the new data.
+
+1. If your old Authzforce version was 4.2.0 and the upgrade was successful, you may remote this old version:
+   ```shell
+    $ sudo aptitude purge authzforce
+    ```
+    *Note: until 4.2.0, the Ubuntu package name was called `authzforce`, then it was renamed `authzforce-ce-server` in later versions. Therefore, the command above should remove only the old v4.2.0.*
