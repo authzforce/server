@@ -1,4 +1,4 @@
-# AuthZForce Server
+# AuthZForce Server (Community Edition)
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.3.0)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.3.0/?badge=release-5.3.0)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/authzforce-ce-server.svg)](https://hub.docker.com/r/fiware/authzforce-ce-server/)
