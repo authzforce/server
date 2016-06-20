@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
+
 # AuthZForce Server
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.3.0)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.3.0/?badge=release-5.3.0)

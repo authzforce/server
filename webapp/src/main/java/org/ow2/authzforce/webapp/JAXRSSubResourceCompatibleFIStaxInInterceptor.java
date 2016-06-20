@@ -47,6 +47,7 @@ import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
 public final class JAXRSSubResourceCompatibleFIStaxInInterceptor extends FIStaxInInterceptor
 {
 	// private final static Logger LOGGER = LoggerFactory.getLogger(JAXRSSubResourceCompatibleFIStaxInInterceptor.class);
+	private static final StaxInEndingInterceptor ENDING_INTERCEPTOR = new StaxInEndingInterceptor(Phase.POST_INVOKE);
 
 	private static XMLStreamReader getParser(InputStream in)
 	{
@@ -56,8 +57,6 @@ public final class JAXRSSubResourceCompatibleFIStaxInInterceptor extends FIStaxI
 		parser.setInputStream(in);
 		return parser;
 	}
-
-	private static final StaxInEndingInterceptor ENDING_INTERCEPTOR = new StaxInEndingInterceptor(Phase.POST_INVOKE);
 
 	/**
 	 * Default constructor. Enables FastInfoset support.

@@ -52,9 +52,16 @@ import org.slf4j.LoggerFactory;
  * Servlet filter that catches any exception to hide it from client, and maps it to HTTP status Bad Request if {@code NoSuchMethodError}, else to Internal Server Error; and logs the error using SLF4J.
  * 
  */
-public class ExceptionFilter implements Filter
+public final class ExceptionFilter implements Filter
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ExceptionFilter.class);
+
+	private static void handleError(ServletResponse response, int statusCode, Throwable error) throws IOException
+	{
+		final HttpServletResponse httpResp = (HttpServletResponse) response;
+		LOGGER.error("Serious error content hidden from client", error);
+		httpResp.sendError(statusCode);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -78,20 +85,12 @@ public class ExceptionFilter implements Filter
 		try
 		{
 			chain.doFilter(request, response);
-		} catch (Throwable ex)
+		} catch (NoSuchMethodError e)
 		{
-			final int finalStatusCode;
-			if (ex instanceof NoSuchMethodError)
-			{
-				finalStatusCode = HttpServletResponse.SC_BAD_REQUEST;
-			} else
-			{
-				finalStatusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-			}
-
-			final HttpServletResponse httpResp = (HttpServletResponse) response;
-			LOGGER.error("Serious error content hidden from client", ex);
-			httpResp.sendError(finalStatusCode);
+			handleError(response, HttpServletResponse.SC_BAD_REQUEST, e);
+		} catch (Throwable e)
+		{
+			handleError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
 		}
 	}
 
