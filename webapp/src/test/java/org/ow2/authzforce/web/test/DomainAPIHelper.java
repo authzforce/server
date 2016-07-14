@@ -19,6 +19,7 @@
 package org.ow2.authzforce.web.test;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -94,17 +95,27 @@ class DomainAPIHelper
 				String.format("Actual PolicySet Version (='%s') from %s() != expected PolicySet Version (='%s')", actual.getVersion(), testedMethodId, expected.getVersion()));
 	}
 
-	static boolean isHrefMatched(String href, List<Link> links)
+	/**
+	 * Get link with href matching a given href
+	 * 
+	 * @param hrefToBeMatched
+	 *            href to be matched
+	 * @param links
+	 *            links where to look for the matching link
+	 * @return matching link, null if none
+	 * 
+	 */
+	static Link getMatchingLink(String hrefToBeMatched, List<Link> links)
 	{
 		for (Link link : links)
 		{
-			if (link.getHref().equals(href))
+			if (link.getHref().equals(hrefToBeMatched))
 			{
-				return true;
+				return link;
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	protected void resetPdpAndPrp(List<Feature> pdpFeaturesToEnable) throws JAXBException
@@ -330,12 +341,12 @@ class DomainAPIHelper
 		// Check result was committed
 		// check added policy link is in policies list
 		PoliciesResource policiesRes = domain.getPapResource().getPoliciesResource();
-		assertTrue(isHrefMatched(policyResId, policiesRes.getPolicies().getLinks()), "Added policy resource link not found in links returned by getPoliciesResource()");
+		assertNotNull(getMatchingLink(policyResId, policiesRes.getPolicies().getLinks()), "Added policy resource link not found in links returned by getPoliciesResource()");
 
 		// check added policy version is in policy versions list
 		PolicyResource policyRes = policiesRes.getPolicyResource(policyResId);
 		final Resources policyVersionsResources = policyRes.getPolicyVersions();
-		assertTrue(isHrefMatched(versionResId, policyVersionsResources.getLinks()), "Added policy version resource link not found in links returned by getPolicyVersions()");
+		assertNotNull(getMatchingLink(versionResId, policyVersionsResources.getLinks()), "Added policy version resource link not found in links returned by getPolicyVersions()");
 
 		// check PolicySet of added policy id/version is actually the one we
 		// added

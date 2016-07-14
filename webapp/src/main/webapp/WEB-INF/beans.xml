@@ -132,7 +132,7 @@
    </beans>
 
    <beans profile="+fastinfoset">
-      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api.fastinfoset.wadl" staticSubresourceResolution="true">
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api+fi.wadl" staticSubresourceResolution="true">
          <jaxrs:serviceBeans>
             <ref bean="domainsResourceBean" />
          </jaxrs:serviceBeans>

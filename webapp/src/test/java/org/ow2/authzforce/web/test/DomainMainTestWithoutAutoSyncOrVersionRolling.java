@@ -6,6 +6,7 @@ package org.ow2.authzforce.web.test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -592,8 +593,8 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		PolicyResource policyResource = testDomain.getPapResource().getPoliciesResource().getPolicyResource(TEST_POLICY_DELETE_ID);
 		Resources versionsResources = policyResource.deletePolicy();
 		assertNotNull(versionsResources);
-		assertTrue(DomainAPIHelper.isHrefMatched("1.2.3", versionsResources.getLinks()));
-		assertTrue(DomainAPIHelper.isHrefMatched("1.3.1", versionsResources.getLinks()));
+		assertNotNull(DomainAPIHelper.getMatchingLink("1.2.3", versionsResources.getLinks()));
+		assertNotNull(DomainAPIHelper.getMatchingLink("1.3.1", versionsResources.getLinks()));
 
 		try
 		{
@@ -605,7 +606,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		}
 
 		PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
-		assertFalse(DomainAPIHelper.isHrefMatched(TEST_POLICY_DELETE_ID, policiesRes.getPolicies().getLinks()),
+		assertNull(DomainAPIHelper.getMatchingLink(TEST_POLICY_DELETE_ID, policiesRes.getPolicies().getLinks()),
 				"Deleted policy resource (all versions) is still in links returned by getPoliciesResource()");
 	}
 
@@ -634,7 +635,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 		Resources policyVersionsResources = testDomain.getPapResource().getPoliciesResource().getPolicyResource(TEST_POLICY_DELETE_ID).getPolicyVersions();
 		assertEquals(policyVersionsResources.getLinks().size(), 1);
-		assertTrue(DomainAPIHelper.isHrefMatched("1.3.1", policyVersionsResources.getLinks()));
+		assertNotNull(DomainAPIHelper.getMatchingLink("1.3.1", policyVersionsResources.getLinks()));
 	}
 
 	private static final String TEST_POLICY_DELETE_SINGLE_VERSION_ID = "testPolicyDeleteSingleVersion";

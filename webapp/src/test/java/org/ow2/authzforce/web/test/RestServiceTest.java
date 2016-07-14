@@ -84,7 +84,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected static final int XML_MAX_TEXT_LENGTH = 1000;
 
 	/*
-	 * For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length > 911! WHY? Possible issue with woodstox library. FIXME: report this issue to CXF/Woodstox
+	 * For maxAttributeSize = 500 in JAXRS server configuration, exception raised only when chars.length > 911! WHY? Possible issue with woodstox library.
+	 * 
+	 * FIXME: report this issue to CXF/Woodstox
 	 */
 	private static final int XML_MAX_ATTRIBUTE_SIZE = 500;
 	protected static final int XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE = 911;

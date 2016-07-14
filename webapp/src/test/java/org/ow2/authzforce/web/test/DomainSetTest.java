@@ -49,6 +49,7 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
+import org.w3._2005.atom.Relation;
 
 public class DomainSetTest extends RestServiceTest
 {
@@ -260,6 +261,10 @@ public class DomainSetTest extends RestServiceTest
 		final String testDomainId = createdDomainIds.iterator().next();
 		Domain testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
 		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
+		final Link pdpLink = DomainAPIHelper.getMatchingLink("/pdp", testDomainResource.getChildResources().getLinks());
+		assertNotNull(pdpLink, "Missing link to PDP in response to getDomain(" + testDomainId + ")");
+		assertEquals(pdpLink.getRel(), Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP, "PDP link relation in response to getDomain(" + testDomainId
+				+ ") does not comply with REST profile of XACML 3.0");
 	}
 
 	@Test(dependsOnMethods = { "getDomain" })
