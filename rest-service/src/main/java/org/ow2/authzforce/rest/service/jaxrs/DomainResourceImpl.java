@@ -218,7 +218,13 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 
 		pdpLink.setHref(pdpResourcePath.value());
 		pdpLink.setTitle("Policy Decision Point");
-		pdpLink.setRel(Relation.ITEM);
+
+		/*
+		 * Conformance with test assertion 'urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp' of REST Profile of XACML v3.0 Version 1.0:
+		 * http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433. Example:
+		 * http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235419
+		 */
+		pdpLink.setRel(Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP);
 
 		final Resources childResources = new Resources(Arrays.asList(propsLink, papLink, pdpLink));
 		final ReadableDomainProperties props;

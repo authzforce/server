@@ -21,6 +21,10 @@ package org.ow2.authzforce.web.test;
 import org.apache.cxf.annotations.FastInfoset;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
 
+/**
+ * FastInfoset-aware API client
+ *
+ */
 @FastInfoset(force = true)
 public interface DomainsResourceFastInfoset extends DomainsResource
 {

@@ -1,10 +1,9 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
-
-# AuthZForce Server
+# AuthZForce Server (Community Edition)
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.3.0)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.3.0/?badge=release-5.3.0)
+[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.3.0a)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.3.0a/?badge=release-5.3.0a)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/authzforce-ce-server.svg)](https://hub.docker.com/r/fiware/authzforce-ce-server/)
 [![Support badge]( https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
 
 AuthZForce Server provides a multi-tenant RESTful API to Policy Administration Points (PAP) and Policy Decision Points (PDP) as defined in the [OASIS XACML 3.0 standard](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html).
 
@@ -55,7 +54,7 @@ The sources for the manuals are located in [fiware repository](http://github.com
 * Defined in standard [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources) so that you can automatically generate client code. 
 * Provides access to all PAP/PDP features mentioned in previous sections.
 * Multi-tenant: allows to have multiple domains/tenants, each with its own PAP/PDP, in particular its own policy repository.
-* Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html) (at the level of each domain) except for test `urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp` (to be fixed in next release)
+* Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html) 
 * [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) support for requests/responses.
 
 ### High availability and load-balancing
