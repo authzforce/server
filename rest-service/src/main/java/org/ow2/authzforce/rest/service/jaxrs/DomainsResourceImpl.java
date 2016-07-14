@@ -28,12 +28,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Context;
 
-import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.ow2.authzforce.core.pap.api.dao.DomainsDAO;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -53,7 +53,7 @@ public class DomainsResourceImpl implements DomainsResource
 	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
 
 	@Context
-	private MessageContext messageContext;
+	private HttpServletRequest httpRequest;
 
 	private final DomainsDAO<DomainResourceImpl<?>> domainRepo;
 
@@ -130,7 +130,7 @@ public class DomainsResourceImpl implements DomainsResource
 		// add domain on the fly
 		// rename to resourceCollection
 		final Set<String> authorizedDomainIDs = new HashSet<>();
-		final Object attrVal = messageContext == null ? null : messageContext.getHttpServletRequest().getAttribute(authorizedResourceAttrId);
+		final Object attrVal = httpRequest == null ? null : httpRequest.getAttribute(authorizedResourceAttrId);
 		// attrVal may be null
 		if (attrVal == null)
 		{
