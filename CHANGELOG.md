@@ -2,9 +2,12 @@
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [Semantic Versioning](http://semver.org) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
 
-## Unreleased
+## 5.4.0
 ### Added
 - Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html), especially test assertion [urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433) (FIWARE SEC-923). 
+
+### Changed
+- REST API model (authzforce-ce-rest-api-model) version: 5.3.1 (only text and FastInfoset-encoded XML are supported, not JSON)
 
 
 ## 5.3.0

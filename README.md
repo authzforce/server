@@ -54,7 +54,7 @@ The sources for the manuals are located in [fiware repository](http://github.com
 * Defined in standard [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources) so that you can automatically generate client code. 
 * Provides access to all PAP/PDP features mentioned in previous sections.
 * Multi-tenant: allows to have multiple domains/tenants, each with its own PAP/PDP, in particular its own policy repository.
-* Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html) (at the level of each domain) except for test `urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp` (to be fixed in next release)
+* Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html) 
 * [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) support for requests/responses.
 
 ### High availability and load-balancing
