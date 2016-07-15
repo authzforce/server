@@ -12,8 +12,6 @@ The manuals are available as downloadable HTML/PDF from the [releases page](http
 
 *If you are interested in using an embedded XACML-compliant PDP in your Java applications, AuthZForce also provides a PDP engine as a Java library in [Authzforce core project](http://github.com/authzforce/core).*
 
-Note for contributers:
-The sources for the manuals are located in [fiware repository](http://github.com/authzforce/fiware/doc).
 
 ## Features
 
@@ -59,3 +57,42 @@ The sources for the manuals are located in [fiware repository](http://github.com
 
 ### High availability and load-balancing
 * Integration with file synchronization tools (e.g. [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g. NFS and CIFS) to build clusters of AuthZForce Servers. 
+
+
+## Support
+Use the *Issues* tab on the Github repository page.
+
+## Contributing
+### Documentation
+The sources for the manuals are located in [fiware repository](http://github.com/authzforce/fiware/doc). 
+
+### Releasing
+1. From the develop branch, prepare a release (example using a HTTP proxy):
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-start
+</code></pre>
+1. Update the CHANGELOG according to keepachangelog.com.
+1. To perform the release (example using a HTTP proxy):
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-finish
+</code></pre>
+    If, after deployment, the command does not succeed because of some issue with the branches. Fix the issue, then re-run the same command but with 'noDeploy' option set to true to avoid re-deployment:
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 -DnoDeploy=true jgitflow:release-finish
+</code></pre>
+1. Connect and log in to the OSS Nexus Repository Manager: https://oss.sonatype.org/
+1. Go to Staging Profiles and select the pending repository authzforce-*... you just uploaded with `jgitflow:release-finish`
+1. Click the Release button to release to Maven Central.
+1. When the artifacts have been successfully published on Maven Central, follow the instructions in the [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
+1. Create a release on Github with the following text, replacing M/m/P with the new major/minor/patch versions:
+<pre>
+[Release notes](CHANGELOG.md#MmP)
+Binary distributions available on [Maven Central Repository](http://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/M.m.P/) in two forms:
+* Ubuntu package (recommended option): `.deb`;
+* Other Linux distributions: `.tar.gz`.
+
+Docker image available on [Docker Hub](https://hub.docker.com/r/fiware/authzforce-ce-server/tags/).
+
+Documentation available [online](http://authzforce-ce-fiware.readthedocs.io/en/release-M.m.P/) and as  downloadable [HTML](https://media.readthedocs.org/htmlzip/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.zip) and [PDF](https://media.readthedocs.org/pdf/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.pdf).
+</pre>
+
