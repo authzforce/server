@@ -2,6 +2,26 @@
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [Semantic Versioning](http://semver.org) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
 
+## Unreleased
+### Fixed
+- #22 (OW2): When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 
+- XACML StatusCode XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
+- Other issues reported by Codacy
+
+### Removed
+- 'functionSet' element no longer supported in PDP XML configuration schema
+
+### Changed
+- Parent project version to 3.4.0
+- Dependency versions: authzforce-ce-core: ???, authzforce-ce-core-pap-api: ???, authzforce-ce-pap-dao-flat-file: ???
+- Interpretation of XACML Request flag ReturnPolicyId=true, considering a policy "applicable" if and only if the decision is not NotApplicable and if it is not a root policy, the same goes for the enclosing policy. See also the discussion on the xacml-comment mailing list: https://lists.oasis-open.org/archives/xacml-comment/201605/msg00004.html
+- AttributeProvider module API: new environmentProperties parameter in factories, allowing module configurations to use global Environment properties like PARENT_DIR variable
+
+### Added
+- New feature enabled by PDP configuration parameter:  enum 'standardEnvAttributeSource' to set the source for the Standard Current Time Environment Attribute values (current-date, current-time, current-dateTime): PDP_ONLY, REQUEST_ELSE_PDP, REQUEST_ONLY
+- Upgrader tool now supporting migration from 5.1.x, 5.2.x, 5.3.x to current
+
+
 ## 5.4.0
 ### Added
 - Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html), especially test assertion [urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433) (FIWARE SEC-923). 
