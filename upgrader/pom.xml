@@ -48,7 +48,6 @@
       <dependency>
          <groupId>javax.servlet</groupId>
          <artifactId>javax.servlet-api</artifactId>
-         <version>3.0.1</version>
          <scope>test</scope>
       </dependency>
       <dependency>
@@ -94,7 +93,6 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>
-            <version>3.5</version>
             <!-- target JDK already set by parent project's maven.compiler.target property -->
             <configuration>
                <verbose>true</verbose>
@@ -112,7 +110,6 @@
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>findbugs-maven-plugin</artifactId>
-            <version>3.0.2</version>
             <configuration>
                <!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
                <effort>Max</effort>
@@ -268,6 +265,30 @@
                      </target>
                   </configuration>
                </execution>
+               <execution>
+                  <id>upgrade-from-5.1.x</id>
+                  <phase>generate-test-resources</phase>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+                  <configuration>
+                     <target>
+                        <copy todir="${project.basedir}/target/server/from-5.1.x/conf">
+                           <fileset dir="${project.basedir}/src/test/server/current/conf" />
+                        </copy>
+                        <taskdef resource="net/sf/antcontrib/antlib.xml" />
+                        <ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
+                           <property name="old.version" value="5.1.0" />
+                           <property name="old.install.dir" value="${project.basedir}/src/test/server/5.1.x" />
+                           <property name="new.install.dir" value="${project.basedir}/target/server/from-5.1.x" />
+                           <!-- <property name="ignore.domain.name" value="true" /> -->
+                           <!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
+                           <!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
+                           <!-- <property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" /> -->
+                        </ant>
+                     </target>
+                  </configuration>
+               </execution>
             </executions>
          </plugin>
          <plugin>
@@ -289,12 +310,13 @@
                      <value>2</value>
                   </property>
                </properties>
+               <!-- If run with Java 8, the JVM will reject 'http' schemaLocation of xml.xsd in XACML schema, unless you set this property -->
+                <argLine>-Djavax.xml.accessExternalSchema=http</argLine>
             </configuration>
          </plugin>
          <plugin>
             <groupId>com.ruleoftech</groupId>
             <artifactId>markdown-page-generator-plugin</artifactId>
-            <version>0.10</version>
             <executions>
                <execution>
                   <phase>package</phase>

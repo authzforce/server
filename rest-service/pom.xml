@@ -21,13 +21,11 @@
       <dependency>
          <groupId>javax.servlet</groupId>
          <artifactId>javax.servlet-api</artifactId>
-         <version>3.0.1</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.slf4j</groupId>
          <artifactId>log4j-over-slf4j</artifactId>
-         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
          <!-- For URL path segment escaper: http://google.github.io/guava/releases/18.0/api/docs/com/google/common/net/UrlEscapers.html#urlPathSegmentEscaper() -->
@@ -50,7 +48,6 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>
-            <version>3.5</version>
             <!-- target JDK already set by parent project's maven.compiler.target property -->
             <configuration>
                <verbose>true</verbose>
@@ -68,7 +65,6 @@
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>findbugs-maven-plugin</artifactId>
-            <version>3.0.2</version>
             <configuration>
                <!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
                <effort>Max</effort>

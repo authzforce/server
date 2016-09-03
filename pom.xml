@@ -4,7 +4,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-parent</artifactId>
-      <version>3.3.7</version>
+      <version>3.4.0</version>
    </parent>
    <artifactId>authzforce-ce-server</artifactId>
    <!-- FIWARE Versioning + Version must be equal or higher than 'authzforce-ce-rest-api-model' dependency in 'rest-service' module -->
@@ -15,10 +15,10 @@
    <url>https://github.com/authzforce/server</url>
    <properties>
       <git.url.base>https://github.com/authzforce/server</git.url.base>
-      <authzforce-ce-core.version>4.0.2</authzforce-ce-core.version>
-      <authzforce-ce-core-pap-api.version>5.2.1</authzforce-ce-core-pap-api.version>
+      <authzforce-ce-core.version>4.0.3-SNAPSHOT</authzforce-ce-core.version>
+      <authzforce-ce-core-pap-api.version>5.2.2-SNAPSHOT</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
-      <authzforce-ce-pap-dao-flat-file.version>6.0.1</authzforce-ce-pap-dao-flat-file.version>
+      <authzforce-ce-pap-dao-flat-file.version>6.0.2-SNAPSHOT</authzforce-ce-pap-dao-flat-file.version>
    </properties>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
@@ -57,4 +57,41 @@
       <module>upgrader</module>
       <module>dist</module>
    </modules>
+   <build>
+   	<pluginManagement>
+   		<plugins>
+   			<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+   			<plugin>
+   				<groupId>org.eclipse.m2e</groupId>
+   				<artifactId>lifecycle-mapping</artifactId>
+   				<version>1.0.0</version>
+   				<configuration>
+   					<lifecycleMappingMetadata>
+   						<pluginExecutions>
+   							<pluginExecution>
+   								<pluginExecutionFilter>
+   									<groupId>
+   										org.apache.maven.plugins
+   									</groupId>
+   									<artifactId>
+   										maven-antrun-plugin
+   									</artifactId>
+   									<versionRange>
+   										[1.6,)
+   									</versionRange>
+   									<goals>
+   										<goal>run</goal>
+   									</goals>
+   								</pluginExecutionFilter>
+   								<action>
+   									<ignore></ignore>
+   								</action>
+   							</pluginExecution>
+   						</pluginExecutions>
+   					</lifecycleMappingMetadata>
+   				</configuration>
+   			</plugin>
+   		</plugins>
+   	</pluginManagement>
+   </build>
 </project>

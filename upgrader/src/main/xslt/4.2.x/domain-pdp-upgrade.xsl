@@ -20,7 +20,7 @@
 
 -->
 <!-- PDP configuration upgrade XSL Sheet: 4.2.0 -> 5.1.x and above. To be used with Saxon XSLT processor. Author: Cyril DANGERVILLE. -->
-<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oldapi="http://thalesgroup.com/authz/model/3.0" xmlns:oldext="http://thalesgroup.com/authz/model/ext/3.0" xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12" xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oldapi="http://thalesgroup.com/authz/model/3.0" xmlns:oldext="http://thalesgroup.com/authz/model/ext/3.0" xmlns:old="http://thalesgroup.com/authzforce/pdp/model/2014/12" xmlns="http://authzforce.github.io/core/xmlns/pdp/5.0" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	exclude-result-prefixes="oldapi oldext old">
 	<xsl:import href="../xacml3-policy-c14n.xsl" />
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
@@ -41,7 +41,7 @@
 	<xsl:template match="old:pdps">
 		<xsl:apply-templates select="document($refPoliciesFileURI)/oldapi:policySets/xacml:PolicySet" />
 		<xsl:apply-templates select="$rootPolicy" />
-		<pdp version="3.6.4" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" strictAttributeIssuerMatch="false" requestFilter="{$requestFilter}">
+		<pdp version="5.0.0" maxVariableRefDepth="{$maxVariableRefDepth}" maxPolicyRefDepth="{$maxPolicyRefDepth}" strictAttributeIssuerMatch="false" requestFilter="{$requestFilter}">
 			<xsl:apply-templates select="old:attributeFactory/old:datatype" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:function|old:functionFactory/old:condition/old:function|old:functionFactory/old:general/old:function" />
 			<xsl:apply-templates select="old:functionFactory/old:target/old:abstractFunction|old:functionFactory/old:condition/old:abstractFunction|old:functionFactory/old:general/old:abstractFunction" />
@@ -93,9 +93,10 @@
 
 	<!-- Function sets -->
 	<xsl:template match="old:functionCluster">
-		<functionSet>
-			<xsl:value-of select="@class" />
-		</functionSet>
+		<xsl:message terminate="yes">
+			This upgrader tool does not support migration of 'functionCluster' elements.
+			Please convert any 'functionCluster' to the equivalent sequence of 'function' elements (one per function in the cluster) in your PDP configuration files (pdp.xml) and try the upgrade tool again.
+		</xsl:message>
 	</xsl:template>
 
 	<!-- Policy/Rule combining algorithms -->

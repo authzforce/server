@@ -29,5 +29,11 @@
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
       </classes>
    </test>
+   <test name="Test_upgrade_from_5.1.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-5.1.x" />
+      <classes>
+         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
+      </classes>
+   </test>
 </suite> 
 
