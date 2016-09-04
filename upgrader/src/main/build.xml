@@ -30,19 +30,21 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 
-	<property name="old.version" value="" description="Old Authzforce version: 4.2.x, 4.3.x or 4.4.x" />
+	<property name="old.version" value="" description="Old Authzforce version: 4.2.x, 4.3.x, 4.4.x, 5.1.x, 5.2.x, 5.3.x" />
 	<condition property="old.version.pattern" value="4.2.x">
 		<matches pattern="4\.2\..*" string="${old.version}" />
 	</condition>
 	<condition property="no.old.policies.dir" value="true">
 		<equals arg1="${old.version.pattern}" arg2="4.2.x" />
 	</condition>
-
 	<condition property="old.version.pattern" value="4.3.x">
 		<matches pattern="4\.3\..*" string="${old.version}" />
 	</condition>
 	<condition property="old.version.pattern" value="4.4.x">
 		<matches pattern="4\.4\..*" string="${old.version}" />
+	</condition>
+	<condition property="old.version.pattern" value="5.1.x">
+		<matches pattern="5\.(1|2|3)\..*" string="${old.version}" />
 	</condition>
 	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 4.2.x, 4.3.x or 4.4.x" unless="old.version.pattern" />
 	<property name="xslt.dir" location="xslt/${old.version.pattern}" />

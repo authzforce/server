@@ -12,7 +12,7 @@
 	with Saxon XSLT processor. Author: Cyril DANGERVILLE. -->
 <xsl:stylesheet version="2.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://authzforce.github.io/core/xmlns/pdp/3.6">
+	xmlns:old="http://authzforce.github.io/core/xmlns/pdp/3.6" xmlns="http://authzforce.github.io/core/xmlns/pdp/5.0">
 	<xsl:import href="../xacml3-policy-c14n.xsl" />
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" />
 
@@ -30,7 +30,8 @@
 				select="'http://www.w3.org/2001/XMLSchema-instance'" />
 			<xsl:namespace name="flat-file-dao"
 				select="'http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6'" />
-			<xsl:apply-templates select="@* | node()" />
+			<xsl:attribute name="version">5.0.0</xsl:attribute>
+			<xsl:apply-templates select="@*[name()!='version'] | node()" />
 		</xsl:element>
 	</xsl:template>
 
@@ -48,14 +49,28 @@
 		<!-- Do nothing, do not copy. -->
 	</xsl:template>
 
+	<xsl:template match="old:functionSet">
+		<xsl:message terminate="yes">
+			This upgrader tool does not support migration of 'functionSet'
+			(deprecated)
+			elements.
+			Please convert any 'functionSet' to the
+			equivalent sequence
+			of 'function' elements (one per function in the
+			set) in your PDP
+			configuration files (pdp.xml) and try the upgrade
+			tool again.
+		</xsl:message>
+	</xsl:template>
+
 	<xsl:template match="@requestFilter">
 		<xsl:attribute name="requestFilter" select="string($requestFilter)" />
 	</xsl:template>
-	
+
 	<xsl:template match="@maxVariableRefDepth">
-		<xsl:attribute name="maxVariableRefDepth"  select="string($maxVariableRefDepth)" />
+		<xsl:attribute name="maxVariableRefDepth" select="string($maxVariableRefDepth)" />
 	</xsl:template>
-	
+
 	<xsl:template match="@maxPolicyRefDepth">
 		<xsl:attribute name="maxPolicyRefDepth" select="string($maxPolicyRefDepth)" />
 	</xsl:template>

@@ -1,6 +1,6 @@
 # AuthZForce Server (Community Edition)
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.3.0a)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.3.0a/?badge=release-5.3.0a)
+[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.4.1)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.4.1/?badge=release-5.4.1)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/authzforce-ce-server.svg)](https://hub.docker.com/r/fiware/authzforce-ce-server/)
 [![Support badge]( https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
@@ -12,8 +12,6 @@ The manuals are available as downloadable HTML/PDF from the [releases page](http
 
 *If you are interested in using an embedded XACML-compliant PDP in your Java applications, AuthZForce also provides a PDP engine as a Java library in [Authzforce core project](http://github.com/authzforce/core).*
 
-Note for contributers:
-The sources for the manuals are located in [fiware repository](http://github.com/authzforce/fiware/doc).
 
 ## Features
 
@@ -59,3 +57,42 @@ The sources for the manuals are located in [fiware repository](http://github.com
 
 ### High availability and load-balancing
 * Integration with file synchronization tools (e.g. [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g. NFS and CIFS) to build clusters of AuthZForce Servers. 
+
+
+## Support
+Use the *Issues* tab on the Github repository page.
+Please include as much information as possible; the more we know, the better the chance of a quicker resolution:
+
+* Software version
+* Platform (OS and JDK)
+* Stack traces generally really help! If in doubt include the whole thing; often exceptions get wrapped in other exceptions and the exception right near the bottom explains the actual error, not the first few lines at the top. It's very easy for us to skim-read past unnecessary parts of a stack trace.
+* Log output can be useful too; sometimes enabling DEBUG logging can help;
+* Your code & configuration files are often useful.
+
+If you wish to contact the developers for other reasons, use [Authzforce contact mailing list](http://scr.im/azteam).
+
+## Contributing
+### Documentation
+The sources for the manuals are located in [fiware repository](http://github.com/authzforce/fiware/doc). 
+
+### Releasing
+1. From the develop branch, prepare a release (example using a HTTP proxy):
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-start
+</code></pre>
+1. Update the CHANGELOG according to keepachangelog.com.
+1. To perform the release (example using a HTTP proxy):
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-finish
+</code></pre>
+    If, after deployment, the command does not succeed because of some issue with the branches. Fix the issue, then re-run the same command but with 'noDeploy' option set to true to avoid re-deployment:
+<pre><code>
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 -DnoDeploy=true jgitflow:release-finish
+</code></pre>
+  More info on jgitflow: http://jgitflow.bitbucket.org/
+1. Connect and log in to the OSS Nexus Repository Manager: https://oss.sonatype.org/
+1. Go to Staging Profiles and select the pending repository authzforce-*... you just uploaded with `jgitflow:release-finish`
+1. Click the Release button to release to Maven Central.
+1. When the artifacts have been successfully published on Maven Central, follow the instructions in the [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
+1. Update the versions in badges at the top of this file.
+1. Create a release on Github with a description based on the [release description template](release.description.tmpl.md), replacing M/m/P with the new major/minor/patch versions.

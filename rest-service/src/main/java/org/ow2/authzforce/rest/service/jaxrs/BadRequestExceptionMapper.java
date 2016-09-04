@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 /**
- * @see org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper WebApplicationExceptionMapper
+ * JAX-RS {@link ExceptionMapper} for {@link BadRequestException}
  */
 @Provider
 public class BadRequestExceptionMapper implements ExceptionMapper<BadRequestException>
@@ -44,9 +44,9 @@ public class BadRequestExceptionMapper implements ExceptionMapper<BadRequestExce
 	private static final String INVALID_PARAM_MSG_PREFIX = "Invalid parameters: ";
 
 	@Override
-	public Response toResponse(BadRequestException exception)
+	public Response toResponse(final BadRequestException exception)
 	{
-		LOGGER.warn("Bad request", exception);
+		LOGGER.info("Bad request", exception);
 		final Response oldResp = exception.getResponse();
 		final String errMsg;
 		final Throwable cause = exception.getCause();
@@ -60,23 +60,28 @@ public class BadRequestExceptionMapper implements ExceptionMapper<BadRequestExce
 				{
 					final Throwable linkedEx = ((JAXBException) internalCause).getLinkedException();
 					errMsg = INVALID_PARAM_MSG_PREFIX + linkedEx.getMessage();
-				} else
+				}
+				else
 				{
 					errMsg = INVALID_PARAM_MSG_PREFIX + cause.getMessage();
 				}
-			} else if (cause instanceof JAXBException)
+			}
+			else if (cause instanceof JAXBException)
 			{
 				final Throwable linkedEx = ((JAXBException) cause).getLinkedException();
 				errMsg = INVALID_PARAM_MSG_PREFIX + linkedEx.getMessage();
-			} else if (cause instanceof IllegalArgumentException)
+			}
+			else if (cause instanceof IllegalArgumentException)
 			{
 				final Throwable internalCause = cause.getCause();
 				errMsg = cause.getMessage() + (internalCause == null ? "" : ": " + internalCause.getMessage());
-			} else
+			}
+			else
 			{
 				errMsg = cause.getMessage();
 			}
-		} else
+		}
+		else
 		{
 			// handle case where cause message is only in the response message (no exception object
 			// in stacktrace), e.g. JAXBException
@@ -85,7 +90,8 @@ public class BadRequestExceptionMapper implements ExceptionMapper<BadRequestExce
 			{
 				// hide "JAXBException..." when it occurs and only keep the JAXBException message
 				errMsg = JAXBEXCEPTION_MSG_START_PATTERN.matcher((String) oldEntity).replaceFirst(INVALID_PARAM_MSG_PREFIX);
-			} else
+			}
+			else
 			{
 				errMsg = null;
 			}

@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>5.4.0</version>
+      <version>5.4.1</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-dist</artifactId>
@@ -95,7 +95,6 @@
          <plugin>
             <groupId>com.ruleoftech</groupId>
             <artifactId>markdown-page-generator-plugin</artifactId>
-            <version>0.10</version>
             <executions>
                <execution>
                   <phase>package</phase>

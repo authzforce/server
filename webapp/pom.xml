@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>5.4.0</version>
+      <version>5.4.1</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-webapp</artifactId>
@@ -35,7 +35,6 @@
       <dependency>
          <groupId>javax.servlet</groupId>
          <artifactId>javax.servlet-api</artifactId>
-         <version>3.0.1</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
@@ -79,7 +78,6 @@
       <dependency>
          <groupId>org.apache.cxf</groupId>
          <artifactId>cxf-rt-rs-service-description</artifactId>
-         <version>${cxf.version}</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>

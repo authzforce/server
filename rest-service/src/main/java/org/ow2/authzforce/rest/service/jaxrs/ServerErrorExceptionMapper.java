@@ -30,18 +30,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @see org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper WebApplicationExceptionMapper
+ * JAX-RS {@link ExceptionMapper} for {@link InternalServerErrorException}
  */
 @Provider
 public class ServerErrorExceptionMapper implements ExceptionMapper<InternalServerErrorException>
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ServerErrorExceptionMapper.class);
 	private final static String INTERNAL_ERR_MSG = "Internal server error";
-	private final static org.ow2.authzforce.rest.api.xmlns.Error ERROR = new org.ow2.authzforce.rest.api.xmlns.Error(INTERNAL_ERR_MSG
-			+ ". Retry later or contact the administrator.");
+	private final static org.ow2.authzforce.rest.api.xmlns.Error ERROR = new org.ow2.authzforce.rest.api.xmlns.Error(INTERNAL_ERR_MSG + ". Retry later or contact the administrator.");
 
 	@Override
-	public Response toResponse(InternalServerErrorException exception)
+	public Response toResponse(final InternalServerErrorException exception)
 	{
 		LOGGER.error(INTERNAL_ERR_MSG, exception);
 		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ERROR).build();
