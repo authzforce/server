@@ -2,7 +2,9 @@
 {currentYear=${currentYear}}
 # AuthZForce Upgrader
 
-To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project.version}, proceed as follows:
+If you intend to install a new version of Authzforce on the same server as the old version, first create a backup of the folder `/opt/authzforce` in the case of v4.2.0, or `/opt/authzforce-ce-server` for later versions, and proceed with the instructions below, using the backup folder as `old.install.dir`.
+
+To upgrade AuhZForce data from an older version to ${project.version}, proceed as follows:
 
 1. Install Ivy and Ant-Contrib on your system:
 
@@ -25,7 +27,7 @@ To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project
     </xsl:when>
     ```
 
-1. Run the following command, where argument `old.version` is the old version (in the form `4.x.y`) of Authzforce you are upgrading from, argument `old.install.dir` is the installation directory of the old version, and argument `new.install.dir` is the new installation directory of the Authzforce version corresponding to this upgrade tool:
+1. Run the following command, where argument `old.version` is the old version (in the form `x.y.z`) of Authzforce you are upgrading from, argument `old.install.dir` is the installation directory of the old version, or a backup of it if you are installing the new version on the same server, and argument `new.install.dir` is the new installation directory of the Authzforce version corresponding to this upgrade tool:
 
     *WARNING 1: by default, for each domain, the following command will convert the old domain property 'name' to the new 'externalId' property (the value is copied from one to the other during the upgrade).* **Make sure that each old domain 'name' is UNIQUE.** *Indeed, each 'externalId' MUST BE UNIQUE after the upgrade. If this is not the case, either fix it or skip this conversion step by adding the following argument: `-Dignore.domain.name=true`. In this case, the 'externalId' will not be set by the upgrader tool. This is not an issue for new AuthZForce versions since 'externalId' values are optional. You may set them later with the API if you need to.*
 
@@ -57,7 +59,7 @@ To upgrade AuhZForce data from a R4 version (4.2.x, 4.3.x or 4.4.x) to ${project
 
 1. Restart Tomcat on the new AuthZForce server to load the new data.
 
-1. If your old Authzforce version was 4.2.0 and the upgrade was successful, you may remote this old version:
+1. If your old Authzforce version was 4.2.0 and the upgrade was successful, you may remove this old version:
    ```shell
     $ sudo aptitude purge authzforce
     ```

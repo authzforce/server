@@ -27,22 +27,21 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 /**
- * @see org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper WebApplicationExceptionMapper
+ * JAX-RS {@link ExceptionMapper} for {@link ClientErrorException}
  */
 @Provider
 public class ClientErrorExceptionMapper implements ExceptionMapper<ClientErrorException>
 {
 
 	@Override
-	public Response toResponse(ClientErrorException exception)
+	public Response toResponse(final ClientErrorException exception)
 	{
 
 		// if NotFoundException has root cause, we expect the root cause message to be more specific
 		// on what resource could not be found, so return this message to the client
 		if (exception.getCause() != null)
 		{
-			final org.ow2.authzforce.rest.api.xmlns.Error errorEntity = new org.ow2.authzforce.rest.api.xmlns.Error(
-					exception.getCause().getMessage());
+			final org.ow2.authzforce.rest.api.xmlns.Error errorEntity = new org.ow2.authzforce.rest.api.xmlns.Error(exception.getCause().getMessage());
 			return Response.status(exception.getResponse().getStatus()).entity(errorEntity).build();
 		}
 
