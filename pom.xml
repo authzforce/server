@@ -15,10 +15,10 @@
    <url>https://github.com/authzforce/server</url>
    <properties>
       <git.url.base>https://github.com/authzforce/server</git.url.base>
-      <authzforce-ce-core.version>4.0.3-SNAPSHOT</authzforce-ce-core.version>
-      <authzforce-ce-core-pap-api.version>5.2.2-SNAPSHOT</authzforce-ce-core-pap-api.version>
+      <authzforce-ce-core.version>5.0.2</authzforce-ce-core.version>
+      <authzforce-ce-core-pap-api.version>5.3.0</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
-      <authzforce-ce-pap-dao-flat-file.version>6.0.2-SNAPSHOT</authzforce-ce-pap-dao-flat-file.version>
+      <authzforce-ce-pap-dao-flat-file.version>6.1.0</authzforce-ce-pap-dao-flat-file.version>
    </properties>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
@@ -28,11 +28,6 @@
    </scm>
    <dependencyManagement>
       <dependencies>
-         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>${artifactId.prefix}-core</artifactId>
-            <version>${authzforce-ce-core.version}</version>
-         </dependency>
          <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>${artifactId.prefix}-core</artifactId>

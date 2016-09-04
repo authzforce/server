@@ -8,18 +8,18 @@ All notable changes to this project are documented in this file following the [K
 - XACML StatusCode XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
 - Other issues reported by Codacy
 
-### Removed
-- 'functionSet' element no longer supported in PDP XML configuration schema
-
 ### Changed
-- Parent project version to 3.4.0
-- Dependency versions: authzforce-ce-core: ???, authzforce-ce-core-pap-api: ???, authzforce-ce-pap-dao-flat-file: ???
+- Parent project version: authzforce-ce-parent: 3.4.0
+- Dependency versions: authzforce-ce-core-pap-api: 5.3.0, authzforce-ce-pap-dao-flat-file: 6.1.0
 - Interpretation of XACML Request flag ReturnPolicyId=true, considering a policy "applicable" if and only if the decision is not NotApplicable and if it is not a root policy, the same goes for the enclosing policy. See also the discussion on the xacml-comment mailing list: https://lists.oasis-open.org/archives/xacml-comment/201605/msg00004.html
 - AttributeProvider module API: new environmentProperties parameter in factories, allowing module configurations to use global Environment properties like PARENT_DIR variable
+- New PDP XML configuration (file 'conf/domain.tmpl/pdp.xml'): schema namespace = http://authzforce.github.io/core/xmlns/pdp/5.0 (previous namespace: http://authzforce.github.io/core/xmlns/pdp/3.6).
+  - Removed 'functionSet' element
+  - Added 'standardEnvAttributeSource' attribute (enum): sets the source for the Standard Current Time Environment Attribute values (current-date, current-time, current-dateTime): PDP_ONLY, REQUEST_ELSE_PDP, REQUEST_ONLY
+  - Added 'badRequestStatusDetailLevel' attribute (positive integer) sets the level of detail of the error message in StatusDetail returned in Indeterminate Results in case of bad Requests
 
 ### Added
-- New feature enabled by PDP configuration parameter:  enum 'standardEnvAttributeSource' to set the source for the Standard Current Time Environment Attribute values (current-date, current-time, current-dateTime): PDP_ONLY, REQUEST_ELSE_PDP, REQUEST_ONLY
-- Upgrader tool now supporting migration from 5.1.x, 5.2.x, 5.3.x to current
+- Upgrader tool now supporting migration from 5.1.x, 5.2.x, 5.3.x, 5.4.x to current (to help deal with PDP XML schema changes, esp. namespace)
 
 
 ## 5.4.0

@@ -61,6 +61,15 @@ The manuals are available as downloadable HTML/PDF from the [releases page](http
 
 ## Support
 Use the *Issues* tab on the Github repository page.
+Please include as much information as possible; the more we know, the better the chance of a quicker resolution:
+
+* Software version
+* Platform (OS and JDK)
+* Stack traces generally really help! If in doubt include the whole thing; often exceptions get wrapped in other exceptions and the exception right near the bottom explains the actual error, not the first few lines at the top. It's very easy for us to skim-read past unnecessary parts of a stack trace.
+* Log output can be useful too; sometimes enabling DEBUG logging can help;
+* Your code & configuration files are often useful.
+
+If you wish to contact the developers for other reasons, use [Authzforce contact mailing list](http://scr.im/azteam).
 
 ## Contributing
 ### Documentation
@@ -80,6 +89,7 @@ The sources for the manuals are located in [fiware repository](http://github.com
 <pre><code>
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 -DnoDeploy=true jgitflow:release-finish
 </code></pre>
+  More info on jgitflow: http://jgitflow.bitbucket.org/
 1. Connect and log in to the OSS Nexus Repository Manager: https://oss.sonatype.org/
 1. Go to Staging Profiles and select the pending repository authzforce-*... you just uploaded with `jgitflow:release-finish`
 1. Click the Release button to release to Maven Central.
