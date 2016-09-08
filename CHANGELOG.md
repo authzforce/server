@@ -5,18 +5,18 @@ All notable changes to this project are documented in this file following the [K
 ## 5.4.1
 ### Fixed
 - #22 (OW2): When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 
-- XACML StatusCode XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
+- XACML `StatusCode` XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
 - Other issues reported by Codacy
 
 ### Changed
 - Parent project version: authzforce-ce-parent: 3.4.0
 - Dependency versions: authzforce-ce-core-pap-api: 5.3.0, authzforce-ce-pap-dao-flat-file: 6.1.0
-- Interpretation of XACML Request flag ReturnPolicyId=true, considering a policy "applicable" if and only if the decision is not NotApplicable and if it is not a root policy, the same goes for the enclosing policy. See also the discussion on the xacml-comment mailing list: https://lists.oasis-open.org/archives/xacml-comment/201605/msg00004.html
-- AttributeProvider module API: new environmentProperties parameter in factories, allowing module configurations to use global Environment properties like PARENT_DIR variable
-- New PDP XML configuration (file 'conf/domain.tmpl/pdp.xml'): schema namespace = http://authzforce.github.io/core/xmlns/pdp/5.0 (previous namespace: http://authzforce.github.io/core/xmlns/pdp/3.6).
-  - Removed 'functionSet' element
-  - Added 'standardEnvAttributeSource' attribute (enum): sets the source for the Standard Current Time Environment Attribute values (current-date, current-time, current-dateTime): PDP_ONLY, REQUEST_ELSE_PDP, REQUEST_ONLY
-  - Added 'badRequestStatusDetailLevel' attribute (positive integer) sets the level of detail of the error message in StatusDetail returned in Indeterminate Results in case of bad Requests
+- Interpretation of XACML Request flag `ReturnPolicyId=true`, considering a policy as _applicable_ if and only if the decision is not `NotApplicable` and if it is not a root policy, the same goes for the enclosing policy. See also the [discussion on the xacml-comment mailing list](https://lists.oasis-open.org/archives/xacml-comment/201605/msg00004.html).
+- AttributeProvider module API: new environmentProperties parameter in factories, allowing module configurations to use global Environment properties like `PARENT_DIR` variable
+- New PDP XML configuration schema namespace (used in file `conf/domain.tmpl/pdp.xml`): `http://authzforce.github.io/core/xmlns/pdp/5.0` (previous namespace: `http://authzforce.github.io/core/xmlns/pdp/3.6`).
+  - Removed `functionSet` element
+  - Added `standardEnvAttributeSource` attribute (enum): sets the source for the Standard Current Time Environment Attribute values (current-date, current-time, current-dateTime): `PDP_ONLY`, `REQUEST_ELSE_PDP`, `REQUEST_ONLY`
+  - Added `badRequestStatusDetailLevel` attribute (positive integer) sets the level of detail of the error message in `StatusDetail` returned in Indeterminate Results in case of bad Requests
 
 ### Added
 - Upgrader tool now supporting migration from 5.1.x, 5.2.x, 5.3.x, 5.4.x to current (to help deal with PDP XML schema changes, esp. namespace)
@@ -27,7 +27,7 @@ All notable changes to this project are documented in this file following the [K
 - Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html), especially test assertion [urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433) (FIWARE SEC-923). 
 
 ### Changed
-- REST API model (authzforce-ce-rest-api-model) version: 5.3.1 (only text and FastInfoset-encoded XML are supported, not JSON)
+- REST API model (authzforce-ce-rest-api-model) version: 5.3.1: changed `elementFormDefault` to _qualified_ in the XML schema for API payloads (and only text and FastInfoset-encoded XML are supported, not JSON)
 
 
 ## 5.3.0
