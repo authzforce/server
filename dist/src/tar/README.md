@@ -67,7 +67,7 @@ If Tomcat fails to (re)start, check for any Tomcat high-level error in Tomcat lo
 One common reason for failure is Tomcat default configuration may specify a value for the Java `Xmx` flag that is too low for the AuthZForce webapp. Make sure Tomcat is configured with `Xmx` at 1GB or more, 2 GB recommended. For example, in the official Tomcat package for Ubuntu 12.04, Xmx used to be 128m. You can fix this parameter as follows:
 
 ```shell
-$ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat
+$ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat7
 $ sudo service tomcat7 restart
 ```
 
