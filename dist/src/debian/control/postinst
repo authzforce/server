@@ -18,7 +18,7 @@ fi
 
 echo "If Tomcat fails to restart, check for any Tomcat high-level error in Tomcat log directory: /var/log/tomcat7"
 echo "One common reason for failure is Tomcat default configuration may specify a very low value for the Java Xmx flag. Make sure Tomcat is configured with Xmx at 1GB or more, 2 GB recommended. For example, in the official Tomcat package for Ubuntu 12.04, Xmx used to be 128m. You can fix this parameter as follows:"
-echo "    $ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat"
+echo "    $ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat7"
 echo "    $ sudo service tomcat7 restart"
 echo "If Tomcat is started but AuthZForce webapp deployment fails, check for any webapp-specific error in file: /var/log/tomcat7/authzforce-ce/error.log"
 echo "When the webapp is up and running, you should get a HTTP response with status code 200 to this HTTP request with curl tool (replace 8080 with the port Tomcat is listening to):"
