@@ -1,14 +1,16 @@
-Template: [[productName]]/keepSamples
+Template: authzforce-ce-server/keepSamples
 Type: boolean
 Default: false
 Description: Do you want to keep the test domain created by default?
- The installation creates a test domain by default to get started testing the API quickly. If this is a production system, you may not need this 
+ The installation creates a test domain by default to get started testing the API quickly. If this is a production system, you may not need this
  (answer: No). If you answer No, you can always create domains later with the API.
 
-Template: [[productName]]/restartTomcat
+Template: authzforce-ce-server/restartTomcat
 Type: boolean
 Default: true
-Description: Do you want to restart Tomcat now to load the AuthZForce webapp?
- The AuthZForce webapp is now ready to be loaded by Tomcat. If Tomcat is configured for automatic deployment, you do not need to do this and may answer No. 
- Anyway, if you answer No, you can always restart Tomcat later with this command:
- $ sudo service tomcat7 restart
+Description: Do you want to apply recommended Tomcat settings for AuthZForce (and restart Tomcat to apply changes)?
+ We recommend the following Tomcat settings for AuthzForce:
+        JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=http -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
+ Do you agree to apply these settings to Tomcat init script (/etc/default/tomcat8) now?
+ If you answer No, you can always apply these manually and restart Tomcat later with this command:
+        $ systemctl restart tomcat8
