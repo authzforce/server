@@ -142,7 +142,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		try
 		{
 			JAXB_CTX = JAXBContext.newInstance(PolicySet.class, Request.class, Resources.class, DomainProperties.class, TestAttributeProvider.class);
-		} catch (JAXBException e)
+		}
+		catch (final JAXBException e)
 		{
 			throw new RuntimeException("Error instantiating JAXB context for XML to Java binding", e);
 		}
@@ -160,7 +161,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected final static String REQUEST_FILENAME = "request.xml";
 
 	/**
-	 * XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists in the test directory
+	 * Root XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists in the test directory
 	 */
 	protected final static String TEST_POLICY_FILENAME = "policy.xml";
 
@@ -184,12 +185,12 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTest.class);
 
-	protected static PolicySet createDumbPolicySet(String policyId, String version)
+	protected static PolicySet createDumbPolicySet(final String policyId, final String version)
 	{
 		return createDumbPolicySet(policyId, version, null);
 	}
 
-	protected static PolicySet createDumbPolicySet(String policyId, String version, String description)
+	protected static PolicySet createDumbPolicySet(final String policyId, final String version, final String description)
 	{
 		return new PolicySet(description, null, null, new Target(null), null, null, null, policyId, version, "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit",
 				BigInteger.ZERO);
@@ -230,8 +231,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * @throws IOException
 	 * @throws LifecycleException
 	 */
-	private static Tomcat startServer(int port, boolean enableFastInfoset, int domainSyncIntervalSec, boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException,
-			LifecycleException
+	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean addSampleDomain) throws ServletException,
+			IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -289,7 +290,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 * "Duplicate context initialization parameter") spring.profiles.active may be set either via servletConfig init param or servletContext init param or JNDI property
 		 * java:comp/env/spring.profiles.active or system property
 		 */
-		ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
+		final ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
 		springActiveProfileEnv.setName("spring.profiles.active");
 		springActiveProfileEnv.setType("java.lang.String");
 		springActiveProfileEnv.setValue((enableFastInfoset ? "+" : "-") + "fastinfoset");
@@ -297,7 +298,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		webappNamingResources.addEnvironment(springActiveProfileEnv);
 
 		// override env-entry for domains sync interval
-		ContextEnvironment syncIntervalEnv = new ContextEnvironment();
+		final ContextEnvironment syncIntervalEnv = new ContextEnvironment();
 		syncIntervalEnv.setName("org.ow2.authzforce.domains.sync.interval");
 		syncIntervalEnv.setType("java.lang.Integer");
 		syncIntervalEnv.setValue(Integer.toString(domainSyncIntervalSec));
@@ -305,14 +306,14 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		webappNamingResources.addEnvironment(syncIntervalEnv);
 
 		// Override Anti-XML-DOS properties
-		ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
+		final ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
 		staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
 		staxMaxChildElementsEnv.setType("java.lang.Integer");
 		staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
 		staxMaxChildElementsEnv.setOverride(false);
 		webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
 
-		ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
+		final ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
 		staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
 		staxMaxElementDepthEnv.setType("java.lang.Integer");
 		staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
@@ -321,21 +322,21 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 		if (!enableFastInfoset)
 		{
-			ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
+			final ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
 			staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
 			staxMaxAttCountEnv.setType("java.lang.Integer");
 			staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
 			staxMaxAttCountEnv.setOverride(false);
 			webappNamingResources.addEnvironment(staxMaxAttCountEnv);
 
-			ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
+			final ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
 			staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
 			staxMaxAttSizeEnv.setType("java.lang.Integer");
 			staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
 			staxMaxAttSizeEnv.setOverride(false);
 			webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
 
-			ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
+			final ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
 			staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
 			staxMaxTextLengthEnv.setType("java.lang.Integer");
 			staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
@@ -353,7 +354,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return embeddedServer;
 	}
 
-	protected void startServerAndInitCLient(String remoteAppBaseUrl, boolean enableFastInfoset, int domainSyncIntervalSec) throws Exception
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final boolean enableFastInfoset, final int domainSyncIntervalSec) throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -395,7 +396,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			 * Server is a local/embedded one
 			 */
 			serverBaseAddress = "http://127.0.0.1:" + EMBEDDED_SERVER_PORT.get() + EMBEDDED_APP_CONTEXT_PATH;
-		} else
+		}
+		else
 		{
 			serverBaseAddress = remoteAppBaseUrl;
 		}
@@ -416,7 +418,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			 */
 			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(true));
 			checkFiInterceptors(proxyClientConf);
-		} else
+		}
+		else
 		{
 			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
 			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
@@ -465,7 +468,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	public static void main(String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
+	public static void main(final String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
 	{
 		final int port;
 		final boolean enableFastInfoset;
@@ -475,14 +478,16 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			port = 8080;
 			enableFastInfoset = false;
 			domainSyncIntervalSec = -1;
-		} else if (args.length < 2)
+		}
+		else if (args.length < 2)
 		{
 			System.out.println("Usage: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec]");
 			System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
 			System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
 			System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
 			throw new IllegalArgumentException("Invalid args. Expected args: enableFastInfoset domainsSyncIntervalSec");
-		} else
+		}
+		else
 		{
 			port = Integer.parseInt(args[0], 10);
 			enableFastInfoset = Boolean.valueOf(args[1]);
@@ -494,10 +499,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		tomcat.getServer().await();
 	}
 
-	private static void checkFiInterceptors(ClientConfiguration cfg)
+	private static void checkFiInterceptors(final ClientConfiguration cfg)
 	{
 		int count = 0;
-		for (Interceptor<?> in : cfg.getInInterceptors())
+		for (final Interceptor<?> in : cfg.getInInterceptors())
 		{
 			if (in instanceof FIStaxInInterceptor)
 			{
@@ -505,7 +510,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				break;
 			}
 		}
-		for (Interceptor<?> in : cfg.getOutInterceptors())
+		for (final Interceptor<?> in : cfg.getOutInterceptors())
 		{
 			if (in instanceof FIStaxOutInterceptor)
 			{

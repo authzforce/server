@@ -75,5 +75,12 @@
          <class name="org.ow2.authzforce.web.test.DomainTestWithAutoSyncAndVersionRolling" />
       </classes>
    </test>
+   <test name="Test_AdminPolicy" preserve-order="true" enabled="true">
+       <parameter name="enableFastInfoset" value="false" />
+      <classes>
+         <!-- Domain-specific testing -->
+         <class name="org.ow2.authzforce.web.test.AdminDomainTest" />
+      </classes>
+   </test>
 </suite> 
 

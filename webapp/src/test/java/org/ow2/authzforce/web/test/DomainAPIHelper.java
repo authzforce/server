@@ -38,8 +38,11 @@ import javax.xml.transform.stream.StreamSource;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
+import org.ow2.authzforce.core.test.utils.TestUtils;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
 import org.ow2.authzforce.core.xmlns.pdp.StaticRefBasedRootPolicyProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
@@ -48,12 +51,14 @@ import org.ow2.authzforce.rest.api.jaxrs.PdpPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
 import org.ow2.authzforce.rest.api.jaxrs.PrpPropertiesResource;
+import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.Feature;
 import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
+import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2005.atom.Link;
@@ -76,7 +81,7 @@ class DomainAPIHelper
 
 	private final PdpModelHandler pdpModelHandler;
 
-	DomainAPIHelper(String domainId, DomainResource domain, Unmarshaller apiXmlUnmarshaller, PdpModelHandler pdpModelHandler)
+	DomainAPIHelper(final String domainId, final DomainResource domain, final Unmarshaller apiXmlUnmarshaller, final PdpModelHandler pdpModelHandler)
 	{
 		this.domain = domain;
 		final File testDomainDir = new File(RestServiceTest.DOMAINS_DIR, domainId);
@@ -87,7 +92,7 @@ class DomainAPIHelper
 		this.pdpModelHandler = pdpModelHandler;
 	}
 
-	static void matchPolicySets(PolicySet actual, PolicySet expected, String testedMethodId)
+	static void matchPolicySets(final PolicySet actual, final PolicySet expected, final String testedMethodId)
 	{
 		assertEquals(actual.getPolicySetId(), expected.getPolicySetId(),
 				String.format("Actual PolicySetId (='%s') from %s() != expected PolicySetId (='%s')", actual.getPolicySetId(), testedMethodId, expected.getPolicySetId()));
@@ -105,9 +110,9 @@ class DomainAPIHelper
 	 * @return matching link, null if none
 	 * 
 	 */
-	static Link getMatchingLink(String hrefToBeMatched, List<Link> links)
+	static Link getMatchingLink(final String hrefToBeMatched, final List<Link> links)
 	{
-		for (Link link : links)
+		for (final Link link : links)
 		{
 			if (link.getHref().equals(hrefToBeMatched))
 			{
@@ -118,7 +123,7 @@ class DomainAPIHelper
 		return null;
 	}
 
-	protected void resetPdpAndPrp(List<Feature> pdpFeaturesToEnable) throws JAXBException
+	protected void resetPdpAndPrp(final List<Feature> pdpFeaturesToEnable) throws JAXBException
 	{
 		final JAXBElement<PolicySet> jaxbElt = unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, RestServiceTest.TEST_DEFAULT_POLICYSET_FILENAME), PolicySet.class);
 		final PolicySet newRootPolicySet = jaxbElt.getValue();
@@ -127,7 +132,8 @@ class DomainAPIHelper
 		try
 		{
 			policiesRes.addPolicy(newRootPolicySet);
-		} catch (ClientErrorException e)
+		}
+		catch (final ClientErrorException e)
 		{
 			// If this is a conflict, it means it is already added, else something bad happened
 			if (e.getResponse().getStatus() != Status.CONFLICT.getStatusCode())
@@ -136,15 +142,15 @@ class DomainAPIHelper
 			}
 		}
 
-		PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
-		IdReferenceType newRootPolicyRef = new IdReferenceType(newRootPolicySet.getPolicySetId(), null, null, null);
+		final PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
+		final IdReferenceType newRootPolicyRef = new IdReferenceType(newRootPolicySet.getPolicySetId(), null, null, null);
 		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(pdpFeaturesToEnable, newRootPolicyRef));
 
 		// Delete all other policies
-		Resources policiesResources = policiesRes.getPolicies();
-		for (Link link : policiesResources.getLinks())
+		final Resources policiesResources = policiesRes.getPolicies();
+		for (final Link link : policiesResources.getLinks())
 		{
-			String policyId = link.getHref();
+			final String policyId = link.getHref();
 			// skip if this is the root policy
 			if (policyId.equals(newRootPolicySet.getPolicySetId()))
 			{
@@ -160,12 +166,12 @@ class DomainAPIHelper
 		resetPdpAndPrp(Collections.<Feature> emptyList());
 	}
 
-	protected <T> JAXBElement<T> unmarshal(File file, Class<T> clazz) throws JAXBException
+	protected <T> JAXBElement<T> unmarshal(final File file, final Class<T> clazz) throws JAXBException
 	{
 		return unmarshaller.unmarshal(new StreamSource(file), clazz);
 	}
 
-	void modifyDomainPropertiesFile(String newExternalId, boolean isFilesystemLegacy) throws InterruptedException, JAXBException
+	void modifyDomainPropertiesFile(final String newExternalId, final boolean isFilesystemLegacy) throws InterruptedException, JAXBException
 	{
 		/*
 		 * If filesystem is legacy, it means here that file timestamp (mtime in particular) resolution is 1 sec, i.e. milliseconds are rounded to zero always. Therefore, in this unit test, with such a
@@ -206,7 +212,7 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws InterruptedException
 	 */
-	IdReferenceType modifyRootPolicyRefInPdpConfFile(boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	IdReferenceType modifyRootPolicyRefInPdpConfFile(final boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		if (pdpModelHandler == null)
 		{
@@ -217,11 +223,11 @@ class DomainAPIHelper
 
 		final JAXBElement<PolicySet> jaxbPolicy = unmarshal(new File(RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, RestServiceTest.TEST_POLICY_FILENAME), PolicySet.class);
 		final PolicySet policy = jaxbPolicy.getValue();
-		IdReferenceType newRootPolicyRef = new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
+		final IdReferenceType newRootPolicyRef = new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
 		testAddAndGetPolicy(policy);
 
 		// change root policyref in PDP conf file
-		Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
+		final Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
 		final StaticRefBasedRootPolicyProvider staticRefBasedRootPolicyProvider = (StaticRefBasedRootPolicyProvider) pdpConf.getRootPolicyProvider();
 		staticRefBasedRootPolicyProvider.setPolicyRef(newRootPolicyRef);
 		/*
@@ -237,7 +243,7 @@ class DomainAPIHelper
 		return newRootPolicyRef;
 	}
 
-	void modifyMaxPolicyRefDepthInPdpConfFile(boolean isFilesystemLegacy, int maxPolicyRefDepth) throws JAXBException, InterruptedException
+	void modifyMaxPolicyRefDepthInPdpConfFile(final boolean isFilesystemLegacy, final int maxPolicyRefDepth) throws JAXBException, InterruptedException
 	{
 		if (pdpModelHandler == null)
 		{
@@ -247,7 +253,7 @@ class DomainAPIHelper
 		resetPdpAndPrp();
 
 		// change maxPolicyRefDepth in PDP conf file
-		Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
+		final Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
 		pdpConf.setMaxPolicyRefDepth(BigInteger.valueOf(maxPolicyRefDepth));
 		/*
 		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution), to make sure the lastModifiedTime will be actually changed after
@@ -275,7 +281,8 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws InterruptedException
 	 */
-	IdReferenceType addRootPolicyWithRefAndUpdate(File oldRootPolicyFile, File oldRefPolicyFile, boolean updateRoot, boolean isFileSystemLegacy) throws JAXBException, InterruptedException
+	IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy) throws JAXBException,
+			InterruptedException
 	{
 		resetPdpAndPrp();
 
@@ -296,9 +303,9 @@ class DomainAPIHelper
 		final PolicySet newPolicy = new PolicySet(oldPolicyToUpdate.getDescription(), oldPolicyToUpdate.getPolicyIssuer(), oldPolicyToUpdate.getPolicySetDefaults(), oldPolicyToUpdate.getTarget(),
 				oldPolicyToUpdate.getPolicySetsAndPoliciesAndPolicySetIdReferences(), oldPolicyToUpdate.getObligationExpressions(), oldPolicyToUpdate.getAdviceExpressions(),
 				oldPolicyToUpdate.getPolicySetId(), oldPolicyToUpdate.getVersion() + ".1", oldPolicyToUpdate.getPolicyCombiningAlgId(), oldPolicyToUpdate.getMaxDelegationDepth());
-		Marshaller marshaller = RestServiceTest.JAXB_CTX.createMarshaller();
-		File policyDir = new File(domainPoliciesDirName, FlatFileDAOUtils.base64UrlEncode(oldPolicyToUpdate.getPolicySetId()));
-		File policyVersionFile = new File(policyDir, newPolicy.getVersion() + ".xml");
+		final Marshaller marshaller = RestServiceTest.JAXB_CTX.createMarshaller();
+		final File policyDir = new File(domainPoliciesDirName, FlatFileDAOUtils.base64UrlEncode(oldPolicyToUpdate.getPolicySetId()));
+		final File policyVersionFile = new File(policyDir, newPolicy.getVersion() + ".xml");
 		/*
 		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution), to make sure the lastModifiedTime will be actually changed after
 		 * updating
@@ -328,7 +335,7 @@ class DomainAPIHelper
 	 * @throws ClientErrorException
 	 *             with status code 409 when policy conflicts with existing one (same policy id and version)
 	 */
-	String testAddAndGetPolicy(PolicySet policySet) throws ClientErrorException
+	String testAddAndGetPolicy(final PolicySet policySet) throws ClientErrorException
 	{
 		// put new policyset
 		final Link link = domain.getPapResource().getPoliciesResource().addPolicy(policySet);
@@ -340,11 +347,11 @@ class DomainAPIHelper
 
 		// Check result was committed
 		// check added policy link is in policies list
-		PoliciesResource policiesRes = domain.getPapResource().getPoliciesResource();
+		final PoliciesResource policiesRes = domain.getPapResource().getPoliciesResource();
 		assertNotNull(getMatchingLink(policyResId, policiesRes.getPolicies().getLinks()), "Added policy resource link not found in links returned by getPoliciesResource()");
 
 		// check added policy version is in policy versions list
-		PolicyResource policyRes = policiesRes.getPolicyResource(policyResId);
+		final PolicyResource policyRes = policiesRes.getPolicyResource(policyResId);
 		final Resources policyVersionsResources = policyRes.getPolicyVersions();
 		assertNotNull(getMatchingLink(versionResId, policyVersionsResources.getLinks()), "Added policy version resource link not found in links returned by getPolicyVersions()");
 
@@ -356,21 +363,22 @@ class DomainAPIHelper
 		return policyResId;
 	}
 
-	private IdReferenceType setRootPolicy(String policyId, String version)
+	private IdReferenceType setRootPolicy(final String policyId, final String version)
 	{
-		PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
-		PdpProperties oldProps = propsRes.getOtherPdpProperties();
-		IdReferenceType newRootPolicyRef = new IdReferenceType(policyId, version, null, null);
+		final PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
+		final PdpProperties oldProps = propsRes.getOtherPdpProperties();
+		final IdReferenceType newRootPolicyRef = new IdReferenceType(policyId, version, null, null);
 		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(oldProps.getFeatures(), newRootPolicyRef));
 		return newRootPolicyRef;
 	}
 
-	IdReferenceType setRootPolicy(PolicySet policySet, boolean ignoreVersion)
+	IdReferenceType setRootPolicy(final PolicySet policySet, final boolean ignoreVersion)
 	{
 		try
 		{
 			domain.getPapResource().getPoliciesResource().addPolicy(policySet);
-		} catch (ClientErrorException e)
+		}
+		catch (final ClientErrorException e)
 		{
 			// If this is a conflict, it means it is already added, else something bad happened
 			if (e.getResponse().getStatus() != Status.CONFLICT.getStatusCode())
@@ -393,59 +401,137 @@ class DomainAPIHelper
 		return pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
 	}
 
-	protected PdpPropertiesResource updatePdpFeatures(List<Feature> features)
+	protected PdpPropertiesResource updatePdpFeatures(final List<Feature> features)
 	{
-		PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
-		PdpProperties oldProps = propsRes.getOtherPdpProperties();
+		final PdpPropertiesResource propsRes = domain.getPapResource().getPdpPropertiesResource();
+		final PdpProperties oldProps = propsRes.getOtherPdpProperties();
 		propsRes.updateOtherPdpProperties(new PdpPropertiesUpdate(features, oldProps.getRootPolicyRefExpression()));
 		return propsRes;
 	}
 
-	protected List<Feature> updateAndGetPdpFeatures(List<Feature> features)
+	protected List<Feature> updateAndGetPdpFeatures(final List<Feature> features)
 	{
-		PdpPropertiesResource propsRes = updatePdpFeatures(features);
+		final PdpPropertiesResource propsRes = updatePdpFeatures(features);
 		return propsRes.getOtherPdpProperties().getFeatures();
 	}
 
-	public int updateAndGetMaxPolicyCount(int maxPolicyCount)
+	public int updateAndGetMaxPolicyCount(final int maxPolicyCount)
 	{
-		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
-		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
+		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
+		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
 		prpPropsRes.updateOtherPrpProperties(new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps
 				.isVersionRollingEnabled()));
 		return prpPropsRes.getOtherPrpProperties().getMaxPolicyCount().intValue();
 	}
 
-	public PrpProperties updateMaxPolicyCount(int maxPolicyCount)
+	public PrpProperties updateMaxPolicyCount(final int maxPolicyCount)
 	{
-		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
-		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
+		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
+		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
 		return prpPropsRes.updateOtherPrpProperties(new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps
 				.isVersionRollingEnabled()));
 	}
 
-	public int updateAndGetMaxPolicyVersionCount(int maxPolicyVersionCount)
+	public int updateAndGetMaxPolicyVersionCount(final int maxPolicyVersionCount)
 	{
-		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
-		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
+		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
+		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
 		prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, oldPrpProps
 				.isVersionRollingEnabled()));
 		return prpPropsRes.getOtherPrpProperties().getMaxVersionCountPerPolicy().intValue();
 	}
 
-	public PrpProperties updateVersioningProperties(int maxPolicyVersionCount, boolean versionRolling)
+	public PrpProperties updateVersioningProperties(final int maxPolicyVersionCount, final boolean versionRolling)
 	{
-		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
-		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
+		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
+		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
 		return prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, versionRolling));
 	}
 
-	public boolean setPolicyVersionRollingAndGetStatus(boolean isEnabled)
+	public boolean setPolicyVersionRollingAndGetStatus(final boolean isEnabled)
 	{
-		PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
-		PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
+		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
+		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
 		prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), oldPrpProps.getMaxVersionCountPerPolicy(), isEnabled));
 		return prpPropsRes.getOtherPrpProperties().isVersionRollingEnabled();
 	}
 
+	private static void assertNormalizedEquals(final Response expectedResponse, final Response actualResponseFromPDP) throws JAXBException
+	{
+		// normalize responses for comparison
+		final Response normalizedActualResponse = TestUtils.normalizeForComparison(actualResponseFromPDP);
+		final Response normalizedExpectedResponse = TestUtils.normalizeForComparison(expectedResponse);
+		assertEquals(normalizedActualResponse, normalizedExpectedResponse, "Actual and expected responses don't match (Status elements removed/ignored for comparison)");
+	}
+
+	/**
+	 * 
+	 * @param testDirectory
+	 * @param pdpFeaturesToEnable
+	 *            if and only if not null, reset policies and PDP with these features enabled
+	 * @param isPdpRemote
+	 * @throws JAXBException
+	 */
+	void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote) throws JAXBException
+	{
+		if (pdpFeaturesToEnable != null)
+		{
+			resetPdpAndPrp(pdpFeaturesToEnable);
+		}
+
+		LOGGER.debug("Starting PDP test of directory '{}'", testDirectory);
+
+		final File attributeProviderFile = new File(testDirectory, RestServiceTest.TEST_ATTRIBUTE_PROVIDER_FILENAME);
+		if (attributeProviderFile.exists())
+		{
+			// replace old with new attribute providers
+			// reset attribute providers
+			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> emptyList()));
+
+			/*
+			 * This requires Attribute Provider extension to be deployed/configured in advance on the PDP. If we are testing a remote PDP, this may not be done, in which case we would get error 400
+			 * when trying to use it; so we skip this test in this case.
+			 */
+			if (isPdpRemote)
+			{
+				return;
+			}
+
+			final JAXBElement<AbstractAttributeProvider> jaxbElt = unmarshal(attributeProviderFile, AbstractAttributeProvider.class);
+			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> singletonList(jaxbElt.getValue())));
+		}
+
+		final File rootPolicyFile = new File(testDirectory, RestServiceTest.TEST_POLICY_FILENAME);
+		/*
+		 * Change the root policy (and possible policyRefs) on the domain only if a root policy file exists in the directory, else we just test request/response on the existing policy in the domain
+		 */
+		if (rootPolicyFile.exists())
+		{
+			final File refPoliciesDir = new File(testDirectory, RestServiceTest.TEST_REF_POLICIES_DIRECTORY_NAME);
+			if (refPoliciesDir.exists() && refPoliciesDir.isDirectory())
+			{
+				for (final File policyFile : refPoliciesDir.listFiles())
+				{
+					if (policyFile.isFile())
+					{
+						final JAXBElement<PolicySet> policy = unmarshal(policyFile, PolicySet.class);
+						testAddAndGetPolicy(policy.getValue());
+						LOGGER.debug("Added policy from file: " + policyFile);
+					}
+				}
+			}
+
+			final JAXBElement<PolicySet> rootPolicy = unmarshal(rootPolicyFile, PolicySet.class);
+			// Add the policy and point the rootPolicyRef to new policy with refs to
+			// instantiate it as root policy (validate, etc.)
+			setRootPolicy(rootPolicy.getValue(), true);
+		}
+
+		final JAXBElement<Request> xacmlReq = unmarshal(new File(testDirectory, RestServiceTest.REQUEST_FILENAME), Request.class);
+		final JAXBElement<Response> expectedResponse = unmarshal(new File(testDirectory, RestServiceTest.EXPECTED_RESPONSE_FILENAME), Response.class);
+		final Response actualResponse = domain.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+		// final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+
+		assertNormalizedEquals(expectedResponse.getValue(), actualResponse);
+	}
 }
