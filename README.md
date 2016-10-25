@@ -11,7 +11,7 @@ AuthZForce Server provides a multi-tenant RESTful API to Policy Administration P
 
 AuthZForce Server is also the Reference Implementation (GEri) of [FIWARE](https://www.fiware.org) *Authorization PDP* Generic Enabler (GE). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).
 
-**Go to the [releases](https://github.com/authzforce/server/releases) page for links to downloads, release notes and  installation, administration and user manuals for a specific release.**
+**Go to the [releases](https://github.com/authzforce/server/releases) page for links to downloads (Linux packages), Docker image, release notes, and documentation for a specific release.**
 
 *If you are interested in using an embedded XACML-compliant PDP in your Java applications, AuthZForce also provides a PDP engine as a Java library in [Authzforce core project](http://github.com/authzforce/core).*
 
