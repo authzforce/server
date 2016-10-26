@@ -109,15 +109,14 @@
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
-            <entry key="org.apache.cxf.propagate.exception" value="false" />
-            <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
-               not try to set them via system properties (this does not work as expected). If value is null, CXF defaults are applied. -->
-            <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements == -1 ? null: jndi_staxMaxChildElements}" />
-            <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth == -1 ? null: jndi_staxMaxElementDepth}" />
-            <entry key="org.apache.cxf.stax.maxAttributeCount" value="#{jndi_staxMaxAttributeCount == -1 ? null: jndi_staxMaxAttributeCount}" />
-            <entry key="org.apache.cxf.stax.maxAttributeSize" value="#{jndi_staxMaxAttributeSize == -1 ? null: jndi_staxMaxAttributeSize}" />
-            <entry key="org.apache.cxf.stax.maxTextLength" value="#{jndi_staxMaxTextLength == -1 ? null: jndi_staxMaxTextLength}" />
-         </jaxrs:properties>
+             <entry key="org.apache.cxf.propagate.exception" value="false" />
+	         <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should not try to set them via system properties (this does not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
+             <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements == -1 ? 50000: jndi_staxMaxChildElements}" />
+             <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth == -1 ? 100: jndi_staxMaxElementDepth}" />
+             <entry key="org.apache.cxf.stax.maxAttributeCount" value="#{jndi_staxMaxAttributeCount == -1 ? 500: jndi_staxMaxAttributeCount}" />
+             <entry key="org.apache.cxf.stax.maxAttributeSize" value="#{jndi_staxMaxAttributeSize == -1 ? 65536: jndi_staxMaxAttributeSize}" />
+             <entry key="org.apache.cxf.stax.maxTextLength" value="#{jndi_staxMaxTextLength == -1 ? 134217728: jndi_staxMaxTextLength}" /> 
+	</jaxrs:properties>
          <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
          <!-- <jaxrs:inInterceptors> -->
          <!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
@@ -144,10 +143,9 @@
          </jaxrs:providers>
          <jaxrs:properties>
             <entry key="org.apache.cxf.propagate.exception" value="false" />
-            <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
-               not try to set them via system properties (this does not work as expected). -->
-            <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements == -1 ? null: jndi_staxMaxChildElements}" />
-            <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth == -1 ? null: jndi_staxMaxElementDepth}" />
+            <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should not try to set them via system properties (this does not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
+            <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements == -1 ? 50000: jndi_staxMaxChildElements}" />
+            <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth == -1 ? 100: jndi_staxMaxElementDepth}" />
             <!-- WARNING: the properties maxAttributeCount/maxAttributeSize/maxTextLength are not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser 
                cannot be cast to org.codehaus.stax2.XMLStreamReader2) because they require Woodstox parser (4.2+) which Sun's FastInfoset parser used here is not. See https://issues.apache.org/jira/browse/CXF-6848: Daniel 
                Kulp: "FastInfoset does not provide any means to enforce any of those security requirements." -->
