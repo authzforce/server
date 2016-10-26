@@ -39,9 +39,12 @@ AuthZForce Server is also the Reference Implementation (GEri) of [FIWARE](https:
   * **Attribute Datatypes**: you may extend the PDP engine with custom XACML attribute datatypes;
   * **Functions**: you may extend the PDP engine with custom XACML functions;
   * **Combining Algorithms**: you may extend the PDP engine with custom XACML policy/rule combining algorithms;
-  * **Attribute Providers**: you may plug custom attribute providers into the PDP engine to allow it to retrieve attributes from other attribute sources (e.g. remote service) than the input XACML Request during evaluation; 
+  * **Attribute Providers a.k.a. PIPs** (Policy Information Points): you may plug custom attribute providers into the PDP engine to allow it to retrieve attributes from other attribute sources (e.g. remote service) than the input XACML Request during evaluation; 
   * **Request Filter**: you may customize the processing of XACML Requests before evaluation by the PDP core engine (e.g. used for implementing [XACML v3.0 Multiple Decision Profile Version 1.0 - Repeated attribute categories](http://docs.oasis-open.org/xacml/3.0/multiple/v1.0/cs02/xacml-3.0-multiple-v1.0-cs02.html#_Toc388943334));
   * **Result Filter**: you may customize the processing of XACML Results after evaluation by the PDP engine (e.g. used for implementing [XACML v3.0 Multiple Decision Profile Version 1.0 - Requests for a combined decision](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-multiple-v1-spec-cd-03-en.html#_Toc260837890));
+
+### PIP (Policy Information Point)
+AuthzForce provides XACML PIP features in the form of *Attribute Providers*. More information in the previous section.
 
 ### PAP (Policy Administration Point)
 * Policy management: create/read/update/delete multiple policies and references from one to another (via PolicySetIdReference)
