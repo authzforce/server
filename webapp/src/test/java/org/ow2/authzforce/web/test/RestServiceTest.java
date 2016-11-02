@@ -79,7 +79,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	/*
 	 * Below that value getWADL() test fails because WADL depth too big
 	 */
-	private static final int XML_MAX_ELEMENT_DEPTH = 10;
+	private static final int XML_MAX_ELEMENT_DEPTH = 15;
 	private static final int XML_MAX_ATTRIBUTE_COUNT = 100;
 	protected static final int XML_MAX_TEXT_LENGTH = 1000;
 

@@ -1,39 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PolicySetId="policySetTooDep" Version="1.0"
-	PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-	<Description>PolicySet too deep</Description>
-	<Target />
-	<PolicySet PolicySetId="P1" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-		<Target />
-		<PolicySet PolicySetId="P2" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-			<Target />
-			<PolicySet PolicySetId="P3" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-				<Target />
-				<PolicySet PolicySetId="P4" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-					<Target />
-					<PolicySet PolicySetId="P5" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-						<Target />
-						<PolicySet PolicySetId="P6" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-							<Target />
-							<PolicySet PolicySetId="P7" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-								<Target />
-								<PolicySet PolicySetId="P8" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-									<Target />
-									<PolicySet PolicySetId="P9" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-										<Target />
-										<PolicySet PolicySetId="P10" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-											<Target />
-											<PolicySet PolicySetId="P11" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
-												<Target />
-											</PolicySet>
-										</PolicySet>
-									</PolicySet>
-								</PolicySet>
-							</PolicySet>
-						</PolicySet>
-					</PolicySet>
-				</PolicySet>
-			</PolicySet>
-		</PolicySet>
-	</PolicySet>
+   PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+   <Description>PolicySet too deep</Description>
+   <Target />
+   <PolicySet PolicySetId="P1" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+      <Target />
+      <PolicySet PolicySetId="P2" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+         <Target />
+         <PolicySet PolicySetId="P3" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+            <Target />
+            <PolicySet PolicySetId="P4" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+               <Target />
+               <PolicySet PolicySetId="P5" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                  <Target />
+                  <PolicySet PolicySetId="P6" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                     <Target />
+                     <PolicySet PolicySetId="P7" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                        <Target />
+                        <PolicySet PolicySetId="P8" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                           <Target />
+                           <PolicySet PolicySetId="P9" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                              <Target />
+                              <PolicySet PolicySetId="P10" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                 <Target />
+                                 <PolicySet PolicySetId="P11" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                    <Target />
+                                    <PolicySet PolicySetId="P12" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                       <Target />
+                                       <PolicySet PolicySetId="P13" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                          <Target />
+                                          <PolicySet PolicySetId="P14" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                             <Target />
+                                             <PolicySet PolicySetId="P15" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                                <Target />
+                                                <PolicySet PolicySetId="P16" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+                                                   <Target />
+                                                </PolicySet>
+                                             </PolicySet>
+                                          </PolicySet>
+                                       </PolicySet>
+                                    </PolicySet>
+                                 </PolicySet>
+                              </PolicySet>
+                           </PolicySet>
+                        </PolicySet>
+                     </PolicySet>
+                  </PolicySet>
+               </PolicySet>
+            </PolicySet>
+         </PolicySet>
+      </PolicySet>
+   </PolicySet>
 </PolicySet>

@@ -66,6 +66,9 @@
          </Apply>
       </VariableDefinition>
       <Rule RuleId="Domain.Admin.Role.Permission" Effect="Permit">
+         <Description>
+      Authorize all actions (on /domains/{domainId}), if one of the subject's roles is "Domain_Admin.{domainId}", except DELETE '' and PUT '/pap/prp.properties' (paths relative to /domains/{domainId})
+      </Description>
          <Condition>
             <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
@@ -73,24 +76,30 @@
                   <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"
                      Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
                </Apply>
-               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:or">
-                  <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
-                     <VariableReference VariableId="actionId" />
-                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GET</AttributeValue>
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">PUT</AttributeValue>
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">POST</AttributeValue>
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">HEAD</AttributeValue>
+               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:not">
+                  <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:or">
+                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="actionId" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DELETE</AttributeValue>
+                        </Apply>
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+                           <VariableReference VariableId="domainRelativePath" />
+                           <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"></AttributeValue>
+                              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">/</AttributeValue>
+                           </Apply>
+                        </Apply>
                      </Apply>
-                  </Apply>
-                  <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
-                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                        <VariableReference VariableId="actionId" />
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DELETE</AttributeValue>
-                     </Apply>
-                     <Apply FunctionId="urn:oasis:names:tc:xacml:3.0:function:string-starts-with">
-                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">/pap</AttributeValue>
-                        <VariableReference VariableId="domainRelativePath" />
+                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="actionId" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">PUT</AttributeValue>
+                        </Apply>
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="domainRelativePath" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">/pap/prp.properties</AttributeValue>
+                        </Apply>
                      </Apply>
                   </Apply>
                </Apply>
