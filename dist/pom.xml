@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>5.4.2-SNAPSHOT</version>
+      <version>6.0.0-SNAPSHOT</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-dist</artifactId>
@@ -51,7 +51,7 @@
                authzforce-ce-parent, with a different format, so we use a plugin. -->
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.10</version>
+            <version>1.12</version>
             <executions>
                <execution>
                   <id>jdeb-changelog-timestamp-property</id>
@@ -82,7 +82,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-resources-plugin</artifactId>
-            <version>2.7</version>
+            <version>3.0.1</version>
             <executions>
                <execution>
                   <phase>process-sources</phase>

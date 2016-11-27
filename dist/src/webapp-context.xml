@@ -25,4 +25,8 @@
 	<Environment name="org.ow2.authzforce.domains.sync.interval"
 		value="0" type="java.lang.Integer" override="false"
 		description="Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature." />
+      
+    <Environment name="org.ow2.authzforce.domains.enablePdpOnly"
+      value="false" type="java.lang.Boolean" override="false"
+      description="Enable PDP only, i.e. disable all PAP (or other administration) features iff true" />
 </Context>

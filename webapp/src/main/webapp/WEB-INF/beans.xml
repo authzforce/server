@@ -22,6 +22,7 @@
    <jee:jndi-lookup id="jndi_useRandomAddressBasedUUID" jndi-name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
    <!-- 0 means no sync -->
    <jee:jndi-lookup id="jndi_syncIntervalSec" jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(0)}" />
+   <jee:jndi-lookup id="jndi_enablePdpOnly" jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
    <!-- XML security properties used to set the corresponding JAXRS server properties defined in the doc: http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate 
       XML DoS attacks (since CXF 2.7.4). You should not try to set them via system properties (this does not work as expected). If you comment out this environment entry or specify a negative value, CXF default 
       value is used. -->
@@ -83,7 +84,9 @@
          <!-- domains directory-to-memory synchronization interval in seconds -->
          <constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
          <constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+         <constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
          <constructor-arg name="useRandomAddressBasedUUID" value="#{jndi_useRandomAddressBasedUUID}" />
+         <constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
          <constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
       </bean>
 

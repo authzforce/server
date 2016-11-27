@@ -15,6 +15,9 @@
    <parameter name="enableFastInfoset" value="false" />
    <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
+   <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
+   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
+   
    <test name="Test_FastInfoset:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
       <!-- <parameter name="enableFastInfoset" value="false" /> -->
       <!-- Test using default parameter values -->

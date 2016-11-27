@@ -39,7 +39,7 @@ public class XmlMediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 	private final String contentType;
 	private final List<String> acceptTypes;
 
-	public XmlMediaTypeHeaderSetter(boolean enableFastInfoset)
+	public XmlMediaTypeHeaderSetter(final boolean enableFastInfoset)
 	{
 		super(Phase.PRE_LOGICAL);
 		if (enableFastInfoset)
@@ -49,7 +49,8 @@ public class XmlMediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 			 * Remove any occurrence of 'application/xml' from Accept headers, then the FIStaxOutInterceptor will add 'application/fastinfoset' if fastInfoset was enabled on the JAXRS client.
 			 */
 			acceptTypes = Collections.emptyList();
-		} else
+		}
+		else
 		{
 			contentType = MediaType.APPLICATION_XML;
 			acceptTypes = Collections.singletonList(MediaType.APPLICATION_XML);
@@ -57,15 +58,30 @@ public class XmlMediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 	}
 
 	@Override
-	public void handleMessage(Message outMessage) throws Fault
+	public void handleMessage(final Message outMessage) throws Fault
 	{
 		final Map<String, List<String>> headers = (Map<String, List<String>>) outMessage.get(Message.PROTOCOL_HEADERS);
-		final List<String> contenTypeHeaders = headers.get(Message.CONTENT_TYPE);
-		contenTypeHeaders.clear();
-		contenTypeHeaders.add(contentType);
+		final List<String> contentTypeHeaders = headers.get(Message.CONTENT_TYPE);
+		if (contentTypeHeaders == null)
+		{
+			headers.put(Message.CONTENT_TYPE, Collections.singletonList(contentType));
+		}
+		else
+		{
+			contentTypeHeaders.clear();
+			contentTypeHeaders.add(contentType);
+		}
 
 		final List<String> acceptHeaders = headers.get(Message.ACCEPT_CONTENT_TYPE);
-		acceptHeaders.clear();
-		acceptHeaders.addAll(acceptTypes);
+		if (acceptHeaders == null)
+		{
+			headers.put(Message.ACCEPT_CONTENT_TYPE, acceptTypes);
+		}
+		else
+		{
+			acceptHeaders.clear();
+			acceptHeaders.addAll(acceptTypes);
+		}
+
 	}
 }

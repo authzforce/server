@@ -35,8 +35,6 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.LifecycleState;
-import org.apache.catalina.deploy.ContextEnvironment;
-import org.apache.catalina.deploy.NamingResources;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.cxf.interceptor.FIStaxInInterceptor;
 import org.apache.cxf.interceptor.FIStaxOutInterceptor;
@@ -48,6 +46,8 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
+import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
+import org.apache.tomcat.util.descriptor.web.NamingResources;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
@@ -218,21 +218,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
-	/**
-	 * 
-	 * @param port
-	 *            server port, dynamically allocated if negative
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @param addSampleDomain
-	 * @return
-	 * @throws ServletException
-	 * @throws IllegalArgumentException
-	 * @throws IOException
-	 * @throws LifecycleException
-	 */
-	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean addSampleDomain) throws ServletException,
-			IllegalArgumentException, IOException, LifecycleException
+	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean enablePdpOnly, final boolean addSampleDomain)
+			throws ServletException, IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -305,6 +292,14 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		syncIntervalEnv.setOverride(false);
 		webappNamingResources.addEnvironment(syncIntervalEnv);
 
+		// override env-entry for enablePdpOnly
+		final ContextEnvironment enablePdpOnlyFlagEnv = new ContextEnvironment();
+		enablePdpOnlyFlagEnv.setName("org.ow2.authzforce.domains.enablePdpOnly");
+		enablePdpOnlyFlagEnv.setType("java.lang.Boolean");
+		enablePdpOnlyFlagEnv.setValue(Boolean.toString(enablePdpOnly));
+		enablePdpOnlyFlagEnv.setOverride(false);
+		webappNamingResources.addEnvironment(enablePdpOnlyFlagEnv);
+
 		// Override Anti-XML-DOS properties
 		final ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
 		staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
@@ -354,7 +349,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return embeddedServer;
 	}
 
-	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final boolean enableFastInfoset, final int domainSyncIntervalSec) throws Exception
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean enablePdpOnly) throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -362,7 +357,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, enableFastInfoset, domainSyncIntervalSec, false);
+			embeddedServer = startServer(-1, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -468,33 +463,51 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
+	private static void showUsage()
+	{
+		System.out.println("Usage using default parameter values: java RestServiceTest");
+		System.out.println("Usage for non-default values: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec enablePdpOnly]");
+		System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
+		System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
+		System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
+		System.out.println("- enablePdpOnly: (true|false) whether to enable PDP features only, i.e. disable PAP/admin features. Default: false.");
+	}
+
 	public static void main(final String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
 	{
 		final int port;
 		final boolean enableFastInfoset;
 		final int domainSyncIntervalSec;
+		final boolean enablePdpOnly;
 		if (args.length == 0)
 		{
 			port = 8080;
 			enableFastInfoset = false;
 			domainSyncIntervalSec = -1;
+			enablePdpOnly = false;
 		}
-		else if (args.length < 2)
+		else if (args.length != 4)
 		{
-			System.out.println("Usage: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec]");
-			System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
-			System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
-			System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
-			throw new IllegalArgumentException("Invalid args. Expected args: enableFastInfoset domainsSyncIntervalSec");
+			showUsage();
+			throw new IllegalArgumentException("Invalid number of args. Expected: 0 (using defaults) or 4");
 		}
 		else
 		{
-			port = Integer.parseInt(args[0], 10);
-			enableFastInfoset = Boolean.valueOf(args[1]);
-			domainSyncIntervalSec = Integer.parseInt(args[2], 10);
+			try
+			{
+				port = Integer.parseInt(args[0], 10);
+				enableFastInfoset = Boolean.valueOf(args[1]);
+				domainSyncIntervalSec = Integer.parseInt(args[2], 10);
+				enablePdpOnly = Boolean.valueOf(args[3]);
+			}
+			catch (final Exception e)
+			{
+				showUsage();
+				throw new IllegalArgumentException("Invalid args. Expected args: port enableFastInfoset domainsSyncIntervalSec enablePdpOnly");
+			}
 		}
 
-		final Tomcat tomcat = startServer(port, enableFastInfoset, domainSyncIntervalSec, true);
+		final Tomcat tomcat = startServer(port, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly, true);
 		System.out.println("Server up and listening!");
 		tomcat.getServer().await();
 	}

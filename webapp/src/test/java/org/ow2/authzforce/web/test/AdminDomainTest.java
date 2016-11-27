@@ -61,7 +61,6 @@ public class AdminDomainTest extends RestServiceTest
 
 	private DomainResource testDomain = null;
 	private String testDomainId = null;
-	private File testDomainPropertiesFile;
 
 	private final String testDomainExternalId = "admin";
 
@@ -73,13 +72,15 @@ public class AdminDomainTest extends RestServiceTest
 	 * @param remoteAppBaseUrl
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
+	 * @param enablePdpOnly
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
-	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("-1") final int domainSyncIntervalSec) throws Exception
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("-1") final int domainSyncIntervalSec,
+			@Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
@@ -113,8 +114,6 @@ public class AdminDomainTest extends RestServiceTest
 		LOGGER.debug("Added domain ID={}", testDomainId);
 		testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving (admin) domain ID=%s", testDomainId));
-		final File testDomainDir = new File(RestServiceTest.DOMAINS_DIR, testDomainId);
-		testDomainPropertiesFile = new File(testDomainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
 		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
 
 		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
@@ -147,7 +146,7 @@ public class AdminDomainTest extends RestServiceTest
 	 * @throws IOException
 	 */
 	@DataProvider(name = "adminPdpTestFiles")
-	public Iterator<Object[]> createData() throws URISyntaxException, IOException
+	public static Iterator<Object[]> createData() throws URISyntaxException, IOException
 	{
 		final Collection<Object[]> testParams = new ArrayList<>();
 		/*

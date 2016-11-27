@@ -2,3 +2,5 @@
 /.classpath
 /.project
 /test-output/
+/.pmd
+/.pmdruleset.xml
