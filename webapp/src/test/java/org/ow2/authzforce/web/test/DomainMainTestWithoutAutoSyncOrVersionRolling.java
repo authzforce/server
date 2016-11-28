@@ -419,7 +419,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	private static final String TEST_POLICY_ID2 = "policyToTestGetLatestV";
 
 	@Test(dependsOnMethods = { "getPolicyVersions" })
-	public void getLatestPolicyVersion()
+	public void getAndDeleteLatestPolicyVersion()
 	{
 		final PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID2, "1.0");
 		testDomainHelper.testAddAndGetPolicy(policySet);
@@ -433,8 +433,10 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		final PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
 		final PolicyResource policyRes = policiesRes.getPolicyResource(TEST_POLICY_ID2);
 		final PolicySet getRespPolicySet = policyRes.getPolicyVersionResource("latest").getPolicyVersion();
-		DomainAPIHelper.matchPolicySets(getRespPolicySet, policySet3, "getLatestPolicyVersion");
+		DomainAPIHelper.matchPolicySets(getRespPolicySet, policySet3, "getAndDeleteLatestPolicyVersion");
 
+		final PolicySet deleteRespPolicySet = policyRes.getPolicyVersionResource("latest").deletePolicyVersion();
+		DomainAPIHelper.matchPolicySets(deleteRespPolicySet, policySet3, "getAndDeleteLatestPolicyVersion");
 	}
 
 	@Test(dependsOnMethods = { "addAndGetPolicy" })

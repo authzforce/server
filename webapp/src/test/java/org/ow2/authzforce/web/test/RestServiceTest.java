@@ -70,7 +70,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * Start embedded server on a random port between 9000 and 9999 (inclusive) to avoid conflict with another parallel test run
 	 */
 	private static final AtomicInteger EMBEDDED_SERVER_PORT = new AtomicInteger(9000 + PRNG.nextInt(1000));
-	private static final String EMBEDDED_APP_CONTEXT_PATH = "/";
+	private static final String EMBEDDED_APP_CONTEXT_PATH = ""; // ROOT context path
 
 	protected static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
