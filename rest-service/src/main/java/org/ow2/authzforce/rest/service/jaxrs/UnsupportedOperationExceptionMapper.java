@@ -21,37 +21,21 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JAX-RS {@link ExceptionMapper} for all 50X server errors
  */
 @Provider
-public class ServerErrorExceptionMapper implements ExceptionMapper<ServerErrorException>
+public class UnsupportedOperationExceptionMapper implements ExceptionMapper<UnsupportedOperationException>
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ServerErrorExceptionMapper.class);
-	private final static String INTERNAL_ERR_MSG = "Server error: {}";
-	private final static org.ow2.authzforce.rest.api.xmlns.Error ERROR = new org.ow2.authzforce.rest.api.xmlns.Error(INTERNAL_ERR_MSG + ". Retry later or contact the administrator.");
 
 	@Override
-	public Response toResponse(final ServerErrorException exception)
+	public Response toResponse(final UnsupportedOperationException exception)
 	{
-		/*
-		 * Hide any internal server error info to clients
-		 */
-		if (exception instanceof InternalServerErrorException)
-		{
-			LOGGER.error(INTERNAL_ERR_MSG, exception);
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ERROR).build();
-		}
-
-		return exception.getResponse();
+		final org.ow2.authzforce.rest.api.xmlns.Error error = new org.ow2.authzforce.rest.api.xmlns.Error(exception.getMessage());
+		return Response.status(Response.Status.NOT_IMPLEMENTED).entity(error).build();
 	}
 }

@@ -109,6 +109,7 @@
             <ref bean="jaxbProvider" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
+             <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
@@ -143,6 +144,7 @@
             <ref bean="jaxbProvider" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>

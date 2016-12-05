@@ -27,14 +27,18 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Attribute;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Attributes;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.RequestDefaults;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 import org.apache.cxf.interceptor.LoggingInInterceptor;
@@ -67,6 +71,8 @@ import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.ResourceContent;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
+import org.ow2.authzforce.xacml.identifiers.XACMLCategory;
+import org.ow2.authzforce.xacml.identifiers.XPATHVersion;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +111,6 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	private DomainResource testDomain = null;
 	private String testDomainId = null;
-	private File testDomainPropertiesFile;
 
 	private String testDomainExternalId = "test";
 
@@ -146,20 +151,30 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	 * 
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "enablePdpOnly" })
 	@BeforeClass
-	public void addDomain(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset) throws Exception
+	public void addDomain(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
-		assertNotNull(domainLink, "Domain creation failure");
+		if (enablePdpOnly)
+		{
+			/*
+			 * enablePdpOnly=true does not allow adding domain via REST API, so we add it on the filesystem directly
+			 */
+			FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
+			testDomainId = SAMPLE_DOMAIN_ID;
+		}
+		else
+		{
+			final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
+			assertNotNull(domainLink, "Domain creation failure");
 
-		// The link href gives the new domain ID
-		testDomainId = domainLink.getHref();
+			// The link href gives the new domain ID
+			testDomainId = domainLink.getHref();
+		}
+
 		LOGGER.debug("Added domain ID={}", testDomainId);
 		testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
-		final File testDomainDir = new File(RestServiceTest.DOMAINS_DIR, testDomainId);
-		testDomainPropertiesFile = new File(testDomainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
 		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
 
 		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
@@ -175,37 +190,74 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@AfterClass
 	/**
 	 * deleteDomain() already tested in {@link DomainSetTest#deleteDomains()}, so this is just for cleaning after testing
 	 */
-	public void deleteDomain() throws Exception
+	public void deleteDomain(@Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		assertNotNull(testDomain.deleteDomain(), String.format("Error deleting domain ID=%s", testDomainId));
+		if (enablePdpOnly)
+		{
+
+			/*
+			 * enablePdpOnly=true does not allow deleting domain via REST API, so we delete it on the filesystem directly
+			 */
+			final File deleteSrcDir = new File(DOMAINS_DIR, this.testDomainId);
+			FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 3);
+		}
+		else
+		{
+			assertNotNull(testDomain.deleteDomain(), String.format("Error deleting domain ID=%s", testDomainId));
+		}
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test
-	public void getDomain()
+	public void getDomain(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final Domain domainResourceInfo = testDomain.getDomain();
+		final Domain domainResourceInfo;
+		try
+		{
+			domainResourceInfo = testDomain.getDomain();
+			assertFalse(enablePdpOnly, "getDomain method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomain method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(domainResourceInfo);
 
 		final DomainProperties props = domainResourceInfo.getProperties();
 		assertNotNull(props);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test
-	public void getDomainProperties()
+	public void getDomainProperties(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final DomainPropertiesResource propsResource = testDomain.getDomainPropertiesResource();
 		assertNotNull(propsResource);
+		final DomainProperties props;
+		try
+		{
+			props = propsResource.getDomainProperties();
+			assertFalse(enablePdpOnly, "getDomainProperties method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomainProperties method not allowed but enablePdpOnly=false");
+			return;
+		}
 
-		final DomainProperties props = propsResource.getDomainProperties();
 		assertNotNull(props);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomainProperties" })
-	public void updateDomainProperties()
+	public void updateDomainProperties(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final DomainPropertiesResource propsResource = testDomain.getDomainPropertiesResource();
 		assertNotNull(propsResource);
@@ -217,7 +269,18 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		RestServiceTest.PRNG.nextBytes(randomBytes2);
 		// externalId must be a xs:NCName, therefore cannot start with a number
 		final String newExternalId = "external" + FlatFileDAOUtils.base64UrlEncode(randomBytes2);
-		propsResource.updateDomainProperties(new DomainProperties(description, newExternalId));
+
+		try
+		{
+			propsResource.updateDomainProperties(new DomainProperties(description, newExternalId));
+			assertFalse(enablePdpOnly, "updateDomainProperties method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "updateDomainProperties method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		// verify result
 		final DomainProperties newProps = testDomain.getDomainPropertiesResource().getDomainProperties();
 		assertEquals(newProps.getDescription(), description);
@@ -225,7 +288,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 		// test old externalID -> should fail
 		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(testDomainExternalId).getLinks();
-		assertTrue(domainLinks.isEmpty(), "Update of externalId on GET /domains/" + this.testDomainId + "/properties failed: old externaldId still mapped to the domain");
+		assertTrue(domainLinks.isEmpty(), "Update of externalId on GET /domains/" + this.testDomainId + "/properties failed: old externaldId '" + testDomainExternalId + "' still mapped to the domain");
 
 		testDomainExternalId = newExternalId;
 
@@ -291,34 +354,65 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		final DomainProperties newPropsFromAPI = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String externalIdFromAPI = newPropsFromAPI.getExternalId();
 		assertEquals(externalIdFromAPI, newExternalId, "Manual sync of externalId with GET /domains/" + this.testDomainId + "/properties failed: externaldId returned (" + externalIdFromAPI
-				+ ") does not match externalId in modified file: " + testDomainPropertiesFile);
+				+ ") does not match externalId in modified file: " + testDomainHelper.getPropertiesFile());
 
 		verifySyncAfterDomainPropertiesFileModification(newExternalId);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomain" })
-	public void getPap()
+	public void getPap(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final ResourceContent papResource = testDomain.getPapResource().getPAP();
-		assertNotNull(papResource);
+		try
+		{
+			final ResourceContent papResource = testDomain.getPapResource().getPAP();
+			assertNotNull(papResource);
+			assertFalse(enablePdpOnly, "getPAP method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getPAP method not allowed but enablePdpOnly=false");
+			return;
+		}
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getPap" })
-	public void getAttributeProviders()
+	public void getAttributeProviders(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final AttributeProviders attributeProviders = testDomain.getPapResource().getAttributeProvidersResource().getAttributeProviderList();
-		assertNotNull(attributeProviders);
+		try
+		{
+			final AttributeProviders attributeProviders = testDomain.getPapResource().getAttributeProvidersResource().getAttributeProviderList();
+			assertNotNull(attributeProviders);
+			assertFalse(enablePdpOnly, "getAttributeProviderList method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getAttributeProviderList method not allowed but enablePdpOnly=false");
+			return;
+		}
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getAttributeProviders" })
-	public void updateAttributeProviders() throws JAXBException
+	public void updateAttributeProviders(@Optional("false") final Boolean enablePdpOnly) throws JAXBException
 	{
 		final AttributeProvidersResource attributeProvidersResource = testDomain.getPapResource().getAttributeProvidersResource();
 		final JAXBElement<TestAttributeProvider> jaxbElt = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/IIA002(PolicySet)/attributeProvider.xml"),
 				TestAttributeProvider.class);
 		final TestAttributeProvider testAttrProvider = jaxbElt.getValue();
-		final AttributeProviders updateAttrProvidersResult = attributeProvidersResource.updateAttributeProviderList(new AttributeProviders(Collections
-				.<AbstractAttributeProvider> singletonList(testAttrProvider)));
+		final AttributeProviders updateAttrProvidersResult;
+		try
+		{
+			updateAttrProvidersResult = attributeProvidersResource.updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> singletonList(testAttrProvider)));
+			assertFalse(enablePdpOnly, "updateAttributeProviderList method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "updateAttributeProviderList method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(updateAttrProvidersResult);
 		assertEquals(updateAttrProvidersResult.getAttributeProviders().size(), 1);
 		final AbstractAttributeProvider updateAttrProvidersItem = updateAttrProvidersResult.getAttributeProviders().get(0);
@@ -347,29 +441,60 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getPap" })
-	public void getPolicies()
+	public void getPolicies(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final Resources resources = testDomain.getPapResource().getPoliciesResource().getPolicies();
-		assertNotNull(resources);
-		assertTrue(resources.getLinks().size() > 0, "No resource for root policy found");
+		try
+		{
+			final Resources resources = testDomain.getPapResource().getPoliciesResource().getPolicies();
+			assertNotNull(resources);
+			assertTrue(resources.getLinks().size() > 0, "No resource for root policy found");
+			assertFalse(enablePdpOnly, "getPolicies method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getPolicies method not allowed but enablePdpOnly=false");
+		}
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomainProperties", "getPolicies" })
-	public void getRootPolicy()
+	public void getRootPolicy(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef();
+		final IdReferenceType rootPolicyRef;
+		try
+		{
+			rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef();
+			assertFalse(enablePdpOnly, "getOtherPdpProperties method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getOtherPdpProperties method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		final List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicyResource(rootPolicyRef.getValue()).getPolicyVersions().getLinks();
 		assertTrue(links.size() > 0, "No root policy version found");
 	}
 
 	private static final String TEST_POLICY_ID0 = "testPolicyAdd";
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getRootPolicy" })
-	public void addAndGetPolicy()
+	public void addAndGetPolicy(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID0, "1.0");
-		testDomainHelper.testAddAndGetPolicy(policySet);
+		try
+		{
+			testDomainHelper.testAddAndGetPolicy(policySet);
+			assertFalse(enablePdpOnly, "addPolicy method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "addPolicy method not allowed but enablePdpOnly=false");
+			return;
+		}
 
 		final PolicySet policySet2 = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID0, "1.1");
 		testDomainHelper.testAddAndGetPolicy(policySet2);
@@ -409,6 +534,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		final PoliciesResource policiesRes = testDomain.getPapResource().getPoliciesResource();
 		final PolicyResource policyRes = policiesRes.getPolicyResource(TEST_POLICY_ID1);
 		final List<Link> versionLinks = policyRes.getPolicyVersions().getLinks();
+
 		assertEquals(policyVersions.length, versionLinks.size(), "Invalid number of versions returned by getPolicyVersions()");
 		for (final String v : policyVersions)
 		{
@@ -501,11 +627,20 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	private static final String TEST_POLICY_ID = "policyTooManyV";
 
-	@Test(dependsOnMethods = { "setValidMaxPolicyCount" })
-	public void disablePolicyVersionRolling()
+	@Parameters({ "enablePdpOnly" })
+	@Test(dependsOnMethods = { "addAndGetPolicy" })
+	public void disablePolicyVersionRolling(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final boolean isEnabled = testDomainHelper.setPolicyVersionRollingAndGetStatus(false);
-		assertFalse(isEnabled, "Failed to disable policy version rolling");
+		try
+		{
+			final boolean isEnabled = testDomainHelper.setPolicyVersionRollingAndGetStatus(false);
+			assertFalse(isEnabled, "Failed to disable policy version rolling");
+			assertFalse(enablePdpOnly, "getOtherPrpProperties method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getOtherPrpProperties method not allowed but enablePdpOnly=false");
+		}
 	}
 
 	@Test(dependsOnMethods = { "disablePolicyVersionRolling" })
@@ -647,7 +782,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 
 	private static final String TEST_POLICY_DELETE_SINGLE_VERSION_ID = "testPolicyDeleteSingleVersion";
 
-	@Test(dependsOnMethods = { "deleteAndTryGetPolicyVersion" }, expectedExceptions = { ForbiddenException.class })
+	@Test(dependsOnMethods = { "deleteAndTryGetPolicyVersion" }, expectedExceptions = { NotFoundException.class })
 	public void deleteSingleVersionOfPolicy()
 	{
 		final PolicySet policySet1 = RestServiceTest.createDumbPolicySet(TEST_POLICY_DELETE_SINGLE_VERSION_ID, "1.2.3");
@@ -656,9 +791,18 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		final PolicyResource policyRes = testDomain.getPapResource().getPoliciesResource().getPolicyResource(TEST_POLICY_DELETE_SINGLE_VERSION_ID);
 		// delete this single version
 		final PolicyVersionResource policyVersionRes = policyRes.getPolicyVersionResource("1.2.3");
-		// this should raise ForbiddenException, as this is the only remaining version (there must be at least one)
+		// this should have the same effect as removing the policy altogether, as this is the only remaining version
 		policyVersionRes.deletePolicyVersion();
-		org.testng.Assert.fail("Policy version removal succeeded although there was only one version for the policy");
+		/*
+		 * Check that the policy is completely removed
+		 */
+		final List<Link> policyLinks = testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+		assertNull(DomainAPIHelper.getMatchingLink(TEST_POLICY_DELETE_SINGLE_VERSION_ID, policyLinks), "Policy removal after removeing last remaining version failed");
+		/*
+		 * Should throw NotFoundException
+		 */
+		policyRes.getPolicyVersions();
+		fail("Policy removal after removeing last remaining version failed");
 	}
 
 	@Test(dependsOnMethods = { "getRootPolicy", "deleteAndTryGetUnusedPolicy" })
@@ -1035,6 +1179,11 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
 	public void enableThenDisableStrictAttributeIssuerMatch(@Optional final String remoteAppBaseUrl) throws JAXBException
 	{
+		/*
+		 * Before setting this, the active policy(ies) must have Issuers on all AttributeDesignators
+		 */
+		final PolicySet policySet = RestServiceTest.createDumbPolicySet("root", "1.0");
+		testDomainHelper.setRootPolicy(policySet, true);
 		testSetFeature(PdpCoreFeature.STRICT_ATTRIBUTE_ISSUER_MATCH.toString(), PdpFeatureType.CORE, true);
 
 		// verify on disk if the server is local
@@ -1292,6 +1441,17 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 			final String requestFilterId = testDomainHelper.getPdpConfFromFile().getRequestFilter();
 			assertEquals(requestFilterId, DefaultRequestFilter.LaxFilterFactory.ID, "Request filter in PDP conf file does not match features " + inputFeatures);
 		}
+	}
+
+	@Test
+	public void requestPDPDumb() throws JAXBException
+	{
+		/*
+		 * This test is mostly for enablePdpOnly=true
+		 */
+		final Request xacmlReq = new Request(new RequestDefaults(XPATHVersion.V2_0.getURI()), Collections.singletonList(new Attributes(null, Collections.<Attribute> emptyList(),
+				XACMLCategory.XACML_1_0_SUBJECT_CATEGORY_ACCESS_SUBJECT.value(), null)), null, false, false);
+		testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 	}
 
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" }, dataProvider = "pdpTestFiles")

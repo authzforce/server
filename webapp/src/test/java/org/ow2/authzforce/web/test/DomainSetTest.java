@@ -15,6 +15,7 @@ import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -56,7 +58,7 @@ public class DomainSetTest extends RestServiceTest
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainSetTest.class);
 
-	private int domainExternalId = 0;
+	private int nextCreatedDomainIndex = 0;
 	private final Set<String> createdDomainIds = new HashSet<>();
 
 	/**
@@ -90,6 +92,10 @@ public class DomainSetTest extends RestServiceTest
 	{
 		// shhutdown server
 		shutdownServer();
+
+		// clean up domains directory
+		FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
+		DOMAINS_DIR.mkdir();
 	}
 
 	@Parameters({ "remote.base.url" })
@@ -165,12 +171,42 @@ public class DomainSetTest extends RestServiceTest
 	}
 
 	@Test(invocationCount = 3)
-	public void addAndGetDomain()
+	@Parameters({ "enablePdpOnly" })
+	public void addAndGetDomain(@Optional("false") final Boolean enablePdpOnly) throws IllegalArgumentException, IOException, JAXBException
 	{
-		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties("Test domain", "external" + Integer.toString(domainExternalId));
-		domainExternalId += 1;
-		final Link domainLink = domainsAPIProxyClient.addDomain(domainProperties);
+		// externalID is xs:NCName therefore cannot start with a number
+		final String nextCreatedDomainIndexStr = Integer.toString(nextCreatedDomainIndex);
+		final String externalId = "external" + nextCreatedDomainIndexStr;
+		nextCreatedDomainIndex += 1;
+
+		final DomainProperties domainProperties = new DomainProperties("Test domain", externalId);
+		final Link domainLink;
+		try
+		{
+			domainLink = domainsAPIProxyClient.addDomain(domainProperties);
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "addDomain method not allowed although enablePdpOnly=false");
+			/*
+			 * enablePdpOnly=true does not allow adding domain via REST API, so we add it on the filesystem directly for other tests to work
+			 */
+			FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
+			// use the domainIndex as domainId
+			final String domainId = nextCreatedDomainIndexStr;
+			final File domainDir = new File(DOMAINS_DIR, domainId);
+			Files.move(SAMPLE_DOMAIN_COPY_DIR, domainDir.toPath());
+			final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(domainProperties.getDescription(), externalId,
+					null, null, false);
+			final File domainPropertiesFile = new File(domainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
+			RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, domainPropertiesFile);
+			LOGGER.debug("Added domain ID={} directlry on filesystem (enablePdpOnly=true)", domainId);
+			createdDomainIds.add(domainId);
+			return;
+		}
+
+		assertFalse(enablePdpOnly, "addDomain method allowed although enablePdpOnly=true");
+
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
@@ -210,8 +246,8 @@ public class DomainSetTest extends RestServiceTest
 		Arrays.fill(chars, 'a');
 		final String description = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(domainExternalId));
-		domainExternalId += 1;
+		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(nextCreatedDomainIndex));
+		nextCreatedDomainIndex += 1;
 		domainsAPIProxyClient.addDomain(domainProperties);
 	}
 
@@ -233,14 +269,26 @@ public class DomainSetTest extends RestServiceTest
 		final String externalId = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
 		final DomainProperties domainProperties = new DomainProperties("test", externalId);
-		domainExternalId += 1;
+		nextCreatedDomainIndex += 1;
 		domainsAPIProxyClient.addDomain(domainProperties);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "addAndGetDomain" })
-	public void getDomains()
+	public void getDomains(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final Resources domainResources = domainsAPIProxyClient.getDomains(null);
+		final Resources domainResources;
+		try
+		{
+			domainResources = domainsAPIProxyClient.getDomains(null);
+			assertFalse(enablePdpOnly, "getDomains method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomains method not allowed although enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(domainResources, "No domain found");
 		// match retrieved domains against created ones in addDomain test
 		int matchedDomainCount = 0;
@@ -256,11 +304,23 @@ public class DomainSetTest extends RestServiceTest
 		assertEquals(matchedDomainCount, createdDomainIds.size(), "Test domains added by 'addDomain' not all found by getDomains");
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomains" })
-	public void getDomain()
+	public void getDomain(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final String testDomainId = createdDomainIds.iterator().next();
-		final Domain testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
+		final Domain testDomainResource;
+		try
+		{
+			testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
+			assertFalse(enablePdpOnly, "getDomain method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomain method not allowed although enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
 		final Link pdpLink = DomainAPIHelper.getMatchingLink("/pdp", testDomainResource.getChildResources().getLinks());
 		assertNotNull(pdpLink, "Missing link to PDP in response to getDomain(" + testDomainId + ")");
@@ -268,27 +328,51 @@ public class DomainSetTest extends RestServiceTest
 				+ ") does not comply with REST profile of XACML 3.0");
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomain" })
-	public void getDomainByExternalId()
+	public void getDomainByExternalId(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final String createdDomainId = createdDomainIds.iterator().next();
-		final String externalId = domainsAPIProxyClient.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+		final String externalId;
+		try
+		{
+			externalId = domainsAPIProxyClient.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+			assertFalse(enablePdpOnly, "getDomain method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomain method not allowed although enablePdpOnly=false");
+			return;
+		}
 
 		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(externalId).getLinks();
-		// verify that there is only one domain resource link and it is the one
-		// we are looking for
+		/*
+		 * verify that there is only one domain resource link and it is the one we are looking for
+		 */
 		assertEquals(domainLinks.size(), 1);
 
 		final String matchedDomainId = domainLinks.get(0).getHref();
 		assertEquals(matchedDomainId, createdDomainId, "getDomains(externalId) returned wrong domainId: " + matchedDomainId + " instead of " + createdDomainId);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomainByExternalId" })
-	public void deleteDomain()
+	public void deleteDomain(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final String createdDomainId = createdDomainIds.iterator().next();
 		final DomainResource domainRes = domainsAPIProxyClient.getDomainResource(createdDomainId);
-		final DomainProperties deletedDomainProps = domainRes.deleteDomain();
+		final DomainProperties deletedDomainProps;
+		try
+		{
+			deletedDomainProps = domainRes.deleteDomain();
+			assertFalse(enablePdpOnly, "deleteDomain method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "deleteDomain method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		// make sure it's done
 		try
 		{

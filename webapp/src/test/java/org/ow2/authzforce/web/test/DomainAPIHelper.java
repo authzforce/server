@@ -190,7 +190,7 @@ class DomainAPIHelper
 		final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(props.getDescription(), newExternalId, null, null,
 				false);
 		/*
-		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution) as explained above
+		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution) as explained above; otherwise the change remains unseen
 		 */
 		if (isFilesystemLegacy)
 		{
@@ -533,5 +533,10 @@ class DomainAPIHelper
 		// final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
 
 		assertNormalizedEquals(expectedResponse.getValue(), actualResponse);
+	}
+
+	public File getPropertiesFile()
+	{
+		return this.domainPropertiesFile;
 	}
 }
