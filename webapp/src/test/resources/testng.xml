@@ -13,13 +13,15 @@
    <parameter name="legacy.fs" value="true" />
    <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
    <parameter name="enableFastInfoset" value="false" />
+   <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
+   <parameter name="useJSON" value="false" />
    <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
    <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
    <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
 
 <!-- WORKS OK -->
-   <test name="Test_PDPOnly:Yes.FastInfoset:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:Yes.FastInfoset:No.JSON:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="false">
       <!-- <parameter name="enableFastInfoset" value="false" /> -->
       <parameter name="enablePdpOnly" value="true" />
       <!-- Test using default parameter values -->
@@ -53,7 +55,7 @@
          </class>
       </classes>
    </test>
-   <test name="Test_PDPOnly:No.FastInfoset:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="false">
       <!-- <parameter name="enableFastInfoset" value="false" /> -->
       <parameter name="enablePdpOnly" value="false" />
       <!-- Test using default parameter values -->
@@ -81,7 +83,7 @@
          <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
       </classes>
    </test>
-   <test name="Test_PDPOnly:No.FastInfoset:Yes.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:No.FastInfoset:Yes.JSON:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="false">
       <!-- Same tests as before but with FastInfoset-capable client -->
       <parameter name="enableFastInfoset" value="true" />
       <classes>
@@ -89,6 +91,7 @@
             <methods>
                <include name="getWADL" />
                <include name="getDomainsWithoutAcceptHeader" />
+               <include name="getDomainsWithBadAcceptHeader" />
                <!-- 'invocation-numbers' attribute on include element not working as expected: https://github.com/cbeust/testng/issues/613 -->
                <include name="addAndGetDomain" />
                <include name="getDomains" />
@@ -107,15 +110,41 @@
          <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
       </classes>
    </test>
-   <test name="Test_PDPOnly:No.FastInfoset:No.AutoSync:Yes.VersionRolling:Yes" preserve-order="true" enabled="true">
+    <test name="Test_PDPOnly:No.FastInfoset:No.JSON:Yes.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
+      <!-- Same tests as before but with JSON-capable client -->
+      <parameter name="useJSON" value="true" />
+      <classes>
+         <class name="org.ow2.authzforce.web.test.DomainSetTest">
+            <methods>
+               <include name="getWADL" />
+               <include name="getDomainsWithoutAcceptHeader" />
+               <include name="getDomainsWithBadAcceptHeader" />
+               <!-- 'invocation-numbers' attribute on include element not working as expected: https://github.com/cbeust/testng/issues/613 -->
+               <include name="addAndGetDomain" />
+<!--                <include name="getDomains" /> -->
+<!--                <include name="getDomain" /> -->
+<!--                <include name="getDomainByExternalId" /> -->
+<!--                <include name="addDomainWithTooBigDescription" /> -->
+<!--                <include name="addDomainWithTooBigExternalId" /> -->
+<!--                <include name="deleteDomain" /> -->
+<!--                <include name="getDomainsAfterFileModifications" /> -->
+<!--                <include name="deleteDomainAfterDirectoryDeleted" /> -->
+<!--                <include name="getPdpAfterDomainDirCreated" /> -->
+<!--                <include name="deleteDomains" /> -->
+            </methods>
+         </class>
+         <!-- Domain-specific testing -->
+         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
+      </classes>
+   </test>
+   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:No.AutoSync:Yes.VersionRolling:Yes" preserve-order="true" enabled="false">
       <parameter name="org.ow2.authzforce.domains.sync.interval" value="4" />
       <classes>
          <!-- Domain-specific testing -->
          <class name="org.ow2.authzforce.web.test.DomainTestWithAutoSyncAndVersionRolling" />
       </classes>
    </test>
-   <test name="Test_AdminPolicy" preserve-order="true" enabled="true">
-      <parameter name="enableFastInfoset" value="false" />
+   <test name="Test_AdminPolicy" preserve-order="true" enabled="false">
       <classes>
          <!-- Domain-specific testing -->
          <class name="org.ow2.authzforce.web.test.AdminDomainTest" />

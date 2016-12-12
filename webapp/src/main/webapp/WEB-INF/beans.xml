@@ -4,7 +4,7 @@
    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public 
    License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
-   xmlns:jee="http://www.springframework.org/schema/jee" xmlns:cxf="http://cxf.apache.org/core"
+   xmlns:p="http://www.springframework.org/schema/p" xmlns:jee="http://www.springframework.org/schema/jee" xmlns:cxf="http://cxf.apache.org/core"
    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
 						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
@@ -36,6 +36,7 @@
    <jee:jndi-lookup id="jndi_staxMaxAttributeSize" jndi-name="org.apache.cxf.stax.maxAttributeSize" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
    <jee:jndi-lookup id="jndi_staxMaxTextLength" jndi-name="org.apache.cxf.stax.maxTextLength" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
 
+   <!-- XML support -->
    <util:list id="apiSchemaLocations">
       <value>#{jndi_configDir}/authzforce-ext.xsd</value>
       <value>classpath:/xsd/authz-rest-api.xsd</value>
@@ -51,6 +52,40 @@
          <property name="singleJaxbContext" value="true" />
          <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensionLoader).getExtensionJaxbClasses().toArray() }" />
          <property name="schemaHandler" ref="apiSchemaHandler" />
+      </bean>
+
+      <!-- Fast Infoset replaced by JSON support: -->
+      <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
+      <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" />
+
+      <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair">
+         <constructor-arg ref="jaxbAnnotationIntrospector" />
+         <constructor-arg ref="jacksonAnnotationIntrospector" />
+      </bean>
+
+   <!--  FIXME: use only jaxbAnnotationIntrospector -->
+      <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean" p:autoDetectFields="false" p:autoDetectGettersSetters="false"
+         p:annotationIntrospector-ref="pairedAnnotationIntrospector">
+         <property name="objectMapper">
+            <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
+         </property>
+         <property name="featuresToEnable">
+            <array>
+               <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" />
+               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" />
+               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" />
+            </array>
+         </property>
+         <property name="featuresToDisable">
+            <array>
+               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
+               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" />
+            </array>
+         </property>
+      </bean>
+
+      <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+         <constructor-arg ref="jacksonObjectMapper" />
       </bean>
    </beans>
 
@@ -99,17 +134,19 @@
       </bean>
    </beans>
 
+   <!-- JAX-RS service -->
    <beans profile="-fastinfoset">
-      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api.wadl" staticSubresourceResolution="true">
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api+json.wadl" staticSubresourceResolution="true">
          <jaxrs:serviceBeans>
             <ref bean="domainsResourceBean" />
          </jaxrs:serviceBeans>
          <jaxrs:providers>
-            <bean class="org.ow2.authzforce.rest.service.jaxrs.XmlOnlyMediaTypeRequestFilter" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.XmlAndJsonOnlyMediaTypeRequestFilter" />
             <ref bean="jaxbProvider" />
+            <ref bean="jsonProvider" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
-             <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
@@ -136,7 +173,7 @@
    </beans>
 
    <beans profile="+fastinfoset">
-      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api+fi.wadl" staticSubresourceResolution="true">
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:/authz-api+fi+json.wadl" staticSubresourceResolution="true">
          <jaxrs:serviceBeans>
             <ref bean="domainsResourceBean" />
          </jaxrs:serviceBeans>

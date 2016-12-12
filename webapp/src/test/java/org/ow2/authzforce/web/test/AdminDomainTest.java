@@ -80,7 +80,7 @@ public class AdminDomainTest extends RestServiceTest
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("-1") final int domainSyncIntervalSec,
 			@Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**

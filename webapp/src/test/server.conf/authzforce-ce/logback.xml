@@ -64,7 +64,7 @@
 		<!-- <appender-ref ref="error" /> -->
 		<appender-ref ref="stdout" />
 	</logger>
-	<logger name="org.ow2.authzforce" additivity="false" level="WARN">
+	<logger name="org.ow2.authzforce" additivity="false" level="DEBUG">
 		<!-- <appender-ref ref="error" /> -->
 		<appender-ref ref="stdout" />
 	</logger>

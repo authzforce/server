@@ -33,27 +33,32 @@ import org.apache.cxf.phase.Phase;
  * CXF interceptor that set client's Content-Type/Accept headers for XML/FastInfoset properly
  *
  */
-public class XmlMediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
+public class MediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 {
-	private static final String FI_MEDIA_TYPE = "application/fastinfoset";
 	private final String contentType;
 	private final List<String> acceptTypes;
 
-	public XmlMediaTypeHeaderSetter(final boolean enableFastInfoset)
+	public MediaTypeHeaderSetter(final MediaType mediaType)
 	{
 		super(Phase.PRE_LOGICAL);
-		if (enableFastInfoset)
+		switch (mediaType.getSubtype())
 		{
-			contentType = FI_MEDIA_TYPE;
-			/*
-			 * Remove any occurrence of 'application/xml' from Accept headers, then the FIStaxOutInterceptor will add 'application/fastinfoset' if fastInfoset was enabled on the JAXRS client.
-			 */
-			acceptTypes = Collections.emptyList();
-		}
-		else
-		{
-			contentType = MediaType.APPLICATION_XML;
-			acceptTypes = Collections.singletonList(MediaType.APPLICATION_XML);
+			case "fastinfoset":
+				contentType = mediaType.toString();
+				/*
+				 * Remove any occurrence of 'application/xml' from Accept headers, then the FIStaxOutInterceptor will add 'application/fastinfoset' if fastInfoset was enabled on the JAXRS client.
+				 */
+				acceptTypes = Collections.emptyList();
+				break;
+
+			case "xml":
+			case "json":
+				contentType = mediaType.toString();
+				acceptTypes = Collections.singletonList(contentType);
+				break;
+
+			default:
+				throw new UnsupportedOperationException("Unsupported mime type: '" + mediaType + "'");
 		}
 	}
 

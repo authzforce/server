@@ -29,12 +29,15 @@ import javax.ws.rs.core.MediaType;
  * FastInfoset request blocker
  *
  */
-public class XmlOnlyMediaTypeRequestFilter implements ContainerRequestFilter
+public class XmlAndJsonOnlyMediaTypeRequestFilter implements ContainerRequestFilter
 {
 	private static final NotAcceptableException NOT_ACCEPTABLE_EXCEPTION = new NotAcceptableException();
+	private static final String APPLICATION_MEDIA_TYPE = MediaType.APPLICATION_XML_TYPE.getType(); // "application"
+	private static final String XML_SUB_MEDIA_TYPE = MediaType.APPLICATION_XML_TYPE.getSubtype(); // "xml"
+	private static final String JSON_SUB_MEDIA_TYPE = MediaType.APPLICATION_JSON_TYPE.getSubtype(); // "json"
 
 	@Override
-	public void filter(ContainerRequestContext context)
+	public void filter(final ContainerRequestContext context)
 	{
 		final List<MediaType> acceptMediaTypes = context.getAcceptableMediaTypes();
 		if (acceptMediaTypes.isEmpty())
@@ -48,12 +51,12 @@ public class XmlOnlyMediaTypeRequestFilter implements ContainerRequestFilter
 			return;
 		}
 
-		if (mediaType0.getType().equalsIgnoreCase("application") && mediaType0.getSubtype().equalsIgnoreCase("xml"))
+		if (mediaType0.getType().equalsIgnoreCase(APPLICATION_MEDIA_TYPE)
+				&& (mediaType0.getSubtype().equalsIgnoreCase(XML_SUB_MEDIA_TYPE) || mediaType0.getSubtype().equalsIgnoreCase(JSON_SUB_MEDIA_TYPE)))
 		{
 			return;
 		}
 
 		throw NOT_ACCEPTABLE_EXCEPTION;
 	}
-
 }

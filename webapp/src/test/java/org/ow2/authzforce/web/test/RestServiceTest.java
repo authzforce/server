@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.TimeZone;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletException;
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -61,6 +63,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
 @ContextConfiguration(locations = { "classpath:META-INF/spring/client.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 {
@@ -92,6 +96,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected static final int XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE = 911;
 
 	protected static final File DOMAINS_DIR = new File("target/server/conf/authzforce-ce/domains");
+
+	private static final MediaType FASTINFOSET_MEDIA_TYPE = new MediaType("application", "fastinfoset");
 
 	protected static final File XACML_SAMPLES_DIR = new File("src/test/resources/xacml.samples");
 	static
@@ -179,8 +185,6 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
 	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
-	protected static final String FASTINFOSET_MEDIA_TYPE = "application/fastinfoset";
-
 	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTest.class);
@@ -195,6 +199,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return new PolicySet(description, null, null, new Target(null), null, null, null, policyId, version, "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit",
 				BigInteger.ZERO);
 	}
+
+	@Autowired
+	@Qualifier("clientJsonProvider")
+	private JacksonJsonProvider clientJsonJaxbProvider;
 
 	@Autowired
 	@Qualifier("pdpModelHandler")
@@ -349,7 +357,12 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return embeddedServer;
 	}
 
-	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean enablePdpOnly) throws Exception
+	protected enum ClientType
+	{
+		XML, FAST_INFOSET, JSON
+	}
+
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final int domainSyncIntervalSec, final boolean enablePdpOnly) throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -357,7 +370,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly, false);
+			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, domainSyncIntervalSec, enablePdpOnly, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -398,31 +411,46 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 
 		final ClientConfiguration proxyClientConf;
-		if (enableFastInfoset)
+		switch (clientType)
 		{
-			/*
-			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
-			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
-			 */
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
-			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			/*
-			 * WARNING: XmlMediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
-			 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0,
-			 * byte #-1)
-			 */
-			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(true));
-			checkFiInterceptors(proxyClientConf);
-		}
-		else
-		{
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
-			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			/*
-			 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which causes
-			 * error on this client-side since not supported
-			 */
-			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(false));
+			case XML:
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which
+				 * causes error on this client-side since not supported
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(MediaType.APPLICATION_XML_TYPE));
+				break;
+
+			case FAST_INFOSET:
+				/*
+				 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
+				 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
+				 */
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
+				 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char
+				 * #0, byte #-1)
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(FASTINFOSET_MEDIA_TYPE));
+				checkFiInterceptors(proxyClientConf);
+				break;
+
+			case JSON:
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJsonJaxbProvider));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/json"
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(MediaType.APPLICATION_JSON_TYPE));
+				proxyClientConf.getHttpConduit().getClient().setAccept(MediaType.APPLICATION_JSON);
+				break;
+
+			default:
+				throw new RuntimeException("Invalid client type: not one of: " + Arrays.toString(ClientType.values()));
 		}
 
 		/**

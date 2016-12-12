@@ -1,6 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security" xmlns:http="http://cxf.apache.org/transports/http/configuration"
-	xmlns:util="http://www.springframework.org/schema/util" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-	xsi:schemaLocation="
+   xmlns:util="http://www.springframework.org/schema/util" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:p="http://www.springframework.org/schema/p"
+   xsi:schemaLocation="
       http://cxf.apache.org/configuration/security
       http://cxf.apache.org/schemas/configuration/security.xsd
       http://cxf.apache.org/transports/http/configuration
@@ -12,66 +12,139 @@
       http://cxf.apache.org/jaxrs 
       http://cxf.apache.org/schemas/jaxrs.xsd">
 
-	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
-		<constructor-arg name="catalogLocation"
-			value="src/test/server.conf/authzforce-ce/catalog.xml" />
-		<constructor-arg name="extensionXsdLocation"
-			value="src/test/server.conf/authzforce-ce/authzforce-ext.xsd" />
-	</bean>
+   <bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
+      <constructor-arg name="catalogLocation" value="src/test/server.conf/authzforce-ce/catalog.xml" />
+      <constructor-arg name="extensionXsdLocation" value="src/test/server.conf/authzforce-ce/authzforce-ext.xsd" />
+   </bean>
 
-	<util:list id="clientApiSchemaLocations">
-		<value>classpath:/xml.xsd</value>
-		<value>classpath:/atom.xsd</value>
-		<value>classpath:/xacml-core-v3-schema-wd-17.xsd</value>
-		<value>classpath:/pdp-ext-base.xsd</value>
-		<value>classpath:/org.ow2.authzforce.core.test.xsd</value>
-		<value>classpath:/xsd/authz-rest-api.xsd</value>
-	</util:list>
+   <util:list id="clientApiSchemaLocations">
+      <value>classpath:/xml.xsd</value>
+      <value>classpath:/atom.xsd</value>
+      <value>classpath:/xacml-core-v3-schema-wd-17.xsd</value>
+      <value>classpath:/pdp-ext-base.xsd</value>
+      <value>classpath:/org.ow2.authzforce.core.test.xsd</value>
+      <value>classpath:/xsd/authz-rest-api.xsd</value>
+   </util:list>
 
-	<bean id="clientApiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
-		<!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder type undefined -->
-		<!-- <property name="catalogLocation" value="classpath:/catalog.xml" /> -->
-		<property name="schemaLocations" ref="clientApiSchemaLocations" />
-	</bean>
+   <bean id="clientApiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+      <!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder type undefined -->
+      <!-- <property name="catalogLocation" value="classpath:/catalog.xml" /> -->
+      <property name="schemaLocations" ref="clientApiSchemaLocations" />
+   </bean>
 
-	<util:list id="extraJaxbClasses" value-type="java.lang.Class">
-		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
-	</util:list>
+   <util:list id="extraJaxbClasses" value-type="java.lang.Class">
+      <value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
+   </util:list>
 
-	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
-		<property name="singleJaxbContext" value="true" />
-		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
-		<property name="schemaHandler" ref="clientApiSchemaHandler" />
-	</bean>
-		
-	<util:list id="fastinfosetType">
-        <value>application/fastinfoset</value>
-    </util:list>
-	
-	<bean id="clientJaxbProviderFI" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
-		<property name="singleJaxbContext" value="true" />
-		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
-		<property name="schemaHandler" ref="clientApiSchemaHandler" />
-		<property name="produceMediaTypes" ref="fastinfosetType"/>
-        <property name="consumeMediaTypes" ref="fastinfosetType"/>
-	</bean>
+   <bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+      <property name="singleJaxbContext" value="true" />
+      <property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
+      <property name="schemaHandler" ref="clientApiSchemaHandler" />
+   </bean>
 
-	<!-- More info: http://cxf.apache.org/docs/client-http-transport-including-ssl-support.html -->
-	<http:conduit name="*.http-conduit">
-		<http:tlsClientParameters>
-			<!-- <sec:keyManagers keyPassword="changeit"> <sec:keyStore type="JKS" password="password" file="D:\users\XXX\john.doe-taz-client-keystore.jks"/> </sec:keyManagers> -->
-			<sec:trustManagers>
-				<sec:keyStore type="JKS" password="password" resource="taz-client-truststore.jks" />
-			</sec:trustManagers>
-			<sec:cipherSuitesFilter>
-				<sec:include>.*_WITH_RC4_.*</sec:include>
-				<sec:include>.*_WITH_AES_.*</sec:include>
-				<sec:exclude>.*_MD5</sec:exclude>
-				<sec:exclude>.*_anon_.*</sec:exclude>
-			</sec:cipherSuitesFilter>
-		</http:tlsClientParameters>
-		<http:client ConnectionTimeout="0" ReceiveTimeout="0" />
-		<!-- HTTP Proxy configuration if needed -->
-		<!-- <http:client AutoRedirect="true" Connection="Keep-Alive" BrowserType="Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0" ProxyServer="myproxy.acme.com" ProxyServerPort="3128" ProxyServerType="HTTP"/> -->
-	</http:conduit>
+   <util:list id="fastinfosetType">
+      <value>application/fastinfoset</value>
+   </util:list>
+
+   <bean id="clientJaxbProviderFI" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+      <property name="singleJaxbContext" value="true" />
+      <property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
+      <property name="schemaHandler" ref="clientApiSchemaHandler" />
+      <property name="produceMediaTypes" ref="fastinfosetType" />
+      <property name="consumeMediaTypes" ref="fastinfosetType" />
+   </bean>
+
+   <util:map id="java2jsonPropertyMap">
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Target:anyOves" value="AnyOf" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policySetId" value="PolicySetId" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:version" value="Version" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:description" value="Description" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policyCombiningAlgId" value="PolicyCombiningAlgId" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:maxDelegationDepth" value="MaxDelegationDepth" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policyIssuer" value="PolicyIssuer" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policySetDefaults" value="PolicySetDefaults" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:target" value="Target" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:obligationExpressions" value="ObligationExpressions" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:adviceExpressions" value="AdviceExpressions" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:version" value="Version" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:earliestVersion" value="EarliestVersion" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:latestVersion" value="LatestVersion" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Response:results" value="Result" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:decision" value="Decision" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:status" value="Status" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:obligations" value="Obligations" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:associatedAdvice" value="AssociatedAdvice" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:attributes" value="Attributes" />
+      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:policyIdentifierList" value="PolicyIdentifierList" />
+      <entry key="org.ow2.authzforce.rest.api.xmlns.Resources:links" value="link" />
+      <entry key="org.ow2.authzforce.rest.api.xmlns.AttributeProviders:attributeProviders" value="attributeProvider" />
+      <entry key="org.ow2.authzforce.rest.api.xmlns.PdpProperties:features" value="feature" />
+      <entry key="org.ow2.authzforce.rest.api.xmlns.ApplicablePolicies:refPolicyReves" value="refPolicyRef" />
+   </util:map>
+
+   <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
+   <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" />
+
+   <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair">
+      <constructor-arg ref="jaxbAnnotationIntrospector" />
+      <constructor-arg ref="jacksonAnnotationIntrospector" />
+   </bean>
+   
+    <bean id="jacksonObjectMapperDefaultTypeResolverBuilder" class="com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder">
+      <constructor-arg value="OBJECT_AND_NON_CONCRETE" />
+    </bean>
+
+   <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean" p:autoDetectFields="false" p:autoDetectGettersSetters="false"
+      p:annotationIntrospector-ref="pairedAnnotationIntrospector">
+      <property name="objectMapper">
+         <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
+      </property>
+      <property name="defaultTyping" ref="jacksonObjectMapperDefaultTypeResolverBuilder" />
+      <property name="featuresToEnable">
+         <array>
+            <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" />
+            <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" />
+            <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" />
+         </array>
+      </property>
+      <property name="featuresToDisable">
+         <array>
+            <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
+            <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" />
+         </array>
+      </property>
+   </bean>
+
+   <bean id="clientJsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+      <constructor-arg ref="jacksonObjectMapper" />
+      <!-- <constructor-arg name="mapper"> -->
+      <!-- <bean class="com.fasterxml.jackson.databind.ObjectMapper"> -->
+      <!-- <property name="propertyNamingStrategy"> -->
+      <!-- <bean class="org.ow2.authzforce.web.test.Java2JsonPropertyNamingStrategy"> -->
+      <!-- <constructor-arg ref="java2jsonPropertyMap" /> -->
+      <!-- </bean> -->
+      <!-- </property> -->
+      <!-- </bean> -->
+      <!-- </constructor-arg> -->
+   </bean>
+
+   <!-- More info: http://cxf.apache.org/docs/client-http-transport-including-ssl-support.html -->
+   <http:conduit name="*.http-conduit">
+      <http:tlsClientParameters>
+         <!-- <sec:keyManagers keyPassword="changeit"> <sec:keyStore type="JKS" password="password" file="D:\users\XXX\john.doe-taz-client-keystore.jks"/> </sec:keyManagers> -->
+         <sec:trustManagers>
+            <sec:keyStore type="JKS" password="password" resource="taz-client-truststore.jks" />
+         </sec:trustManagers>
+         <sec:cipherSuitesFilter>
+            <sec:include>.*_WITH_RC4_.*</sec:include>
+            <sec:include>.*_WITH_AES_.*</sec:include>
+            <sec:exclude>.*_MD5</sec:exclude>
+            <sec:exclude>.*_anon_.*</sec:exclude>
+         </sec:cipherSuitesFilter>
+      </http:tlsClientParameters>
+      <http:client ConnectionTimeout="0" ReceiveTimeout="0" />
+      <!-- HTTP Proxy configuration if needed -->
+      <!-- <http:client AutoRedirect="true" Connection="Keep-Alive" BrowserType="Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0" ProxyServer="myproxy.acme.com" ProxyServerPort="3128" 
+         ProxyServerType="HTTP"/> -->
+   </http:conduit>
 </beans>

@@ -124,12 +124,12 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
-	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("-1") final int domainSyncIntervalSec,
-			@Optional("false") final Boolean enablePdpOnly) throws Exception
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("false") final boolean useJSON,
+			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
