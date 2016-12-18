@@ -55,37 +55,55 @@
       </bean>
 
       <!-- Fast Infoset replaced by JSON support: -->
-      <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
-      <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" />
+      <!-- <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" /> -->
+      <!-- <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" /> -->
 
-      <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair">
-         <constructor-arg ref="jaxbAnnotationIntrospector" />
-         <constructor-arg ref="jacksonAnnotationIntrospector" />
-      </bean>
+      <!-- <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair"> -->
+      <!-- <constructor-arg ref="jaxbAnnotationIntrospector" /> -->
+      <!-- <constructor-arg ref="jacksonAnnotationIntrospector" /> -->
+      <!-- </bean> -->
 
-   <!--  FIXME: use only jaxbAnnotationIntrospector -->
-      <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean" p:autoDetectFields="false" p:autoDetectGettersSetters="false"
-         p:annotationIntrospector-ref="pairedAnnotationIntrospector">
+      <!-- <bean id="jacksonObjectMapperDefaultTypeResolverBuilder" class="com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder"> -->
+      <!-- <constructor-arg value="OBJECT_AND_NON_CONCRETE" /> -->
+      <!-- </bean> -->
+
+      <!-- FIXME: use only jaxbAnnotationIntrospector -->
+      <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+         <!-- p:autoDetectFields="false" p:autoDetectGettersSetters="false" p:annotationIntrospector-ref="pairedAnnotationIntrospector" -->
          <property name="objectMapper">
             <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
          </property>
+               <!-- JAXB annotationIntrospector conflicts with @JsonTypeInfo, so do not use it -->
+<!--          <property name="annotationIntrospector"> -->
+<!--             <bean class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" /> -->
+<!--          </property> -->
+         <!-- <property name="defaultTyping" ref="jacksonObjectMapperDefaultTypeResolverBuilder" /> -->
+         <property name="mixIns">
+            <map key-type="java.lang.Class" value-type="java.lang.Class">
+               <entry key="org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider" value="org.ow2.authzforce.webapp.JacksonAnnotatedAbstractAttributeProvider" />
+            </map>
+         </property>
          <property name="featuresToEnable">
             <array>
-               <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" />
-               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" />
-               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" />
+               <!-- <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" /> -->
+               <!-- <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" /> -->
+               <!-- <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" /> -->
+               <!-- FIXME: enable this only for debugging -->
+               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT" />
             </array>
          </property>
          <property name="featuresToDisable">
             <array>
-               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
-               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" />
+               <!-- <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" /> -->
+               <!-- <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" /> -->
             </array>
          </property>
       </bean>
 
-      <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+      <!-- <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"> -->
+      <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider">
          <constructor-arg ref="jacksonObjectMapper" />
+         <constructor-arg value="" /><!-- empty Annotations[] -->
       </bean>
    </beans>
 
@@ -148,8 +166,10 @@
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
+            <!-- Set to 'true' for debugging -->
             <entry key="org.apache.cxf.propagate.exception" value="false" />
             <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
                not try to set them via system properties (this does not work as expected). If value is null, CXF defaults are applied. -->
@@ -183,8 +203,10 @@
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
+            <!-- Set to true for debugging -->
             <entry key="org.apache.cxf.propagate.exception" value="false" />
             <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
                not try to set them via system properties (this does not work as expected). -->
