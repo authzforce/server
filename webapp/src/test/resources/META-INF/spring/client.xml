@@ -54,78 +54,21 @@
       <property name="consumeMediaTypes" ref="fastinfosetType" />
    </bean>
 
-   <util:map id="java2jsonPropertyMap">
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Target:anyOves" value="AnyOf" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policySetId" value="PolicySetId" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:version" value="Version" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:description" value="Description" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policyCombiningAlgId" value="PolicyCombiningAlgId" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:maxDelegationDepth" value="MaxDelegationDepth" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policyIssuer" value="PolicyIssuer" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:policySetDefaults" value="PolicySetDefaults" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:target" value="Target" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:obligationExpressions" value="ObligationExpressions" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet:adviceExpressions" value="AdviceExpressions" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:version" value="Version" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:earliestVersion" value="EarliestVersion" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType:latestVersion" value="LatestVersion" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Response:results" value="Result" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:decision" value="Decision" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:status" value="Status" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:obligations" value="Obligations" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:associatedAdvice" value="AssociatedAdvice" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:attributes" value="Attributes" />
-      <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Result:policyIdentifierList" value="PolicyIdentifierList" />
-      <entry key="org.ow2.authzforce.rest.api.xmlns.Resources:links" value="link" />
-      <entry key="org.ow2.authzforce.rest.api.xmlns.AttributeProviders:attributeProviders" value="attributeProvider" />
-      <entry key="org.ow2.authzforce.rest.api.xmlns.PdpProperties:features" value="feature" />
-      <entry key="org.ow2.authzforce.rest.api.xmlns.ApplicablePolicies:refPolicyReves" value="refPolicyRef" />
-   </util:map>
-
-   <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
-   <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" />
-
-   <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair">
-      <constructor-arg ref="jaxbAnnotationIntrospector" />
-      <constructor-arg ref="jacksonAnnotationIntrospector" />
-   </bean>
-   
-    <bean id="jacksonObjectMapperDefaultTypeResolverBuilder" class="com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder">
-      <constructor-arg value="OBJECT_AND_NON_CONCRETE" />
-    </bean>
-
-   <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean" p:autoDetectFields="false" p:autoDetectGettersSetters="false"
-      p:annotationIntrospector-ref="pairedAnnotationIntrospector">
-      <property name="objectMapper">
-         <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
+   <bean id="clientJsonProvider" class="org.apache.cxf.jaxrs.provider.json.JSONProvider">
+      <property name="convention" value="badgerfish" />
+      <property name="jaxbElementClassNames">
+      <list>
+      <value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
+      </list>
       </property>
-      <property name="defaultTyping" ref="jacksonObjectMapperDefaultTypeResolverBuilder" />
-      <property name="featuresToEnable">
-         <array>
-            <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" />
-            <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" />
-            <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" />
-         </array>
+      <property name="jaxbElementClassMap">
+         <map>
+            <entry key="org.ow2.authzforce.core.xmlns.test.TestAttributeProvider" value="{http://authzforce.github.io/core/xmlns/test/3}TestAttributeProvider" />
+         </map>
       </property>
-      <property name="featuresToDisable">
-         <array>
-            <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
-            <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" />
-         </array>
-      </property>
-   </bean>
-
-   <bean id="clientJsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-      <constructor-arg ref="jacksonObjectMapper" />
-      <!-- <constructor-arg name="mapper"> -->
-      <!-- <bean class="com.fasterxml.jackson.databind.ObjectMapper"> -->
-      <!-- <property name="propertyNamingStrategy"> -->
-      <!-- <bean class="org.ow2.authzforce.web.test.Java2JsonPropertyNamingStrategy"> -->
-      <!-- <constructor-arg ref="java2jsonPropertyMap" /> -->
-      <!-- </bean> -->
-      <!-- </property> -->
-      <!-- </bean> -->
-      <!-- </constructor-arg> -->
+      <property name="marshallAsJaxbElement" value="true" />
+      <property name="writeXsiType" value="true" />
+      <property name="serializeAsArray" value="true" />
    </bean>
 
    <!-- More info: http://cxf.apache.org/docs/client-http-transport-including-ssl-support.html -->

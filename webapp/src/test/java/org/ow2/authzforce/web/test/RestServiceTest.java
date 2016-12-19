@@ -46,6 +46,7 @@ import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.jaxrs.provider.AbstractJAXBProvider;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
 import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
@@ -62,8 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/client.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
@@ -202,7 +201,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	@Autowired
 	@Qualifier("clientJsonProvider")
-	private JacksonJsonProvider clientJsonJaxbProvider;
+	private AbstractJAXBProvider<?> clientJsonJaxbProvider;
 
 	@Autowired
 	@Qualifier("pdpModelHandler")

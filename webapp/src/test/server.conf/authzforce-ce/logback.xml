@@ -76,7 +76,7 @@
 	<!-- For logging request/response to/from webapp, only logger "org.apache.cxf" 
 		in level INFO is required, and you must add CXF org.apache.cxf.interceptor.LoggingInInterceptor/LoggingOutInterceptor 
 		to JAX-RS server's in/outInterceptors -->
-	<logger name="org.apache.cxf" additivity="false" level="INFO">
+	<logger name="org.apache.cxf" additivity="false" level="DEBUG">
 		<!-- <appender-ref ref="error" /> -->
 		<appender-ref ref="stdout" />
 	</logger>

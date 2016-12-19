@@ -53,40 +53,6 @@
          <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensionLoader).getExtensionJaxbClasses().toArray() }" />
          <property name="schemaHandler" ref="apiSchemaHandler" />
       </bean>
-
-      <!-- Fast Infoset replaced by JSON support: -->
-      <bean id="jaxbAnnotationIntrospector" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
-      <bean id="jacksonAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector" />
-
-      <bean id="pairedAnnotationIntrospector" class="com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair">
-         <constructor-arg ref="jaxbAnnotationIntrospector" />
-         <constructor-arg ref="jacksonAnnotationIntrospector" />
-      </bean>
-
-   <!--  FIXME: use only jaxbAnnotationIntrospector -->
-      <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean" p:autoDetectFields="false" p:autoDetectGettersSetters="false"
-         p:annotationIntrospector-ref="pairedAnnotationIntrospector">
-         <property name="objectMapper">
-            <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
-         </property>
-         <property name="featuresToEnable">
-            <array>
-               <util:constant static-field="com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES" />
-               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING" />
-               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING" />
-            </array>
-         </property>
-         <property name="featuresToDisable">
-            <array>
-               <util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
-               <util:constant static-field="com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS" />
-            </array>
-         </property>
-      </bean>
-
-      <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-         <constructor-arg ref="jacksonObjectMapper" />
-      </bean>
    </beans>
 
    <beans profile="+fastinfoset">
@@ -143,11 +109,25 @@
          <jaxrs:providers>
             <bean class="org.ow2.authzforce.rest.service.jaxrs.XmlAndJsonOnlyMediaTypeRequestFilter" />
             <ref bean="jaxbProvider" />
-            <ref bean="jsonProvider" />
+            <!-- Fast Infoset replaced by JSON support: -->
+            <bean class="org.apache.cxf.jaxrs.provider.json.JSONProvider">
+               <property name="convention" value="badgerfish" />
+               <!-- <property name="jaxbElementClassNames"> -->
+               <!-- <list> -->
+               <!-- <value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value> -->
+               <!-- </list> -->
+               <!-- </property> -->
+               <property name="jaxbElementClassMap">
+                  <map>
+                      <entry key="org.ow2.authzforce.core.xmlns.test.TestAttributeProvider" value="{http://authzforce.github.io/core/xmlns/test/3}TestAttributeProvider"/>
+                  </map>
+               </property>
+            </bean>
             <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
          </jaxrs:providers>
          <jaxrs:properties>
             <entry key="org.apache.cxf.propagate.exception" value="false" />
