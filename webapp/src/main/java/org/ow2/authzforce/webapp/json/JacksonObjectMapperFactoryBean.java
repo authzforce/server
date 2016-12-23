@@ -1,4 +1,4 @@
-package org.ow2.authzforce.webapp;
+package org.ow2.authzforce.webapp.json;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;

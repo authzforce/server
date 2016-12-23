@@ -94,19 +94,37 @@
    <!-- <constructor-arg value="OBJECT_AND_NON_CONCRETE" /> -->
    <!-- </bean> -->
 
-   <bean id="jacksonObjectMapper" class="org.ow2.authzforce.webapp.JacksonObjectMapperFactoryBean">
+   <bean id="jacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
       <!-- p:autoDetectFields="false" p:autoDetectGettersSetters="false" p:annotationIntrospector-ref="pairedAnnotationIntrospector" -->
       <property name="objectMapper">
          <bean class="com.fasterxml.jackson.databind.ObjectMapper" />
       </property>
       <!-- JAXB annotationIntrospector conflicts with @JsonTypeInfo, so do not use it -->
-<!--       <property name="annotationIntrospector"> -->
-<!--          <bean class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" /> -->
-<!--       </property> -->
+      <!-- <property name="annotationIntrospector"> -->
+      <!-- <bean class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" /> -->
+      <!-- </property> -->
       <!-- <property name="defaultTyping" ref="jacksonObjectMapperDefaultTypeResolverBuilder" /> -->
+      <!-- <property name="serializersByType"> -->
+      <!-- Map java.io.Serializable in XACML Attributes/Content or AttributeValue as JSON strings (limitations: only XML text supported then) -->
+      <!-- <map key-type="java.lang.Class" value-type="com.fasterxml.jackson.databind.JsonSerializer"> -->
+      <!-- <entry key="java.io.Serializable"> <bean class="com.fasterxml.jackson.databind.ser.std.ToStringSerializer" /></entry> -->
+      <!-- </map> -->
+      <!-- </property> -->
+      <!-- <property name="deserializersByType"> -->
+      <!-- Map java.io.Serializable in XACML Attributes/Content or AttributeValue as JSON strings (limitations: only XML text supported then) -->
+      <!-- https://fasterxml.github.io/jackson-databind/javadoc/2.8/index.html?com/fasterxml/jackson/databind/deser/std/package-summary.html -->
+      <!-- <map key-type="java.lang.Class" value-type="com.fasterxml.jackson.databind.JsonDeserializer"> -->
+      <!-- <entry key="java.io.Serializable"> <bean class="com.fasterxml.jackson.databind.deser.std.StringDeserializer" /></entry> -->
+      <!-- </map> -->
+      <!-- </property> -->
       <property name="mixIns">
          <map key-type="java.lang.Class" value-type="java.lang.Class">
-            <entry key="org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider" value="org.ow2.authzforce.webapp.JacksonAnnotatedAbstractAttributeProvider" />
+            <entry key="org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider" value="org.ow2.authzforce.webapp.json.JacksonAnnotatedAbstractAttributeProvider" />
+            <!-- Ignore XACML Attributes/Content in JSON mapping -->
+            <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.Attributes" value="org.ow2.authzforce.webapp.json.JacksonAnnotatedXACMLAttributes" />
+            <!-- (De)Serialize XACML AttributeValue (List<Serializable>) in a particular way for JSON mapping -->
+            <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.AttributeValueType" value="org.ow2.authzforce.webapp.json.JacksonAnnotatedXACMLAttributeValueType" />
+            <entry key="oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet" value="org.ow2.authzforce.webapp.json.JacksonAnnotatedXACMLPolicySet" />
          </map>
       </property>
       <property name="featuresToEnable">
