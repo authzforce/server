@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2016 Thales Services SAS.
+ * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthZForce CE.
  *
@@ -67,14 +67,18 @@ public class MediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 	{
 		final Map<String, List<String>> headers = (Map<String, List<String>>) outMessage.get(Message.PROTOCOL_HEADERS);
 		final List<String> contentTypeHeaders = headers.get(Message.CONTENT_TYPE);
-		if (contentTypeHeaders == null)
-		{
-			headers.put(Message.CONTENT_TYPE, Collections.singletonList(contentType));
-		}
-		else
+		if (contentTypeHeaders != null)
 		{
 			contentTypeHeaders.clear();
 			contentTypeHeaders.add(contentType);
+		}
+		
+		/*
+		 * There is also a Content-Type property in Message
+		 */
+		final String contentTypePropVal = (String) outMessage.get(Message.CONTENT_TYPE);
+		if(contentTypePropVal != null) {
+			outMessage.put(Message.CONTENT_TYPE, contentType);
 		}
 
 		final List<String> acceptHeaders = headers.get(Message.ACCEPT_CONTENT_TYPE);

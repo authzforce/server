@@ -1,5 +1,20 @@
 /**
- * Copyright (C) 2015-2015 Thales Services SAS. All rights reserved. No warranty, explicit or implicit, provided.
+ * Copyright (C) 2012-2017 Thales Services SAS.
+ *
+ * This file is part of AuthZForce CE.
+ *
+ * AuthZForce CE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AuthZForce CE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.web.test;
 
@@ -22,12 +37,14 @@ import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
@@ -230,7 +247,7 @@ public class DomainSetTest extends RestServiceTest
 	}
 
 	@Parameters({ "enableFastInfoset" })
-	@Test(expectedExceptions = BadRequestException.class)
+	@Test
 	public void addDomainWithTooBigDescription(@Optional("false") final Boolean enableFastInfoset)
 	{
 		if (enableFastInfoset)
@@ -248,11 +265,24 @@ public class DomainSetTest extends RestServiceTest
 		// externalID is x:NCName therefore cannot start with a number
 		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(nextCreatedDomainIndex));
 		nextCreatedDomainIndex += 1;
-		domainsAPIProxyClient.addDomain(domainProperties);
+		try
+		{
+			domainsAPIProxyClient.addDomain(domainProperties);
+			fail("Bad request to add domain (too big description element) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+			 // Bad request as expected (e.g. for XML API)
+		}
+		catch (final ClientErrorException e)
+		{
+			// The error may be 413 Request Entity Too Large (e.g. for JSON API)
+			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+		}
 	}
 
 	@Parameters({ "enableFastInfoset" })
-	@Test(expectedExceptions = BadRequestException.class)
+	@Test
 	public void addDomainWithTooBigExternalId(@Optional("false") final Boolean enableFastInfoset)
 	{
 		/*
@@ -270,7 +300,20 @@ public class DomainSetTest extends RestServiceTest
 		// externalID is x:NCName therefore cannot start with a number
 		final DomainProperties domainProperties = new DomainProperties("test", externalId);
 		nextCreatedDomainIndex += 1;
-		domainsAPIProxyClient.addDomain(domainProperties);
+		try
+		{
+			domainsAPIProxyClient.addDomain(domainProperties);
+			fail("Bad request to add domain (too big externalId attribute) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+//			 Bad request as expected (e.g. for XML API)
+		}
+		catch (final ClientErrorException e)
+		{
+			// The error may be 413 Request Entity Too Large (e.g. for JSON API)
+			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+		}
 	}
 
 	@Parameters({ "enablePdpOnly" })
@@ -544,7 +587,7 @@ public class DomainSetTest extends RestServiceTest
 		assertTrue(actualResponse != null, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
 	}
 
-	@Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
+	//@Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
 	public void deleteDomains()
 	{
 		for (final String domainId : createdDomainIds)

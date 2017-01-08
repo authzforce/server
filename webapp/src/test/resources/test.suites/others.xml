@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="AuthZForce.PDP.REST.API.Others" verbose="3">
+   <!-- If you uncomment the <parameter>s below left here as a reminder, it overrides any JVM argument with same name passed on the command-line (e.g. -Dremote.base.url for parameter 'remote.base.url'). 
+      So leave it commented out with you want to pass the parameter on the command-line. -->
+   <!-- Base URL of the remote AuthZForce webapp to be tested (up to the context root), if not testing locally. If and only if specified and not the empty string, the server is assumed to be remote; no 
+      server started locally (embedded). -->
+   <parameter name="remote.base.url" value="" />
+   <!-- <parameter name="remote.base.url" value="http://localhost:8080/authzforce-ce" /> -->
+   <!-- True iff the filesystem local to the server is a "legacy" filesystem, meaning here that millisecond or higher resolution of file timestamps is not supported. This is the case of 'ext3'; whereas 
+      'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the 
+      last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results. -->
+   <parameter name="legacy.fs" value="true" />
+   <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
+   <parameter name="enableFastInfoset" value="false" />
+   <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
+   <parameter name="useJSON" value="false" />
+   <!-- Domains sync interval (seconds) -->
+   <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
+   <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
+   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
+
+   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:No.AutoSync:Yes.VersionRolling:Yes" preserve-order="true" enabled="true">
+      <parameter name="org.ow2.authzforce.domains.sync.interval" value="4" />
+      <classes>
+         <!-- Domain-specific testing -->
+         <class name="org.ow2.authzforce.web.test.DomainTestWithAutoSyncAndVersionRolling" />
+      </classes>
+   </test>
+   <test name="Test_AdminPolicy" preserve-order="true" enabled="true">
+      <classes>
+         <!-- Domain-specific testing -->
+         <class name="org.ow2.authzforce.web.test.AdminDomainTest" />
+      </classes>
+   </test>
+</suite> 
+
