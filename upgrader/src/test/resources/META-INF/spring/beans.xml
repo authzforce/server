@@ -23,7 +23,10 @@
 	<!-- 0 means no sync -->
 	<jee:jndi-lookup id="jndi_syncIntervalSec"
 		jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer"
-		default-value="#{new Integer(0)}" />
+		default-value="#{T(java.lang.Integer).valueOf(0)}" />
+	<jee:jndi-lookup id="jndi_enablePdpOnly"
+		jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean"
+		default-value="#{T(java.lang.Boolean).FALSE}" />
 
 	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
 		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
@@ -37,7 +40,7 @@
 	<bean id="domainsDAOBean"
 		class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO"
 		destroy-method="closeDomains">
-		<!-- root directory of domain folders; a domain folder contains all configuration 
+		<!-- Root directory of domain folders; a domain folder contains all configuration 
 			data of a specific domain, and is named after the domain ID encoded with 
 			base64url. -->
 		<constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
@@ -46,6 +49,7 @@
 		<!-- domains directory-to-memory synchronization interval in seconds -->
 		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
 		<constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+		<constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
 		<constructor-arg name="useRandomAddressBasedUUID"
 			value="#{jndi_useRandomAddressBasedUUID}" />
 		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />

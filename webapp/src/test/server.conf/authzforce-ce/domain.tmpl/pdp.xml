@@ -7,7 +7,7 @@
 	maxPolicyRefDepth="2"
 	strictAttributeIssuerMatch="false"
 	requestFilter="urn:ow2:authzforce:feature:pdp:request-filter:default-lax">
-	<!-- One of the PDP tests uses Multiple Decision Profile, so the requestFilter must be compatible, e.g. "urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax". -->
+	<!-- Replace with requestFilter = "urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" for Multiple Decision Profile support. -->
 	<!-- You may customize this PDP configuration except 'rootPolicyProvider' and 'refPolicyProvider' elements. -->
 	<!-- policyLocation must start with ${PARENT_DIR}/ and end with: /*SUFFIX (* is expanded to base64url(policyId)/policyVersion) -->
 	<refPolicyProvider

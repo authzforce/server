@@ -3,8 +3,9 @@
 	xmlns="http://authzforce.github.io/core/xmlns/pdp/5.0"
 	xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6"
 	version="5.0.0"
-	maxPolicyRefDepth="10" 
-	strictAttributeIssuerMatch="false" 
+	maxVariableRefDepth="10"
+	maxPolicyRefDepth="2"
+	strictAttributeIssuerMatch="false"
 	requestFilter="urn:ow2:authzforce:feature:pdp:request-filter:default-lax">
 	<!-- Replace with requestFilter = "urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" for Multiple Decision Profile support. -->
 	<!-- You may customize this PDP configuration except 'rootPolicyProvider' and 'refPolicyProvider' elements. -->

@@ -31,6 +31,8 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.ws.rs.NotFoundException;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -51,8 +53,6 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/beans.xml" })
 public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
@@ -80,9 +80,9 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
 	 */
-	@Parameters({ "server.root.dir", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "server.root.dir", "org.ow2.authzforce.domains.sync.interval", "org.ow2.authzforce.domains.enablePdpOnly" })
 	@BeforeTest
-	public void beforeTest(String serverRootDir, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(final String serverRootDir, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
 		System.out.println("Testing data in directory: " + serverRootDir);
 		final File targetDir = new File("target");
@@ -101,15 +101,17 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.config.dir", confURI);
 			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.data.dir", dataURI);
 			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.uuid.gen.randomMulticastAddressBased", Boolean.TRUE);
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.sync.interval", new Integer(-1));
-		} catch (NamingException ex)
+			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.sync.interval", domainSyncIntervalSec);
+			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.enablePdpOnly", enablePdpOnly);
+		}
+		catch (final NamingException ex)
 		{
 			throw new RuntimeException("Error setting property via JNDI", ex);
 		}
 
 		/*
-		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072
-		 * https://jira.spring.io/browse/SPR-5404 (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
+		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404
+		 * (duplicate of previous issue) springTestContextPrepareTestInstance() happens in
 		 * 
 		 * @BeforeClass before no access to Autowired beans by default in
 		 * 
@@ -140,7 +142,8 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 				// try to get domain again ->
 				// MUST fail
 				domainsResourceBean.getDomainResource(domainId);
-			} catch (NotFoundException nfe)
+			}
+			catch (final NotFoundException nfe)
 			{
 				isDeleted = true;
 			}
@@ -210,14 +213,14 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	@Test(dependsOnMethods = { "getDomain" })
 	public void getDomainByExternalId()
 	{
-		String externalId = testDomain.getDomain().getProperties().getExternalId();
+		final String externalId = testDomain.getDomain().getProperties().getExternalId();
 
 		final List<Link> domainLinks = domainsResourceBean.getDomains(externalId).getLinks();
 		// verify that there is only one domain resource link and it is the one
 		// we are looking for
 		assertEquals(domainLinks.size(), 1);
 
-		String matchedDomainId = domainLinks.get(0).getHref();
+		final String matchedDomainId = domainLinks.get(0).getHref();
 		assertEquals(matchedDomainId, testDomainId, "getDomains(externalId) returned wrong domainId: " + matchedDomainId + " instead of " + testDomainId);
 	}
 

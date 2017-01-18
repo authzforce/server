@@ -1026,6 +1026,30 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 				"rootPolicyRef changed although root policy update rejected");
 	}
 
+	@Test(dependsOnMethods = { "setRootPolicyWithRefToMissingPolicy" })
+	public void setRootPolicyWithBadFunctionId() throws JAXBException
+	{
+
+		// Get current rootPolicyRef
+		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef();
+
+		// Then attempt to put bad root policy set (invalid function ID)
+		final JAXBElement<PolicySet> rootPolicy = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "policyWithBadFunctionId.xml"), PolicySet.class);
+		try
+		{
+			testDomainHelper.setRootPolicy(rootPolicy.getValue(), true);
+			fail("Invalid Root PolicySet (with invalid function ID) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+			// Bad request as expected
+		}
+
+		// make sure the rootPolicyRef is unchanged
+		assertEquals(rootPolicyRef, testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef(),
+				"rootPolicyRef changed although root policy update rejected");
+	}
+
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })
 	public void setRootPolicyWithCircularRef() throws JAXBException
 	{
@@ -1081,7 +1105,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		catch (final BadRequestException e)
 		{
 			// Bad request as expected
-		}		
+		}
 		catch (final ClientErrorException e)
 		{
 			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());

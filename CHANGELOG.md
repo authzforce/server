@@ -2,6 +2,45 @@
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [FIWARE Versioning](https://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Releases_and_Sprints_numbering,_with_mapping_to_calendar_dates) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
 
+## Unreleased
+### Added
+- JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
+- Configuration parameter *enablePdpOnly* (boolean): disables all API features except the PDP if true. 
+- Authzforce Core enhancements:
+	- Extension mechanism to switch HashMap/HashSet implementation in authzforce libraries; default implementation is based on native JRE and Guava.
+	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this is constant (must be a positive integer not greater than the number of remaining arguments)
+	- Validation of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
+
+- Dependency validation by OWASP dependency-check tool 
+- Code validation by Find Security Bugs plugin
+
+### Changed
+- Compatible Java version: **1.7 -> 1.8** 
+- Packaging for **Ubuntu 16.04 LTS / JRE 8 / Tomcat 8**: changed package dependencies to `openjdk-8-jre | oracle-java8-installer, tomcat8`
+- Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
+- Upgraded parent project authzforce-ce-parent: 3.4.0 -> 4.1.1: 
+- Upgraded dependencies:
+	- Guava dependency version: 18.0 -> 20.0
+	- Saxon-HE dependency version: 9.6.0-5 -> 9.7.0-14
+	- com.sun.mail:javax.mail v1.5.4 -> com.sun.mail:mailapi v1.5.6
+	- Java Servlet API: 3.0.1 -> 3.1.0
+	- Apache CXF: 3.1.0 -> 3.1.9
+	- Spring framework: 3.2.2 -> 4.3.5.RELEASE
+	- authzforce-ce-core: 5.0.2 -> 6.1.0
+	- authzforce-ce-pap-dao-flat-file: 6.1.0 -> 7.0.0
+	- authzforce-ce-core-pdp-api: 7.1.1 -> 8.2.0
+
+### Fixed
+- Issues in dependency Authzforce Core
+	- OW2 #AUTHZFORCE-23: enforcement of RuleId/PolicyId/PolicySetId uniqueness:
+		- PolicyId (resp. PolicySetId) should be unique across all policies loaded by PDP so that PolicyIdReferences (resp. PolicySetIdReferences) in Responses' PolicyIdentifierList are absolute references to applicable policies (no ambiguity).
+ 		- [RuleId should be unique within a policy](https://lists.oasis-open.org/archives/xacml/201310/msg00025.html) -> A rule is globally uniquely identified by the parent PolicyId and the RuleId.
+	- OW2 #AUTHZFORCE-25: NullPointerException when parsing Apply expressions using invalid/unsupported Function ID 
+
+### Removed
+- Dependency on Koloboke, replaced by extension mechanism mentioned in *Added* section that would allow to switch from the default HashMap/HashSet implementation to Koloboke-based.
+
+
 ## 5.4.1
 ### Fixed
 - #22 (OW2): When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 

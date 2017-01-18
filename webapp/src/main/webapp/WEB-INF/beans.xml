@@ -95,7 +95,6 @@
 		<constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
 		<constructor-arg name="useRandomAddressBasedUUID"
 			value="#{jndi_useRandomAddressBasedUUID}" />
-		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
 		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
 	</bean>
 

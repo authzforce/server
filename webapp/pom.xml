@@ -169,22 +169,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<configuration>
-					<!-- Enables analysis which takes more memory but finds more bugs. If 
-						you run out of memory, changes the value of the effort element to 'Low'. -->
-					<effort>Max</effort>
-					<!-- Reports all bugs (other values are medium and max) -->
-					<threshold>Low</threshold>
-					<failOnError>true</failOnError>
-					<plugins>
-						<plugin>
-							<groupId>com.h3xstream.findsecbugs</groupId>
-							<artifactId>findsecbugs-plugin</artifactId>
-							<!-- Auto-update to the latest stable -->
-							<version>LATEST</version>
-						</plugin>
-					</plugins>
-				</configuration>
 				<executions>
 					<execution>
 						<phase>verify</phase>
