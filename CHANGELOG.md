@@ -7,17 +7,17 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 ## Unreleased
 ### Added
 - [GH-#8] JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
-- [GH-#9] Configuration parameter *enablePdpOnly* (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
+- [GH-#9] Configuration parameter `enablePdpOnly` (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
 - PDP engine (AuthzForce Core) enhancements: 
-	- Extension mechanism to switch HashMap/HashSet implementation with different performance properties in PDP engine; default implementation is based on a mix of native JRE and Guava.
-	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if 'n' is constant (must be a positive integer not greater than the number of remaining arguments)
+	- Extension mechanism to switch `HashMap`/`HashSet` implementations with different performance properties; default implementation is based on a mix of native JRE and Guava.
+	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this argument is constant (must be a positive integer not greater than the number of remaining arguments)
 	- Validation of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
 
-- Dependency vulnerability checking by OWASP dependency-check tool 
-- Source code security validation by Find Security Bugs plugin
+- Dependency vulnerability checking with OWASP dependency-check tool 
+- Source code security validation with Find Security Bugs plugin
 
 ### Changed
-- Compatible Java version change from 1.7 to **1.8** 
+- Compatible Java version changed from 1.7 to **1.8** 
 - Packaging for **Ubuntu 16.04 LTS / JRE 8 / Tomcat 8**: changed Ubuntu package dependencies to `openjdk-8-jre | oracle-java8-installer, tomcat8`
 - Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
 - Upgraded parent project authzforce-ce-parent: 3.4.0 -> 4.1.1: 
@@ -33,8 +33,8 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 	- authzforce-ce-core-pdp-api: 7.1.1 -> 8.2.0
 
 ### Fixed
-- [GH-#6] Delete the latest version of a policy now possible using 'latest' keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
-- [GH-#11] (linked to [OW2-#25]) Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID
+- [GH-#6] Removing the latest version of a policy now possible using 'latest' keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
+- [GH-#11] Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID (related to [OW2-#25])
 - Issues in dependency Authzforce Core:
 	- [OW2-#23] enforcement of RuleId/PolicyId/PolicySetId uniqueness:
 		- PolicyId (resp. PolicySetId) should be unique across all policies loaded by PDP so that PolicyIdReferences (resp. PolicySetIdReferences) in Responses' PolicyIdentifierList are absolute references to applicable policies (no ambiguity).
