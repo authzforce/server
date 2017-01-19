@@ -90,12 +90,13 @@ public class DomainSetTest extends RestServiceTest
 	 * 
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean useJSON,
-			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
+			@Optional("true") final Boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), enableDoSMitigation, domainSyncIntervalSec,
+				enablePdpOnly);
 	}
 
 	/**
@@ -272,7 +273,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 		catch (final BadRequestException e)
 		{
-			 // Bad request as expected (e.g. for XML API)
+			// Bad request as expected (e.g. for XML API)
 		}
 		catch (final ClientErrorException e)
 		{
@@ -307,7 +308,7 @@ public class DomainSetTest extends RestServiceTest
 		}
 		catch (final BadRequestException e)
 		{
-//			 Bad request as expected (e.g. for XML API)
+			// Bad request as expected (e.g. for XML API)
 		}
 		catch (final ClientErrorException e)
 		{
@@ -587,7 +588,7 @@ public class DomainSetTest extends RestServiceTest
 		assertTrue(actualResponse != null, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
 	}
 
-	//@Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
+	// @Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
 	public void deleteDomains()
 	{
 		for (final String domainId : createdDomainIds)

@@ -12,6 +12,8 @@
       last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results. -->
    <parameter name="legacy.fs" value="true" />
    <parameter name="enableFastInfoset" value="false" />
+   <!-- If testing a remote AuthZForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
+   <parameter name="enableDoSMitigation" value="true" />
    <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
    <parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="5" />
    <parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="5" />

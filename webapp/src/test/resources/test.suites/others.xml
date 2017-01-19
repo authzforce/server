@@ -13,6 +13,8 @@
    <parameter name="legacy.fs" value="true" />
    <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
    <parameter name="enableFastInfoset" value="false" />
+   <!-- If testing a remote AuthZForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
+   <parameter name="enableDoSMitigation" value="false" />
    <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
    <parameter name="useJSON" value="false" />
    <!-- Domains sync interval (seconds) -->

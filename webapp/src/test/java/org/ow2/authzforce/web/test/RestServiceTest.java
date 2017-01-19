@@ -240,8 +240,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
-	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final int domainSyncIntervalSec, final boolean enablePdpOnly, final boolean addSampleDomain)
-			throws ServletException, IllegalArgumentException, IOException, LifecycleException
+	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
+			final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -322,43 +322,46 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		enablePdpOnlyFlagEnv.setOverride(false);
 		webappNamingResources.addEnvironment(enablePdpOnlyFlagEnv);
 
-		// Override Anti-XML-DOS properties
-		final ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
-		staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
-		staxMaxChildElementsEnv.setType("java.lang.Integer");
-		staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
-		staxMaxChildElementsEnv.setOverride(false);
-		webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
-
-		final ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
-		staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
-		staxMaxElementDepthEnv.setType("java.lang.Integer");
-		staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
-		staxMaxElementDepthEnv.setOverride(false);
-		webappNamingResources.addEnvironment(staxMaxElementDepthEnv);
-
-		if (!enableFastInfoset)
+		if (enableDoSMitigation)
 		{
-			final ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
-			staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
-			staxMaxAttCountEnv.setType("java.lang.Integer");
-			staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
-			staxMaxAttCountEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxAttCountEnv);
+			// Override Anti-XML/JSON-DoS properties
+			final ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
+			staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
+			staxMaxChildElementsEnv.setType("java.lang.Integer");
+			staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
+			staxMaxChildElementsEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
 
-			final ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
-			staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
-			staxMaxAttSizeEnv.setType("java.lang.Integer");
-			staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
-			staxMaxAttSizeEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
+			final ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
+			staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
+			staxMaxElementDepthEnv.setType("java.lang.Integer");
+			staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
+			staxMaxElementDepthEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxElementDepthEnv);
 
-			final ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
-			staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
-			staxMaxTextLengthEnv.setType("java.lang.Integer");
-			staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
-			staxMaxTextLengthEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxTextLengthEnv);
+			if (!enableFastInfoset)
+			{
+				final ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
+				staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
+				staxMaxAttCountEnv.setType("java.lang.Integer");
+				staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
+				staxMaxAttCountEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxAttCountEnv);
+
+				final ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
+				staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
+				staxMaxAttSizeEnv.setType("java.lang.Integer");
+				staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
+				staxMaxAttSizeEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
+
+				final ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
+				staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
+				staxMaxTextLengthEnv.setType("java.lang.Integer");
+				staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
+				staxMaxTextLengthEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxTextLengthEnv);
+			}
 		}
 
 		/*
@@ -376,7 +379,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		XML, FAST_INFOSET, JSON
 	}
 
-	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final int domainSyncIntervalSec, final boolean enablePdpOnly) throws Exception
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
+			throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -384,7 +388,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, domainSyncIntervalSec, enablePdpOnly, false);
+			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -461,7 +465,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				 */
 				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(MediaType.APPLICATION_JSON_TYPE));
 				// Line below will set Content-Type: application/json even if method is GET
-//				proxyClientConf.getHttpConduit().getClient().setContentType(MediaType.APPLICATION_JSON);
+				// proxyClientConf.getHttpConduit().getClient().setContentType(MediaType.APPLICATION_JSON);
 				proxyClientConf.getHttpConduit().getClient().setAccept(MediaType.APPLICATION_JSON);
 				break;
 
@@ -521,19 +525,21 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	{
 		final int port;
 		final boolean enableFastInfoset;
+		final boolean enableDoSMitigation;
 		final int domainSyncIntervalSec;
 		final boolean enablePdpOnly;
 		if (args.length == 0)
 		{
 			port = 8080;
 			enableFastInfoset = false;
+			enableDoSMitigation = false;
 			domainSyncIntervalSec = -1;
 			enablePdpOnly = false;
 		}
-		else if (args.length != 4)
+		else if (args.length != 5)
 		{
 			showUsage();
-			throw new IllegalArgumentException("Invalid number of args. Expected: 0 (using defaults) or 4");
+			throw new IllegalArgumentException("Invalid number of args. Expected: 0 (using defaults) or 5");
 		}
 		else
 		{
@@ -541,8 +547,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			{
 				port = Integer.parseInt(args[0], 10);
 				enableFastInfoset = Boolean.valueOf(args[1]);
-				domainSyncIntervalSec = Integer.parseInt(args[2], 10);
-				enablePdpOnly = Boolean.valueOf(args[3]);
+				enableDoSMitigation = Boolean.valueOf(args[2]);
+				domainSyncIntervalSec = Integer.parseInt(args[3], 10);
+				enablePdpOnly = Boolean.valueOf(args[4]);
 			}
 			catch (final Exception e)
 			{
@@ -551,7 +558,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			}
 		}
 
-		final Tomcat tomcat = startServer(port, enableFastInfoset, domainSyncIntervalSec, enablePdpOnly, true);
+		final Tomcat tomcat = startServer(port, enableFastInfoset, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true);
 		System.out.println("Server up and listening!");
 		tomcat.getServer().await();
 	}

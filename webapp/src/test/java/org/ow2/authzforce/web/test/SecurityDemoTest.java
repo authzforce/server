@@ -81,12 +81,12 @@ public class SecurityDemoTest extends RestServiceTest
 	 * @param testCtx
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
-	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("-1") final int domainSyncIntervalSec,
-			@Optional("false") final boolean enablePdpOnly) throws Exception
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
+			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.JSON, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.JSON, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**

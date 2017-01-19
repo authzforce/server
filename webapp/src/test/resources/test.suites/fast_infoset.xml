@@ -13,6 +13,8 @@
    <parameter name="legacy.fs" value="true" />
    <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
    <parameter name="enableFastInfoset" value="true" />
+   <!-- If testing a remote AuthZForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
+   <parameter name="enableDoSMitigation" value="true" />
    <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
    <parameter name="useJSON" value="false" />
    <!-- Domains sync interval (seconds) -->
@@ -20,7 +22,7 @@
    <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
    <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
 
-   <test name="Test_PDPOnly:No.FastInfoset:Yes.JSON:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:No.FastInfoset:Yes.JSON:No.AutoSync:No.VersionRolling:No.DoSMitigation:Yes" preserve-order="true" enabled="true">
       <classes>
          <class name="org.ow2.authzforce.web.test.DomainSetTest">
             <methods>
@@ -41,6 +43,13 @@
                <include name="deleteDomains" />
             </methods>
          </class>
+         <!-- Domain-specific testing -->
+         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
+      </classes>
+   </test>
+   <test name="Test_PDPOnly:No.FastInfoset:Yes.JSON:No.AutoSync:No.VersionRolling:No.DoSMitigation:No" preserve-order="true" enabled="true">
+       <parameter name="enableDoSMitigation" value="false" />
+      <classes>
          <!-- Domain-specific testing -->
          <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
       </classes>
