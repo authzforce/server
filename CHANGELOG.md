@@ -1,22 +1,24 @@
 # Change log
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [FIWARE Versioning](https://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Releases_and_Sprints_numbering,_with_mapping_to_calendar_dates) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
+Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-#N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-#N]`, where N is the issue number.
+
 
 ## Unreleased
 ### Added
-- JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
-- Configuration parameter *enablePdpOnly* (boolean): disables all API features except the PDP if true. 
-- Authzforce Core enhancements:
-	- Extension mechanism to switch HashMap/HashSet implementation in authzforce libraries; default implementation is based on native JRE and Guava.
-	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this is constant (must be a positive integer not greater than the number of remaining arguments)
+- [GH-#8] JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
+- [GH-#9] Configuration parameter *enablePdpOnly* (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
+- PDP engine (AuthzForce Core) enhancements: 
+	- Extension mechanism to switch HashMap/HashSet implementation with different performance properties in PDP engine; default implementation is based on a mix of native JRE and Guava.
+	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if 'n' is constant (must be a positive integer not greater than the number of remaining arguments)
 	- Validation of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
 
-- Dependency validation by OWASP dependency-check tool 
-- Code validation by Find Security Bugs plugin
+- Dependency vulnerability checking by OWASP dependency-check tool 
+- Source code security validation by Find Security Bugs plugin
 
 ### Changed
-- Compatible Java version: **1.7 -> 1.8** 
-- Packaging for **Ubuntu 16.04 LTS / JRE 8 / Tomcat 8**: changed package dependencies to `openjdk-8-jre | oracle-java8-installer, tomcat8`
+- Compatible Java version change from 1.7 to **1.8** 
+- Packaging for **Ubuntu 16.04 LTS / JRE 8 / Tomcat 8**: changed Ubuntu package dependencies to `openjdk-8-jre | oracle-java8-installer, tomcat8`
 - Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
 - Upgraded parent project authzforce-ce-parent: 3.4.0 -> 4.1.1: 
 - Upgraded dependencies:
@@ -25,17 +27,19 @@ All notable changes to this project are documented in this file following the [K
 	- com.sun.mail:javax.mail v1.5.4 -> com.sun.mail:mailapi v1.5.6
 	- Java Servlet API: 3.0.1 -> 3.1.0
 	- Apache CXF: 3.1.0 -> 3.1.9
-	- Spring framework: 3.2.2 -> 4.3.5.RELEASE
+	- [GH-#12] Spring framework: 3.2.2 -> 4.3.5.RELEASE
 	- authzforce-ce-core: 5.0.2 -> 6.1.0
 	- authzforce-ce-pap-dao-flat-file: 6.1.0 -> 7.0.0
 	- authzforce-ce-core-pdp-api: 7.1.1 -> 8.2.0
 
 ### Fixed
-- Issues in dependency Authzforce Core
-	- OW2 #AUTHZFORCE-23: enforcement of RuleId/PolicyId/PolicySetId uniqueness:
+- [GH-#6] Delete the latest version of a policy now possible using 'latest' keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
+- [GH-#11] (linked to [OW2-#25]) Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID
+- Issues in dependency Authzforce Core:
+	- [OW2-#23] enforcement of RuleId/PolicyId/PolicySetId uniqueness:
 		- PolicyId (resp. PolicySetId) should be unique across all policies loaded by PDP so that PolicyIdReferences (resp. PolicySetIdReferences) in Responses' PolicyIdentifierList are absolute references to applicable policies (no ambiguity).
  		- [RuleId should be unique within a policy](https://lists.oasis-open.org/archives/xacml/201310/msg00025.html) -> A rule is globally uniquely identified by the parent PolicyId and the RuleId.
-	- OW2 #AUTHZFORCE-25: NullPointerException when parsing Apply expressions using invalid/unsupported Function ID 
+	- [OW2-#25] NullPointerException when parsing Apply expressions using invalid/unsupported Function ID 
 
 ### Removed
 - Dependency on Koloboke, replaced by extension mechanism mentioned in *Added* section that would allow to switch from the default HashMap/HashSet implementation to Koloboke-based.
@@ -43,7 +47,7 @@ All notable changes to this project are documented in this file following the [K
 
 ## 5.4.1
 ### Fixed
-- #22 (OW2): When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 
+- [OW2-#22] When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 
 - XACML `StatusCode` XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
 - Other issues reported by Codacy
 
@@ -67,6 +71,7 @@ All notable changes to this project are documented in this file following the [K
 
 ### Changed
 - REST API model (authzforce-ce-rest-api-model) version: 5.3.1: changed `elementFormDefault` to _qualified_ in the XML schema for API payloads (and only text and FastInfoset-encoded XML are supported, not JSON)
+- [GH-#5] Moved maven dependency `cxf-rt-frontend-jaxrs` from child module `rest-service` to child module `webapp`.
 
 
 ## 5.3.0
@@ -81,15 +86,15 @@ All notable changes to this project are documented in this file following the [K
 ## 5.2.0
 ### Added
 - REST API spec (authzforce-ce-rest-api-model) v5.1.0 support: enhanced management of PDP features, i.e. all supported features may be listed, and each feature may have a 'type' and an 'enabled' (true or false) state that can be updated via the API
-- Supported PDP features by type: 
+- [GH-#1] Supported configurable PDP features by type: 
   - Type `urn:ow2:authzforce:feature-type:pdp:core` (PDP core engine features, as opposed to extensions below): `urn:ow2:authzforce:feature:pdp:core:xpath-eval` (experimental support for XACML AttributeSelector, xpathExpression datatype and xpath-node-count function), `urn:ow2:authzforce:feature:pdp:core:strict-attribute-issuer-match` (enable strict Attribute Issuer matching, i.e. AttributeDesignators without Issuer only match request Attributes with same AttributeId/Category but without Issuer)
-  - Type `urn:ow2:authzforce:feature-type:pdp:data-type`: any custom XACML Data type extension
-  - Type `urn:ow2:authzforce:feature-type:pdp:function`: any custom XACML function extension
+  - [GH-#1] Type `urn:ow2:authzforce:feature-type:pdp:data-type`: any custom XACML Data type extension
+  - [GH-#1] Type `urn:ow2:authzforce:feature-type:pdp:function`: any custom XACML function extension
   - Type `urn:ow2:authzforce:feature-type:pdp:function-set`: any set of custom XACML function extensions
-  - Type `urn:ow2:authzforce:feature-type:pdp:combining-algorithm`: any custom XACML policy/rule combining algorithm extension
-  - Type `urn:ow2:authzforce:feature-type:pdp:request-filter`: any custom XACML request filter + native ones, i.e. `urn:ow2:authzforce:xacml:request-filter:default-lax` (default XACML Core-compliant Individual Decision Request filter), `urn:ow2:authzforce:xacml:request-filter:default-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` (request filter implenting XACML profile `urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories`), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed)
-  - Type `urn:ow2:authzforce:feature-type:pdp:result-filter`: any custom XACML Result filter extension
--  Distribution upgrader now supporting all 4.x versions as old versions
+  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:combining-algorithm`: any custom XACML policy/rule combining algorithm extension
+  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:request-filter`: any custom XACML request filter + native ones, i.e. `urn:ow2:authzforce:xacml:request-filter:default-lax` (default XACML Core-compliant Individual Decision Request filter), `urn:ow2:authzforce:xacml:request-filter:default-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` (request filter implenting XACML profile `urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories`), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed)
+  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:result-filter`: any custom XACML Result filter extension
+- [GH-#4] Distribution upgrader now supporting all 4.x versions as old versions
 
 
 ## 5.1.2
@@ -129,7 +134,7 @@ All notable changes to this project are documented in this file following the [K
 - Dependency on commons-io, replaced with Java 7 java.nio.file API for recursive directory copy/deletion
 
 ### Fixed
-- Github #1: deleted domain ID still returned by GET /domains?externalId=...
+- [GH-#6] deleted domain ID still returned by GET /domains?externalId=...
 - FIWARE JIRA [SEC-870](https://jira.fiware.org/browse/SEC-870): Debian/Ubuntu package dependencies: `java7-jdk` replaced with `openjdk-7-jdk | oracle-java7-installer`
 - Policy versions returned in wrong order by API
 
