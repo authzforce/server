@@ -51,7 +51,13 @@
       <parameter name="enableDoSMitigation" value="false" />
       <classes>
          <!-- Domain-specific testing -->
-         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
+         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling">
+            <methods>
+               <!-- Exclude methods for testing enableDoSMitigation=true -->
+               <exclude name="addPolicyTooDeep" />
+               <exclude name="addPolicyWithTooManyChildElements" />
+            </methods>
+         </class>
       </classes>
    </test>
 </suite> 

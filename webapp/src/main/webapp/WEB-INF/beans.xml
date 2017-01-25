@@ -198,17 +198,17 @@
 				<!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, 
 					for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since 
 					CXF 2.7.4). You should not try to set them via system properties (this does 
-					not work as expected). If value is null, CXF defaults are applied. -->
+					not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
 				<entry key="org.apache.cxf.stax.maxChildElements"
-					value="#{jndi_staxMaxChildElements &lt;= 0 ? null: jndi_staxMaxChildElements}" />
+					value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
 				<entry key="org.apache.cxf.stax.maxElementDepth"
-					value="#{jndi_staxMaxElementDepth &lt;= 0 ? null: jndi_staxMaxElementDepth}" />
+					value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
 				<entry key="org.apache.cxf.stax.maxAttributeCount"
-					value="#{jndi_staxMaxAttributeCount &lt;= 0 ? null: jndi_staxMaxAttributeCount}" />
+					value="#{jndi_staxMaxAttributeCount &lt;= 0 ? 500: jndi_staxMaxAttributeCount}" />
 				<entry key="org.apache.cxf.stax.maxAttributeSize"
-					value="#{jndi_staxMaxAttributeSize &lt;= 0 ? null: jndi_staxMaxAttributeSize}" />
+					value="#{jndi_staxMaxAttributeSize &lt;= 0 ? 65536: jndi_staxMaxAttributeSize}" />
 				<entry key="org.apache.cxf.stax.maxTextLength"
-					value="#{jndi_staxMaxTextLength &lt;= 0 ? null: jndi_staxMaxTextLength}" />
+					value="#{jndi_staxMaxTextLength &lt;= 0 ? 134217728: jndi_staxMaxTextLength}" />
 			</jaxrs:properties>
 			<!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
 			<!-- <jaxrs:inInterceptors> -->
@@ -258,11 +258,11 @@
 				<!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, 
 					for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since 
 					CXF 2.7.4). You should not try to set them via system properties (this does 
-					not work as expected). -->
+					not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
 				<entry key="org.apache.cxf.stax.maxChildElements"
-					value="#{jndi_staxMaxChildElements &lt;= 0 ? null: jndi_staxMaxChildElements}" />
+					value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
 				<entry key="org.apache.cxf.stax.maxElementDepth"
-					value="#{jndi_staxMaxElementDepth &lt;= 0 ? null: jndi_staxMaxElementDepth}" />
+					value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
 				<!-- WARNING: the properties maxAttributeCount/maxAttributeSize/maxTextLength 
 					are not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser 
 					cannot be cast to org.codehaus.stax2.XMLStreamReader2) because they require 
