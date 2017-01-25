@@ -1,5 +1,20 @@
 /**
- * Copyright (C) 2015-2015 Thales Services SAS. All rights reserved. No warranty, explicit or implicit, provided.
+ * Copyright (C) 2012-2017 Thales Services SAS.
+ *
+ * This file is part of AuthZForce CE.
+ *
+ * AuthZForce CE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AuthZForce CE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.web.test;
 
@@ -53,7 +68,7 @@ public class SecurityDemoTest extends RestServiceTest
 	private DomainResource testDomain = null;
 	private String testDomainId = null;
 
-	private String testDomainExternalId = "test" + PRNG.nextInt(100);
+	private final String testDomainExternalId = "test" + PRNG.nextInt(100);
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
@@ -66,11 +81,12 @@ public class SecurityDemoTest extends RestServiceTest
 	 * @param testCtx
 	 * @throws Exception
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
+			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.JSON, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
@@ -111,7 +127,8 @@ public class SecurityDemoTest extends RestServiceTest
 		try
 		{
 			assertNotNull(testDomain.deleteDomain(), String.format("Error deleting domain ID=%s", testDomainId));
-		} catch (NotFoundException e)
+		}
+		catch (final NotFoundException e)
 		{
 			// already removed
 		}
@@ -120,20 +137,20 @@ public class SecurityDemoTest extends RestServiceTest
 	@Test(expectedExceptions = BadRequestException.class)
 	public void addPolicyWithTooBigId()
 	{
-		char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE + 1];
+		final char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE + 1];
 		Arrays.fill(chars, 'a');
-		String policyId = new String(chars);
-		PolicySet policySet = RestServiceTest.createDumbPolicySet(policyId, "1.0");
+		final String policyId = new String(chars);
+		final PolicySet policySet = RestServiceTest.createDumbPolicySet(policyId, "1.0");
 		testDomainHelper.testAddAndGetPolicy(policySet);
 	}
 
 	@Test(expectedExceptions = BadRequestException.class)
 	public void addPolicyWithTooBigDescription()
 	{
-		char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
+		final char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
 		Arrays.fill(chars, 'a');
-		String description = new String(chars);
-		PolicySet policySet = RestServiceTest.createDumbPolicySet("policyWithBigDescription", "1.0", description);
+		final String description = new String(chars);
+		final PolicySet policySet = RestServiceTest.createDumbPolicySet("policyWithBigDescription", "1.0", description);
 		testDomainHelper.testAddAndGetPolicy(policySet);
 	}
 
@@ -162,14 +179,14 @@ public class SecurityDemoTest extends RestServiceTest
 	public void setRootPolicyWithCircularPolicyRef() throws JAXBException
 	{
 		/*
-		 * Before putting the empty refPolicySets (to make a policySets with references wrong), first put good root policySet without policy references (in case
-		 * the current root PolicySet has references, uploading the empty refPolicySets before will be rejected because it makes the policySet with references
-		 * invalid)
+		 * Before putting the empty refPolicySets (to make a policySets with references wrong), first put good root policySet without policy references (in case the current root PolicySet has
+		 * references, uploading the empty refPolicySets before will be rejected because it makes the policySet with references invalid)
 		 */
 		testDomainHelper.resetPdpAndPrp();
 
 		// add refPolicies
-		final JAXBElement<PolicySet> refPolicySet = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/refPolicies/invalid-pps-employee.xml"), PolicySet.class);
+		final JAXBElement<PolicySet> refPolicySet = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/refPolicies/invalid-pps-employee.xml"),
+				PolicySet.class);
 		testDomainHelper.testAddAndGetPolicy(refPolicySet.getValue());
 		final JAXBElement<PolicySet> refPolicySet2 = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.Circular/refPolicies/pps-manager.xml"), PolicySet.class);
 		testDomainHelper.testAddAndGetPolicy(refPolicySet2.getValue());
@@ -185,14 +202,14 @@ public class SecurityDemoTest extends RestServiceTest
 	public void setRootPolicyWithTooDeepPolicyRef() throws JAXBException
 	{
 		/*
-		 * Before putting the empty refPolicySets (to make a policySets with references wrong), first put good root policySet without policy references (in case
-		 * the current root PolicySet has references, uploading the empty refPolicySets before will be rejected because it makes the policySet with references
-		 * invalid)
+		 * Before putting the empty refPolicySets (to make a policySets with references wrong), first put good root policySet without policy references (in case the current root PolicySet has
+		 * references, uploading the empty refPolicySets before will be rejected because it makes the policySet with references invalid)
 		 */
 		testDomainHelper.resetPdpAndPrp();
 
 		// add refPolicies
-		final JAXBElement<PolicySet> refPolicySet = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.TooDeep/refPolicies/invalid-pps-employee.xml"), PolicySet.class);
+		final JAXBElement<PolicySet> refPolicySet = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.TooDeep/refPolicies/invalid-pps-employee.xml"),
+				PolicySet.class);
 		testDomainHelper.testAddAndGetPolicy(refPolicySet.getValue());
 		final JAXBElement<PolicySet> refPolicySet2 = testDomainHelper.unmarshal(new File(RestServiceTest.XACML_SAMPLES_DIR, "PolicyReference.TooDeep/refPolicies/pps-manager.xml"), PolicySet.class);
 		testDomainHelper.testAddAndGetPolicy(refPolicySet2.getValue());
@@ -207,7 +224,7 @@ public class SecurityDemoTest extends RestServiceTest
 
 	@Parameters({ "org.ow2.authzforce.domain.maxPolicyCount" })
 	@Test(expectedExceptions = ForbiddenException.class)
-	public void addTooManyPolicies(int maxPolicyCountPerDomain) throws JAXBException
+	public void addTooManyPolicies(final int maxPolicyCountPerDomain) throws JAXBException
 	{
 		// replace all policies with one root policy and this is the only one
 		// policy
@@ -219,27 +236,27 @@ public class SecurityDemoTest extends RestServiceTest
 		// reaching the max
 		for (int i = 0; i < maxPolicyCountPerDomain - 1; i++)
 		{
-			PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + i, "1.0");
+			final PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + i, "1.0");
 			testDomainHelper.testAddAndGetPolicy(policySet);
 		}
 
 		// verify that all policies are there
-		List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
-		Set<Link> policyLinkSet = new HashSet<>(links);
+		final List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
+		final Set<Link> policyLinkSet = new HashSet<>(links);
 		assertEquals(links.size(), policyLinkSet.size(), "Duplicate policies returned in links from getPolicies: " + links);
 
 		assertEquals(policyLinkSet.size(), maxPolicyCountPerDomain, "policies removed before reaching value of property 'org.ow2.authzforce.domain.maxPolicyCount'. Actual versions: " + links);
 
 		// We should have reached the max, so adding one more should be rejected
 		// by the server
-		PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + maxPolicyCountPerDomain, "1.0");
+		final PolicySet policySet = RestServiceTest.createDumbPolicySet("policyTooMany" + maxPolicyCountPerDomain, "1.0");
 		testDomainHelper.testAddAndGetPolicy(policySet);
 		System.out.println(TEST_CONSOLE_SEPARATOR);
 	}
 
 	@Parameters({ "org.ow2.authzforce.domain.policy.maxVersionCount" })
 	@Test(expectedExceptions = ForbiddenException.class)
-	public void addTooManyPolicyVersions(int maxVersionCountPerPolicy) throws JAXBException
+	public void addTooManyPolicyVersions(final int maxVersionCountPerPolicy) throws JAXBException
 	{
 		testDomainHelper.resetPdpAndPrp();
 
@@ -247,18 +264,18 @@ public class SecurityDemoTest extends RestServiceTest
 
 		for (int i = 0; i < maxVersionCountPerPolicy; i++)
 		{
-			PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + i);
+			final PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + i);
 			testDomainHelper.testAddAndGetPolicy(policySet);
 		}
 
 		// verify that all versions are there
-		List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicyResource(TEST_POLICY_ID).getPolicyVersions().getLinks();
-		Set<Link> versionSet = new HashSet<>(links);
+		final List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicyResource(TEST_POLICY_ID).getPolicyVersions().getLinks();
+		final Set<Link> versionSet = new HashSet<>(links);
 		assertEquals(links.size(), versionSet.size(), "Duplicate versions returned in links from getPolicyResource(policyId): " + links);
 
 		assertEquals(versionSet.size(), maxVersionCountPerPolicy, "versions removed before reaching value of property 'org.ow2.authzforce.domain.policy.maxVersionCount'. Actual versions: " + links);
 
-		PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + maxVersionCountPerPolicy);
+		final PolicySet policySet = RestServiceTest.createDumbPolicySet(TEST_POLICY_ID, "1." + maxVersionCountPerPolicy);
 		testDomainHelper.testAddAndGetPolicy(policySet);
 		System.out.println(TEST_CONSOLE_SEPARATOR);
 	}

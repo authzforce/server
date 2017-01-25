@@ -4,7 +4,7 @@
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
       <!-- Version must be equal or higher than authzforce-ce-rest-api-model dependency -->
-      <version>5.4.1</version>
+      <version>6.0.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-rest-service</artifactId>
@@ -28,15 +28,9 @@
          <artifactId>log4j-over-slf4j</artifactId>
       </dependency>
       <dependency>
-         <!-- For URL path segment escaper: http://google.github.io/guava/releases/18.0/api/docs/com/google/common/net/UrlEscapers.html#urlPathSegmentEscaper() -->
-         <groupId>com.google.guava</groupId>
-         <artifactId>guava</artifactId>
-         <version>18.0</version>
-      </dependency>
-      <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-         <version>5.3.1</version>
+         <version>5.4.0</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
@@ -65,24 +59,25 @@
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>findbugs-maven-plugin</artifactId>
-            <configuration>
-               <!-- Enables analysis which takes more memory but finds more bugs. If you run out of memory, changes the value of the effort element to 'Low'. -->
-               <effort>Max</effort>
-               <!-- Reports all bugs (other values are medium and max) -->
-               <threshold>Low</threshold>
-               <failOnError>true</failOnError>
-               <plugins>
-                  <plugin>
-                     <groupId>com.h3xstream.findsecbugs</groupId>
-                     <artifactId>findsecbugs-plugin</artifactId>
-                     <!-- Auto-update to the latest stable -->
-                     <version>LATEST</version>
-                  </plugin>
-               </plugins>
-            </configuration>
             <executions>
                <execution>
                   <phase>verify</phase>
+                  <goals>
+                     <goal>check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- Consider combining with Red Hat Victims and OSS Index. More info on Victims vs. Dependency-check: https://bugzilla.redhat.com/show_bug.cgi?id=1388712 -->
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <configuration>
+               <!-- The plugin has numerous issues with version matching, which triggers false positives so we need a "suppression" file for those. More info: https://github.com/jeremylong/DependencyCheck/issues -->
+               <suppressionFile>owasp-dependency-check-suppression.xml</suppressionFile>
+            </configuration>
+            <executions>
+               <execution>
                   <goals>
                      <goal>check</goal>
                   </goals>

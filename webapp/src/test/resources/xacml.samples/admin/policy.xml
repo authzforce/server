@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicySetId="root" Version="1.0" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+   <Description>Admin Policyset (AuthzForce API access policy)</Description>
+   <Target />
+   <Policy PolicyId="Superadmin.RPS" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit">
+      <Description>Policy for Superadmin role</Description>
+      <Target>
+         <AnyOf>
+            <AllOf>
+               <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Superadmin</AttributeValue>
+                  <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"
+                     Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
+               </Match>
+            </AllOf>
+         </AnyOf>
+      </Target>
+      <Rule RuleId="Superadmin_role_permit_all" Effect="Permit" />
+   </Policy>
+
+   <Policy PolicyId="Domain-scoped.RPS" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit">
+      <Description>Policy for domain-scoped roles (matching domain-specific path: /domains/{domainId}...)</Description>
+      <Target>
+         <AnyOf>
+            <AllOf>
+               <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-regexp-match">
+                  <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">^/authzforce-ce/domains/[A-Za-z0-9_-]{22}.*$</AttributeValue>
+                  <AttributeDesignator AttributeId="urn:thales:xacml:2.0:resource:sub-resource-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string"
+                     MustBePresent="true" />
+               </Match>
+            </AllOf>
+         </AnyOf>
+      </Target>
+      <VariableDefinition VariableId="resourcePath">
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+            <AttributeDesignator AttributeId="urn:thales:xacml:2.0:resource:sub-resource-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string"
+               MustBePresent="true" />
+         </Apply>
+      </VariableDefinition>
+      <VariableDefinition VariableId="domainId">
+         <Apply FunctionId="urn:oasis:names:tc:xacml:3.0:function:string-substring">
+            <VariableReference VariableId="resourcePath" />
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">23</AttributeValue>
+            <!-- 23+22 = 45 -->
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">45</AttributeValue>
+         </Apply>
+      </VariableDefinition>
+      <VariableDefinition VariableId="domainRelativePath">
+         <Apply FunctionId="urn:oasis:names:tc:xacml:3.0:function:string-substring">
+            <VariableReference VariableId="resourcePath" />
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">45</AttributeValue>
+            <!-- 23+22 = 45 -->
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">-1</AttributeValue>
+         </Apply>
+      </VariableDefinition>
+      <VariableDefinition VariableId="domainAdminRoleName">
+         <Apply FunctionId="urn:oasis:names:tc:xacml:2.0:function:string-concatenate">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Domain_Admin.</AttributeValue>
+            <VariableReference VariableId="domainId" />
+         </Apply>
+      </VariableDefinition>
+      <VariableDefinition VariableId="actionId">
+         <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+            <AttributeDesignator Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"
+               MustBePresent="true" />
+         </Apply>
+      </VariableDefinition>
+      <Rule RuleId="Domain.Admin.Role.Permission" Effect="Permit">
+         <Description>
+      Authorize all actions (on /domains/{domainId}), if one of the subject's roles is "Domain_Admin.{domainId}", except DELETE '' and PUT '/pap/prp.properties' (paths relative to /domains/{domainId})
+      </Description>
+         <Condition>
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+                  <VariableReference VariableId="domainAdminRoleName" />
+                  <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"
+                     Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
+               </Apply>
+               <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:not">
+                  <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:or">
+                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="actionId" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DELETE</AttributeValue>
+                        </Apply>
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+                           <VariableReference VariableId="domainRelativePath" />
+                           <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"></AttributeValue>
+                              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">/</AttributeValue>
+                           </Apply>
+                        </Apply>
+                     </Apply>
+                     <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="actionId" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">PUT</AttributeValue>
+                        </Apply>
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                           <VariableReference VariableId="domainRelativePath" />
+                           <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">/pap/prp.properties</AttributeValue>
+                        </Apply>
+                     </Apply>
+                  </Apply>
+               </Apply>
+            </Apply>
+         </Condition>
+      </Rule>
+   </Policy>
+</PolicySet>

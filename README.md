@@ -1,14 +1,17 @@
 # AuthZForce Server (Community Edition)
 [![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.4.1)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.4.1/?badge=release-5.4.1)
+[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=release-5.4.1c)](http://authzforce-ce-fiware.readthedocs.io/en/release-5.4.1c/?badge=release-5.4.1c)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/authzforce-ce-server.svg)](https://hub.docker.com/r/fiware/authzforce-ce-server/)
 [![Support badge]( https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
 
-AuthZForce Server provides a multi-tenant RESTful API to Policy Administration Points (PAP) and Policy Decision Points (PDP) as defined in the [OASIS XACML 3.0 standard](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html).
+*This project is part of [FIWARE](https://www.fiware.org). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).*
+
+AuthZForce Server provides a multi-tenant RESTful API to Policy Administration Points (PAP) and Policy Decision Points (PDP) supporting Attribute-Based Access Control (ABAC), as defined in the [OASIS XACML 3.0 standard](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html).
 
 AuthZForce Server is also the Reference Implementation (GEri) of [FIWARE](https://www.fiware.org) *Authorization PDP* Generic Enabler (GE). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).
-The manuals are available as downloadable HTML/PDF from the [releases page](https://github.com/authzforce/server/releases/latest), or online on [readthedocs.org](http://readthedocs.org/projects/authzforce-ce-fiware/versions/).
+
+**Go to the [releases](https://github.com/authzforce/server/releases) page for links to downloads (Linux packages), Docker image, release notes, and documentation for a specific release.**
 
 *If you are interested in using an embedded XACML-compliant PDP in your Java applications, AuthZForce also provides a PDP engine as a Java library in [Authzforce core project](http://github.com/authzforce/core).*
 
@@ -36,9 +39,12 @@ The manuals are available as downloadable HTML/PDF from the [releases page](http
   * **Attribute Datatypes**: you may extend the PDP engine with custom XACML attribute datatypes;
   * **Functions**: you may extend the PDP engine with custom XACML functions;
   * **Combining Algorithms**: you may extend the PDP engine with custom XACML policy/rule combining algorithms;
-  * **Attribute Providers**: you may plug custom attribute providers into the PDP engine to allow it to retrieve attributes from other attribute sources (e.g. remote service) than the input XACML Request during evaluation; 
+  * **Attribute Providers a.k.a. PIPs** (Policy Information Points): you may plug custom attribute providers into the PDP engine to allow it to retrieve attributes from other attribute sources (e.g. remote service) than the input XACML Request during evaluation; 
   * **Request Filter**: you may customize the processing of XACML Requests before evaluation by the PDP core engine (e.g. used for implementing [XACML v3.0 Multiple Decision Profile Version 1.0 - Repeated attribute categories](http://docs.oasis-open.org/xacml/3.0/multiple/v1.0/cs02/xacml-3.0-multiple-v1.0-cs02.html#_Toc388943334));
   * **Result Filter**: you may customize the processing of XACML Results after evaluation by the PDP engine (e.g. used for implementing [XACML v3.0 Multiple Decision Profile Version 1.0 - Requests for a combined decision](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-multiple-v1-spec-cd-03-en.html#_Toc260837890));
+
+### PIP (Policy Information Point)
+AuthzForce provides XACML PIP features in the form of *Attribute Providers*. More information in the previous section.
 
 ### PAP (Policy Administration Point)
 * Policy management: create/read/update/delete multiple policies and references from one to another (via PolicySetIdReference)

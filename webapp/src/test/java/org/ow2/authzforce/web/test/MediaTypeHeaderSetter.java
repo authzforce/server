@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2016 Thales Services SAS.
+ * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthZForce CE.
  *
@@ -33,39 +33,64 @@ import org.apache.cxf.phase.Phase;
  * CXF interceptor that set client's Content-Type/Accept headers for XML/FastInfoset properly
  *
  */
-public class XmlMediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
+public class MediaTypeHeaderSetter extends AbstractOutDatabindingInterceptor
 {
-	private static final String FI_MEDIA_TYPE = "application/fastinfoset";
 	private final String contentType;
 	private final List<String> acceptTypes;
 
-	public XmlMediaTypeHeaderSetter(boolean enableFastInfoset)
+	public MediaTypeHeaderSetter(final MediaType mediaType)
 	{
 		super(Phase.PRE_LOGICAL);
-		if (enableFastInfoset)
+		switch (mediaType.getSubtype())
 		{
-			contentType = FI_MEDIA_TYPE;
-			/*
-			 * Remove any occurrence of 'application/xml' from Accept headers, then the FIStaxOutInterceptor will add 'application/fastinfoset' if fastInfoset was enabled on the JAXRS client.
-			 */
-			acceptTypes = Collections.emptyList();
-		} else
-		{
-			contentType = MediaType.APPLICATION_XML;
-			acceptTypes = Collections.singletonList(MediaType.APPLICATION_XML);
+			case "fastinfoset":
+				contentType = mediaType.toString();
+				/*
+				 * Remove any occurrence of 'application/xml' from Accept headers, then the FIStaxOutInterceptor will add 'application/fastinfoset' if fastInfoset was enabled on the JAXRS client.
+				 */
+				acceptTypes = Collections.emptyList();
+				break;
+
+			case "xml":
+			case "json":
+				contentType = mediaType.toString();
+				acceptTypes = Collections.singletonList(contentType);
+				break;
+
+			default:
+				throw new UnsupportedOperationException("Unsupported mime type: '" + mediaType + "'");
 		}
 	}
 
 	@Override
-	public void handleMessage(Message outMessage) throws Fault
+	public void handleMessage(final Message outMessage) throws Fault
 	{
 		final Map<String, List<String>> headers = (Map<String, List<String>>) outMessage.get(Message.PROTOCOL_HEADERS);
-		final List<String> contenTypeHeaders = headers.get(Message.CONTENT_TYPE);
-		contenTypeHeaders.clear();
-		contenTypeHeaders.add(contentType);
+		final List<String> contentTypeHeaders = headers.get(Message.CONTENT_TYPE);
+		if (contentTypeHeaders != null)
+		{
+			contentTypeHeaders.clear();
+			contentTypeHeaders.add(contentType);
+		}
+		
+		/*
+		 * There is also a Content-Type property in Message
+		 */
+		final String contentTypePropVal = (String) outMessage.get(Message.CONTENT_TYPE);
+		if(contentTypePropVal != null) {
+			outMessage.put(Message.CONTENT_TYPE, contentType);
+		}
 
 		final List<String> acceptHeaders = headers.get(Message.ACCEPT_CONTENT_TYPE);
-		acceptHeaders.clear();
-		acceptHeaders.addAll(acceptTypes);
+		if (acceptHeaders == null)
+		{
+			headers.put(Message.ACCEPT_CONTENT_TYPE, acceptTypes);
+		}
+		else
+		{
+			acceptHeaders.clear();
+			acceptHeaders.addAll(acceptTypes);
+		}
+
 	}
 }

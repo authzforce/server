@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions
+	xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+	<suppress>
+	<!-- "cxf-core" module is available starting from CXF 3.0.0. In CXF 2.7.x or earlier use "cxf-rt-core".
+	Because of this recent change, the old CVE below is wrongly matched.
+	More info: http://cxf.apache.org/docs/featureslist.html
+	 -->
+		<notes><![CDATA[
+   file name: cxf-core-3.1.8.jar
+   ]]></notes>
+		<gav regex="true">^org\.apache\.cxf:cxf-core:.*$</gav>
+		<cve>CVE-2012-5786</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+      file name: mailapi-1.5.6.jar
+      ]]></notes>
+		<gav regex="true">^com\.sun\.mail:mailapi:.*$</gav>
+		<cve>CVE-2007-6059</cve>
+	</suppress>
+</suppressions>

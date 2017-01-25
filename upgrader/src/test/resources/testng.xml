@@ -9,8 +9,13 @@
    <parameter name="legacy.fs" value="true" />
    <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
    <parameter name="enableFastInfoset" value="false" />
-   <!-- Domains sync interval (seconds) -->
+    <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
+   <parameter name="useJSON" value="false" />
+   <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
+   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
+      <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
+   
    <test name="Test_upgrade_from_4.2.x" preserve-order="true" enabled="true">
       <parameter name="server.root.dir" value="target/server/from-4.2.x" />
       <classes>

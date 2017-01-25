@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>5.4.1</version>
+      <version>6.0.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-dist</artifactId>
@@ -51,7 +51,7 @@
                authzforce-ce-parent, with a different format, so we use a plugin. -->
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.10</version>
+            <version>1.12</version>
             <executions>
                <execution>
                   <id>jdeb-changelog-timestamp-property</id>
@@ -82,7 +82,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-resources-plugin</artifactId>
-            <version>2.7</version>
+            <version>3.0.1</version>
             <executions>
                <execution>
                   <phase>process-sources</phase>
@@ -146,7 +146,7 @@
                   <configuration>
                      <verbose>true</verbose>
                      <snapshotExpand>true</snapshotExpand>
-                     <deb>${project.build.directory}/${productName}_${project.version}_all.deb</deb>
+                     <deb>${project.build.directory}/${productName}_${project.version}-0ubuntu1_all.deb</deb>
                      <changesIn>${project.build.outputDirectory}/debian/changes.jdeb.txt</changesIn>
                      <changesOut>${project.build.directory}/${productName}_${project.version}_all.changes</changesOut>
                      <!-- expand "SNAPSHOT" to what is in the "USER" env variable. Expanded to timestamp by default. -->
@@ -176,13 +176,13 @@
                               <!-- Starting '.' necessary to get absolute paths, otherwise lintian complains "relative-conffile" -->
                               <prefix>./opt/${productName}/conf</prefix>
                               <user>root</user>
-                              <group>tomcat7</group>
+                              <group>tomcat8</group>
                            </mapper>
                         </data>
                         <data>
                            <!-- Webapp-specific context for Tomcat, after replacing 'productName' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
                            <src>${project.build.outputDirectory}/webapp-context.xml</src>
-                           <dst>/etc/tomcat7/Catalina/localhost/authzforce-ce.xml</dst>
+                           <dst>/etc/tomcat8/Catalina/localhost/authzforce-ce.xml</dst>
                            <type>file</type>
                            <conffile>true</conffile>
                         </data>
@@ -196,7 +196,7 @@
                               <type>perm</type>
                               <prefix>./opt/${productName}/webapp</prefix>
                               <user>root</user>
-                              <group>tomcat7</group>
+                              <group>tomcat8</group>
                               <!-- filemode/dirmode set to 000 by default. Issue: https://github.com/tcurdt/jdeb/issues/55 -->
                               <filemode>644</filemode>
                               <dirmode>755</dirmode>
@@ -210,8 +210,8 @@
                            <mapper>
                               <type>perm</type>
                               <prefix>./opt/${productName}/data/domains</prefix>
-                              <user>tomcat7</user>
-                              <group>tomcat7</group>
+                              <user>tomcat8</user>
+                              <group>tomcat8</group>
                            </mapper>
                         </data>
                      </dataSet>

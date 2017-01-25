@@ -10,33 +10,33 @@ This guide provides the procedure to install the AuthZForce server from the tarb
 * RAM: 4GB min
 * Disk space: 10 GB min
 * File system: ext4
-* Operating System: Ubuntu 14.04 LTS 
+* Operating System: Ubuntu 16.04 LTS 
 * Java environment: 
-    * JDK 7 either from OpenJDK or Oracle; 
-    * Tomcat 7.x.
+    * JRE 8 either from OpenJDK or Oracle; 
+    * Tomcat 8.x.
 
 ## Installation
 ### Minimal
-1. If you don't have a JDK 7 already installed, you may do it on the command-line as follows, depending on your JDK preference:
-    * If you prefer OpenJDK: `$ sudo aptitude install openjdk-7-jdk`
-    * If you prefer Oracle JDK, follow the instructions from [WEB UPD8](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html). In the end, you should have the package `oracle-java7-installer` installed.
-1. If you don't have Tomcat 7 already installed, you may do it on the command-line: `$ sudo aptitude install tomcat7`
+1. If you don't have a JRE 8 already installed, you may do it on the command-line as follows, depending on your JRE preference:
+    * If you prefer OpenJDK: `$ sudo apt install openjdk-8-jdk`
+    * If you prefer Oracle JRE, follow the instructions from [WEB UPD8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html). In the end, you should have the package `oracle-java8-installer` installed.
+1. If you don't have Tomcat 8 already installed, you may do it on the command-line: `$ sudo apt install tomcat8`
 1. Download AuthZForce server tarball distribution from the [Maven Central Repository](http://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/${project.version}/authzforce-ce-server-dist-${project.version}.tar.gz). You get a file called ``authzforce-ce-server-dist-${project.version}.tar.gz``.
 1. Copy this file to the host where you want to install AuthZForce Server.
-1. For security purposes, Tomcat should be run as an unprivileged user (i.e. not `root`). If you installed Tomcat as shown above, this user is `tomcat7`. Let us assume that `tomcat7` is the user (and group) that will run the Tomcat service in your case, and `/opt` is the directory where you want to install AuthZForce server. Please replace both names according to your setup. `$CATALINA_BASE` is a Tomcat environment-specific property, usually equal to `$CATALINA_HOME`, i.e. the root directory of your Tomcat installation ([more information](https://tomcat.apache.org/tomcat-7.0-doc/introduction.html)). If you installed Tomcat as shown above, `$CATALINA_BASE = /var/lib/tomcat7`. From the directory where you copied the tarball for installation, run the following commands:  
+1. For security purposes, Tomcat should be run as an unprivileged user (i.e. not `root`). If you installed Tomcat as shown above, this user is `tomcat8`. Let us assume that `tomcat8` is the user (and group) that will run the Tomcat service in your case, and `/opt` is the directory where you want to install AuthZForce server. Please replace both names according to your setup. `$CATALINA_BASE` is a Tomcat environment-specific property, usually equal to `$CATALINA_HOME`, i.e. the root directory of your Tomcat installation ([more information](https://tomcat.apache.org/tomcat-8.0-doc/introduction.html)). If you installed Tomcat as shown above, `$CATALINA_BASE = /var/lib/tomcat8`. From the directory where you copied the tarball for installation, run the following commands:  
 
     ```shell
     $ sudo tar xvzf authzforce-ce-server-dist-${project.version}.tar.gz --directory /opt
     $ sudo ln -s authzforce-ce-server-${project.version} authzforce-ce-server
-    $ sudo chown -RH tomcat7 authzforce-ce-server
-    $ sudo chgrp -RH tomcat7 authzforce-ce-server
+    $ sudo chown -RH tomcat8 authzforce-ce-server
+    $ sudo chgrp -RH tomcat8 authzforce-ce-server
     $ sudo cp /opt/authzforce-ce-server/conf/context.xml.sample $CATALINA_BASE/conf/Catalina/localhost/authzforce-ce.xml
     ```
 1. If you did not use `/opt` as installation directory, replace **ALL** occurrences of `/opt` in the webapp context configuration file `authzforce-ce.xml` according to your setup.
 1. You may restart Tomcat server now. For instance, if you installed Tomcat as shown above, do it as follows:
 
     ```shell
-    $ sudo service tomcat7 restart
+    $ systemctl restart tomcat8
     ```
 
     **Known issue: lack of entropy may cause delays in Tomcat 7+ start up on virtual machines in particular: [more info on Entropy Source issue](https://wiki.apache.org/tomcat/HowTo/FasterStartUp#Entropy_Source). So beware.**
@@ -64,11 +64,12 @@ Last but not least, please check the *More information* section below.
 
 ## Troubleshooting
 If Tomcat fails to (re)start, check for any Tomcat high-level error in Tomcat log directory: `$CATALINA_BASE/logs`.
-One common reason for failure is Tomcat default configuration may specify a value for the Java `Xmx` flag that is too low for the AuthZForce webapp. Make sure Tomcat is configured with `Xmx` at 1GB or more, 2 GB recommended. For example, in the official Tomcat package for Ubuntu 12.04, Xmx used to be 128m. You can fix this parameter as follows:
+One common reason for failure is Tomcat default configuration may specify a value for the Java `Xmx` flag that is too low for the AuthZForce webapp. Make sure Tomcat is configured with `Xmx` at 1GB or more, 2 GB recommended. For example:
 
 ```shell
-$ sudo sed -i 's/-Xmx128m/-Xmx1024m/' /etc/default/tomcat
-$ sudo service tomcat7 restart
+$ export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=http -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
+$ sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat8
+$ systemctl restart tomcat8
 ```
 
 If Tomcat is started but AuthZForce webapp deployment fails, check for any webapp-specific error in log file: `$CATALINA_BASE/logs/authzforce-ce/error.log`

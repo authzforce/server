@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2016 Thales Services SAS.
+ * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthZForce CE.
  *
@@ -53,7 +53,8 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 		try
 		{
 			AUTHZ_API_JAXB_CONTEXT = JAXBContext.newInstance(org.ow2.authzforce.rest.api.xmlns.Error.class);
-		} catch (JAXBException e)
+		}
+		catch (final JAXBException e)
 		{
 			throw new RuntimeException("Failed to initialize Authorization API schema's JAXB context for marshalling Error elements", e);
 		}
@@ -68,7 +69,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 	}
 
 	@Override
-	public void handleMessage(Message message) throws Fault
+	public void handleMessage(final Message message) throws Fault
 	{
 		final Exception ex = message.getContent(Exception.class);
 		// this is a fault message, override with minimal fault string to hide any internal info
@@ -80,12 +81,13 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 			final String errMsg;
 
 			final Throwable cause = ex.getCause();
-			if (ex.getCause() instanceof IllegalArgumentException)
+			if (cause instanceof IllegalArgumentException)
 			{
 				respStatus = HttpServletResponse.SC_BAD_REQUEST;
 				final Throwable causeBehind = cause.getCause();
-				errMsg = ex.getCause().getMessage() + (causeBehind == null ? "" : ": " + causeBehind.getMessage());
-			} else
+				errMsg = cause.getMessage() + (causeBehind == null ? "" : ": " + causeBehind.getMessage());
+			}
+			else
 			{
 				respStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 				errMsg = INTERNAL_SERVER_ERROR_MSG;
@@ -98,7 +100,8 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 				final Marshaller marshaller = AUTHZ_API_JAXB_CONTEXT.createMarshaller();
 				marshaller.marshal(errorEntity, out);
 				out.flush();
-			} catch (JAXBException | IOException | IllegalStateException e)
+			}
+			catch (JAXBException | IOException | IllegalStateException e)
 			{
 				LOGGER.error("Failed to override service response", e);
 				throw INTERNAL_SERVER_ERROR;

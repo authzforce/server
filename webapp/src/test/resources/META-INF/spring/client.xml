@@ -1,5 +1,8 @@
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security" xmlns:http="http://cxf.apache.org/transports/http/configuration"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security"
+	xmlns:http="http://cxf.apache.org/transports/http/configuration"
 	xmlns:util="http://www.springframework.org/schema/util" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="
       http://cxf.apache.org/configuration/security
       http://cxf.apache.org/schemas/configuration/security.xsd
@@ -29,13 +32,15 @@
 	</util:list>
 
 	<bean id="clientApiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
-		<!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder type undefined -->
+		<!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder 
+			type undefined -->
 		<!-- <property name="catalogLocation" value="classpath:/catalog.xml" /> -->
 		<property name="schemaLocations" ref="clientApiSchemaLocations" />
 	</bean>
 
 	<util:list id="extraJaxbClasses" value-type="java.lang.Class">
-		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider</value>
+		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider
+		</value>
 	</util:list>
 
 	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
@@ -43,25 +48,47 @@
 		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
 		<property name="schemaHandler" ref="clientApiSchemaHandler" />
 	</bean>
-		
+
 	<util:list id="fastinfosetType">
-        <value>application/fastinfoset</value>
-    </util:list>
-	
+		<value>application/fastinfoset</value>
+	</util:list>
+
 	<bean id="clientJaxbProviderFI" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
 		<property name="singleJaxbContext" value="true" />
 		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
 		<property name="schemaHandler" ref="clientApiSchemaHandler" />
-		<property name="produceMediaTypes" ref="fastinfosetType"/>
-        <property name="consumeMediaTypes" ref="fastinfosetType"/>
+		<property name="produceMediaTypes" ref="fastinfosetType" />
+		<property name="consumeMediaTypes" ref="fastinfosetType" />
+	</bean>
+
+	<util:map id="jsonNamespaceMap" map-class="java.util.Hashtable">
+		<entry key="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+			value="xacml" />
+		<entry key="http://www.w3.org/2005/Atom" value="atom" />
+		<entry key="http://authzforce.github.io/rest-api-model/xmlns/authz/5"
+			value="az" />
+		<entry key="http://authzforce.github.io/core/xmlns/test/3"
+			value="test" />
+	</util:map>
+
+	<bean id="clientJsonProvider" class="org.apache.cxf.jaxrs.provider.json.JSONProvider">
+		<property name="convention" value="mapped" />
+		<property name="convertTypesToStrings" value="true" />
+		<property name="namespaceSeparator" value=":" />
+		<property name="namespaceMap" ref="jsonNamespaceMap" />
+		<property name="singleJaxbContext" value="true" />
+		<property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
 	</bean>
 
 	<!-- More info: http://cxf.apache.org/docs/client-http-transport-including-ssl-support.html -->
 	<http:conduit name="*.http-conduit">
 		<http:tlsClientParameters>
-			<!-- <sec:keyManagers keyPassword="changeit"> <sec:keyStore type="JKS" password="password" file="D:\users\XXX\john.doe-taz-client-keystore.jks"/> </sec:keyManagers> -->
+			<!-- <sec:keyManagers keyPassword="changeit"> <sec:keyStore type="JKS" 
+				password="password" file="D:\users\XXX\john.doe-taz-client-keystore.jks"/> 
+				</sec:keyManagers> -->
 			<sec:trustManagers>
-				<sec:keyStore type="JKS" password="password" resource="taz-client-truststore.jks" />
+				<sec:keyStore type="JKS" password="password"
+					resource="taz-client-truststore.jks" />
 			</sec:trustManagers>
 			<sec:cipherSuitesFilter>
 				<sec:include>.*_WITH_RC4_.*</sec:include>
@@ -72,6 +99,8 @@
 		</http:tlsClientParameters>
 		<http:client ConnectionTimeout="0" ReceiveTimeout="0" />
 		<!-- HTTP Proxy configuration if needed -->
-		<!-- <http:client AutoRedirect="true" Connection="Keep-Alive" BrowserType="Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0" ProxyServer="myproxy.acme.com" ProxyServerPort="3128" ProxyServerType="HTTP"/> -->
+		<!-- <http:client AutoRedirect="true" Connection="Keep-Alive" BrowserType="Mozilla/5.0 
+			(Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0" ProxyServer="myproxy.acme.com" 
+			ProxyServerPort="3128" ProxyServerType="HTTP"/> -->
 	</http:conduit>
 </beans>

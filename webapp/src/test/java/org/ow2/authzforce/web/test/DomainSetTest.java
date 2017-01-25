@@ -1,5 +1,20 @@
 /**
- * Copyright (C) 2015-2015 Thales Services SAS. All rights reserved. No warranty, explicit or implicit, provided.
+ * Copyright (C) 2012-2017 Thales Services SAS.
+ *
+ * This file is part of AuthZForce CE.
+ *
+ * AuthZForce CE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AuthZForce CE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.web.test;
 
@@ -15,17 +30,21 @@ import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
@@ -56,8 +75,8 @@ public class DomainSetTest extends RestServiceTest
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainSetTest.class);
 
-	private int domainExternalId = 0;
-	private Set<String> createdDomainIds = new HashSet<>();
+	private int nextCreatedDomainIndex = 0;
+	private final Set<String> createdDomainIds = new HashSet<>();
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
@@ -71,11 +90,13 @@ public class DomainSetTest extends RestServiceTest
 	 * 
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "org.ow2.authzforce.domains.sync.interval" })
+	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
-	public void beforeTest(@Optional String remoteAppBaseUrl, @Optional("false") Boolean enableFastInfoset, @Optional("-1") int domainSyncIntervalSec) throws Exception
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean useJSON,
+			@Optional("true") final Boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset, domainSyncIntervalSec);
+		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), enableDoSMitigation, domainSyncIntervalSec,
+				enablePdpOnly);
 	}
 
 	/**
@@ -89,16 +110,20 @@ public class DomainSetTest extends RestServiceTest
 	{
 		// shhutdown server
 		shutdownServer();
+
+		// clean up domains directory
+		FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
+		DOMAINS_DIR.mkdir();
 	}
 
 	@Parameters({ "remote.base.url" })
 	@Test
-	public void getWADL(@Optional String remoteAppBaseUrlParam)
+	public void getWADL(@Optional final String remoteAppBaseUrlParam)
 	{
 		final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
 				: remoteAppBaseUrlParam;
-		WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).queryParam("_wadl", "");
-		Invocation.Builder builder = target.request();
+		final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).queryParam("_wadl", "");
+		final Invocation.Builder builder = target.request();
 		// if (LOGGER.isDebugEnabled())
 		// {
 		final ClientConfiguration builderConf = WebClient.getConfig(builder);
@@ -106,19 +131,19 @@ public class DomainSetTest extends RestServiceTest
 		builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		// }
 
-		javax.ws.rs.core.Response response = builder.get();
+		final javax.ws.rs.core.Response response = builder.get();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
 	}
 
 	@Parameters({ "remote.base.url", "enableFastInfoset" })
 	@Test()
-	public void getDomainsWithoutAcceptHeader(@Optional String remoteAppBaseUrlParam, @Optional("false") Boolean enableFastInfoset)
+	public void getDomainsWithoutAcceptHeader(@Optional final String remoteAppBaseUrlParam, @Optional("false") final Boolean enableFastInfoset)
 	{
 		// try to use application/fastinfoset
 		final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
 				: remoteAppBaseUrlParam;
-		WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
-		Invocation.Builder builder = target.request();
+		final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
+		final Invocation.Builder builder = target.request();
 		// if (LOGGER.isDebugEnabled())
 		// {
 		final ClientConfiguration builderConf = WebClient.getConfig(builder);
@@ -126,7 +151,7 @@ public class DomainSetTest extends RestServiceTest
 		builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
 		// }
 
-		javax.ws.rs.core.Response response = builder.get();
+		final javax.ws.rs.core.Response response = builder.get();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
 		assertEquals(response.getMediaType(), MediaType.APPLICATION_XML_TYPE);
 	}
@@ -139,15 +164,15 @@ public class DomainSetTest extends RestServiceTest
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset" })
 	@Test()
-	public void getDomainsWithBadAcceptHeader(@Optional String remoteAppBaseUrlParam, @Optional("false") Boolean enableFastInfoset)
+	public void getDomainsWithBadAcceptHeader(@Optional final String remoteAppBaseUrlParam, @Optional("false") final Boolean enableFastInfoset)
 	{
 		if (!enableFastInfoset)
 		{
 			// try to use application/fastinfoset
 			final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
 					: remoteAppBaseUrlParam;
-			WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
-			Invocation.Builder builder = target.request().accept("application/fastinfoset");
+			final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
+			final Invocation.Builder builder = target.request().accept("application/fastinfoset");
 			// if (LOGGER.isDebugEnabled())
 			// {
 			final ClientConfiguration builderConf = WebClient.getConfig(builder);
@@ -155,7 +180,7 @@ public class DomainSetTest extends RestServiceTest
 			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
 			// }
 
-			javax.ws.rs.core.Response response = builder.get();
+			final javax.ws.rs.core.Response response = builder.get();
 			/**
 			 * CXF should return code 500 with Payload: "No message body writer has been found for class org.ow2.authzforce.rest.api.xmlns.Resources, ContentType: application/fastinfoset"
 			 */
@@ -164,12 +189,42 @@ public class DomainSetTest extends RestServiceTest
 	}
 
 	@Test(invocationCount = 3)
-	public void addAndGetDomain()
+	@Parameters({ "enablePdpOnly" })
+	public void addAndGetDomain(@Optional("false") final Boolean enablePdpOnly) throws IllegalArgumentException, IOException, JAXBException
 	{
-		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties("Test domain", "external" + Integer.toString(domainExternalId));
-		domainExternalId += 1;
-		final Link domainLink = domainsAPIProxyClient.addDomain(domainProperties);
+		// externalID is xs:NCName therefore cannot start with a number
+		final String nextCreatedDomainIndexStr = Integer.toString(nextCreatedDomainIndex);
+		final String externalId = "external" + nextCreatedDomainIndexStr;
+		nextCreatedDomainIndex += 1;
+
+		final DomainProperties domainProperties = new DomainProperties("Test domain", externalId);
+		final Link domainLink;
+		try
+		{
+			domainLink = domainsAPIProxyClient.addDomain(domainProperties);
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "addDomain method not allowed although enablePdpOnly=false");
+			/*
+			 * enablePdpOnly=true does not allow adding domain via REST API, so we add it on the filesystem directly for other tests to work
+			 */
+			FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
+			// use the domainIndex as domainId
+			final String domainId = nextCreatedDomainIndexStr;
+			final File domainDir = new File(DOMAINS_DIR, domainId);
+			Files.move(SAMPLE_DOMAIN_COPY_DIR, domainDir.toPath());
+			final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(domainProperties.getDescription(), externalId,
+					null, null, false);
+			final File domainPropertiesFile = new File(domainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
+			RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, domainPropertiesFile);
+			LOGGER.debug("Added domain ID={} directlry on filesystem (enablePdpOnly=true)", domainId);
+			createdDomainIds.add(domainId);
+			return;
+		}
+
+		assertFalse(enablePdpOnly, "addDomain method allowed although enablePdpOnly=true");
+
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
@@ -193,8 +248,8 @@ public class DomainSetTest extends RestServiceTest
 	}
 
 	@Parameters({ "enableFastInfoset" })
-	@Test(expectedExceptions = BadRequestException.class)
-	public void addDomainWithTooBigDescription(@Optional("false") Boolean enableFastInfoset)
+	@Test
+	public void addDomainWithTooBigDescription(@Optional("false") final Boolean enableFastInfoset)
 	{
 		if (enableFastInfoset)
 		{
@@ -205,18 +260,31 @@ public class DomainSetTest extends RestServiceTest
 		 * FIXME: the CXF property 'org.apache.cxf.stax.maxTextLength' is not supported with Fastinfoset (you will get exception ... cannot be cast to XmlStreamReader2). See
 		 * https://issues.apache.org/jira/browse/CXF-6848.
 		 */
-		char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
+		final char[] chars = new char[XML_MAX_TEXT_LENGTH + 1];
 		Arrays.fill(chars, 'a');
-		String description = new String(chars);
+		final String description = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(domainExternalId));
-		domainExternalId += 1;
-		domainsAPIProxyClient.addDomain(domainProperties);
+		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(nextCreatedDomainIndex));
+		nextCreatedDomainIndex += 1;
+		try
+		{
+			domainsAPIProxyClient.addDomain(domainProperties);
+			fail("Bad request to add domain (too big description element) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+			// Bad request as expected (e.g. for XML API)
+		}
+		catch (final ClientErrorException e)
+		{
+			// The error may be 413 Request Entity Too Large (e.g. for JSON API)
+			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+		}
 	}
 
 	@Parameters({ "enableFastInfoset" })
-	@Test(expectedExceptions = BadRequestException.class)
-	public void addDomainWithTooBigExternalId(@Optional("false") Boolean enableFastInfoset)
+	@Test
+	public void addDomainWithTooBigExternalId(@Optional("false") final Boolean enableFastInfoset)
 	{
 		/*
 		 * FIXME: the CXF property 'org.apache.cxf.stax.maxAttributeSize' is not supported with Fastinfoset (you will get exception ... cannot be cast to XmlStreamReader2). See
@@ -227,19 +295,44 @@ public class DomainSetTest extends RestServiceTest
 			throw new SkipException("Not supported in FastInfoset mode");
 		}
 
-		char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE];
+		final char[] chars = new char[XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE];
 		Arrays.fill(chars, 'a');
-		String externalId = new String(chars);
+		final String externalId = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
 		final DomainProperties domainProperties = new DomainProperties("test", externalId);
-		domainExternalId += 1;
-		domainsAPIProxyClient.addDomain(domainProperties);
+		nextCreatedDomainIndex += 1;
+		try
+		{
+			domainsAPIProxyClient.addDomain(domainProperties);
+			fail("Bad request to add domain (too big externalId attribute) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+			// Bad request as expected (e.g. for XML API)
+		}
+		catch (final ClientErrorException e)
+		{
+			// The error may be 413 Request Entity Too Large (e.g. for JSON API)
+			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+		}
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "addAndGetDomain" })
-	public void getDomains()
+	public void getDomains(@Optional("false") final Boolean enablePdpOnly)
 	{
-		final Resources domainResources = domainsAPIProxyClient.getDomains(null);
+		final Resources domainResources;
+		try
+		{
+			domainResources = domainsAPIProxyClient.getDomains(null);
+			assertFalse(enablePdpOnly, "getDomains method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomains method not allowed although enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(domainResources, "No domain found");
 		// match retrieved domains against created ones in addDomain test
 		int matchedDomainCount = 0;
@@ -255,11 +348,23 @@ public class DomainSetTest extends RestServiceTest
 		assertEquals(matchedDomainCount, createdDomainIds.size(), "Test domains added by 'addDomain' not all found by getDomains");
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomains" })
-	public void getDomain()
+	public void getDomain(@Optional("false") final Boolean enablePdpOnly)
 	{
 		final String testDomainId = createdDomainIds.iterator().next();
-		Domain testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
+		final Domain testDomainResource;
+		try
+		{
+			testDomainResource = domainsAPIProxyClient.getDomainResource(testDomainId).getDomain();
+			assertFalse(enablePdpOnly, "getDomain method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomain method not allowed although enablePdpOnly=false");
+			return;
+		}
+
 		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
 		final Link pdpLink = DomainAPIHelper.getMatchingLink("/pdp", testDomainResource.getChildResources().getLinks());
 		assertNotNull(pdpLink, "Missing link to PDP in response to getDomain(" + testDomainId + ")");
@@ -267,27 +372,51 @@ public class DomainSetTest extends RestServiceTest
 				+ ") does not comply with REST profile of XACML 3.0");
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomain" })
-	public void getDomainByExternalId()
+	public void getDomainByExternalId(@Optional("false") final Boolean enablePdpOnly)
 	{
-		String createdDomainId = createdDomainIds.iterator().next();
-		String externalId = domainsAPIProxyClient.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+		final String createdDomainId = createdDomainIds.iterator().next();
+		final String externalId;
+		try
+		{
+			externalId = domainsAPIProxyClient.getDomainResource(createdDomainId).getDomain().getProperties().getExternalId();
+			assertFalse(enablePdpOnly, "getDomain method allowed although enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "getDomain method not allowed although enablePdpOnly=false");
+			return;
+		}
 
 		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(externalId).getLinks();
-		// verify that there is only one domain resource link and it is the one
-		// we are looking for
+		/*
+		 * verify that there is only one domain resource link and it is the one we are looking for
+		 */
 		assertEquals(domainLinks.size(), 1);
 
-		String matchedDomainId = domainLinks.get(0).getHref();
+		final String matchedDomainId = domainLinks.get(0).getHref();
 		assertEquals(matchedDomainId, createdDomainId, "getDomains(externalId) returned wrong domainId: " + matchedDomainId + " instead of " + createdDomainId);
 	}
 
+	@Parameters({ "enablePdpOnly" })
 	@Test(dependsOnMethods = { "getDomainByExternalId" })
-	public void deleteDomain()
+	public void deleteDomain(@Optional("false") final Boolean enablePdpOnly)
 	{
-		String createdDomainId = createdDomainIds.iterator().next();
-		DomainResource domainRes = domainsAPIProxyClient.getDomainResource(createdDomainId);
-		DomainProperties deletedDomainProps = domainRes.deleteDomain();
+		final String createdDomainId = createdDomainIds.iterator().next();
+		final DomainResource domainRes = domainsAPIProxyClient.getDomainResource(createdDomainId);
+		final DomainProperties deletedDomainProps;
+		try
+		{
+			deletedDomainProps = domainRes.deleteDomain();
+			assertFalse(enablePdpOnly, "deleteDomain method allowed but enablePdpOnly=true");
+		}
+		catch (final ServerErrorException e)
+		{
+			assertTrue(enablePdpOnly, "deleteDomain method not allowed but enablePdpOnly=false");
+			return;
+		}
+
 		// make sure it's done
 		try
 		{
@@ -295,14 +424,15 @@ public class DomainSetTest extends RestServiceTest
 			// MUST fail
 			domainRes.getDomain();
 			fail("Error deleting domain " + createdDomainId + " with API deleteDomain(): getDomain() still returns 200");
-		} catch (NotFoundException nfe)
+		}
+		catch (final NotFoundException nfe)
 		{
 			// OK
 		}
 
 		// try with externalId
-		String externalId = deletedDomainProps.getExternalId();
-		List<Link> links = domainsAPIProxyClient.getDomains(externalId).getLinks();
+		final String externalId = deletedDomainProps.getExternalId();
+		final List<Link> links = domainsAPIProxyClient.getDomains(externalId).getLinks();
 		assertTrue(links.isEmpty(), "Error deleting domain " + createdDomainId + " with API deleteDomain(): getDomains(externalId=" + externalId + ") still returns link to domain");
 
 		createdDomainIds.remove(createdDomainId);
@@ -318,7 +448,7 @@ public class DomainSetTest extends RestServiceTest
 	 */
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "deleteDomain" })
-	public void getDomainsAfterFileModifications(@Optional String remoteAppBaseUrl) throws IllegalArgumentException, IOException
+	public void getDomainsAfterFileModifications(@Optional final String remoteAppBaseUrl) throws IllegalArgumentException, IOException
 	{
 		// skip test if server is remote (remoteAppBaseUrl != null)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -330,15 +460,15 @@ public class DomainSetTest extends RestServiceTest
 		FlatFileDAOUtils.copyDirectory(SAMPLE_DOMAIN_DIR, SAMPLE_DOMAIN_COPY_DIR, 3);
 
 		// delete existing domain on disk, but first get its externalId for later testing
-		String deletedDomainId = createdDomainIds.iterator().next();
-		String deletedDomainExternalId = domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain().getProperties().getExternalId();
-		File deleteSrcDir = new File(DOMAINS_DIR, deletedDomainId);
+		final String deletedDomainId = createdDomainIds.iterator().next();
+		final String deletedDomainExternalId = domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain().getProperties().getExternalId();
+		final File deleteSrcDir = new File(DOMAINS_DIR, deletedDomainId);
 		FlatFileDAOUtils.deleteDirectory(deleteSrcDir.toPath(), 3);
 
 		// Manual sync of files-to-cache with getDomains()
 		final List<Link> linksToDomains = domainsAPIProxyClient.getDomains(null).getLinks();
 		// match retrieved domains against created ones in addDomain test
-		Set<String> newDomainIds = new HashSet<>();
+		final Set<String> newDomainIds = new HashSet<>();
 		for (final Link domainLink : linksToDomains)
 		{
 			newDomainIds.add(domainLink.getHref());
@@ -351,7 +481,8 @@ public class DomainSetTest extends RestServiceTest
 		{
 			domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain();
 			fail("Sync from disk with getDomains() failed: getDomain(" + deletedDomainId + ") on REST API succeeds although domain directory deleted on disk");
-		} catch (NotFoundException e)
+		}
+		catch (final NotFoundException e)
 		{
 			// OK
 		}
@@ -366,11 +497,11 @@ public class DomainSetTest extends RestServiceTest
 		// Test for domain created on disk
 		assertTrue(newDomainIds.contains(SAMPLE_DOMAIN_ID), "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID
 				+ " not returned by REST API although domain directory created on disk");
-		Domain testDomainResource = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID).getDomain();
+		final Domain testDomainResource = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID).getDomain();
 		assertNotNull(testDomainResource, "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID + " failed although domain directory created on disk");
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
 
-		String externalId = testDomainResource.getProperties().getExternalId();
+		final String externalId = testDomainResource.getProperties().getExternalId();
 		if (externalId == null)
 		{
 			fail("Bad test data: test domain in directory '" + SAMPLE_DOMAIN_DIR + "' must have an externalId (modify the properties.xml file to add an externalId before running this test)");
@@ -381,7 +512,7 @@ public class DomainSetTest extends RestServiceTest
 		// verify that there is only one domain resource link and it is the one
 		// we are looking for
 		assertEquals(domainLinks.size(), 1);
-		String matchedDomainId = domainLinks.get(0).getHref();
+		final String matchedDomainId = domainLinks.get(0).getHref();
 		assertEquals(matchedDomainId, SAMPLE_DOMAIN_ID, "Manual sync with getDomains() failed: getDomains(externalId = " + externalId + ") returned wrong domainId: " + matchedDomainId
 				+ " instead of " + SAMPLE_DOMAIN_ID);
 
@@ -389,7 +520,7 @@ public class DomainSetTest extends RestServiceTest
 
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "getDomainsAfterFileModifications" })
-	public void deleteDomainAfterDirectoryDeleted(@Optional String remoteAppBaseUrl) throws IllegalArgumentException, IOException
+	public void deleteDomainAfterDirectoryDeleted(@Optional final String remoteAppBaseUrl) throws IllegalArgumentException, IOException
 	{
 		// skip test if server is remote (remoteAppBaseUrl != null)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -401,8 +532,8 @@ public class DomainSetTest extends RestServiceTest
 		FlatFileDAOUtils.deleteDirectory(SAMPLE_DOMAIN_COPY_DIR, 3);
 
 		// sync API cache
-		DomainResource domainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
-		DomainProperties deletedDomainProps = domainRes.deleteDomain();
+		final DomainResource domainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
+		final DomainProperties deletedDomainProps = domainRes.deleteDomain();
 		// make sure it's done
 		try
 		{
@@ -410,13 +541,14 @@ public class DomainSetTest extends RestServiceTest
 			// MUST fail
 			domainRes.getDomain();
 			fail("Error deleting domain with API deleteDomain() after deleting directory on disk: getDomain() still returns 200");
-		} catch (NotFoundException nfe)
+		}
+		catch (final NotFoundException nfe)
 		{
 			// OK
 		}
 
 		// try with externalId
-		List<Link> links = domainsAPIProxyClient.getDomains(deletedDomainProps.getExternalId()).getLinks();
+		final List<Link> links = domainsAPIProxyClient.getDomains(deletedDomainProps.getExternalId()).getLinks();
 		assertTrue(links.isEmpty(), "Error deleting domain with API deleteDomain() after deleting directory on disk: getDomains(externalId) still returns link to domain");
 
 		createdDomainIds.remove(SAMPLE_DOMAIN_ID);
@@ -424,7 +556,7 @@ public class DomainSetTest extends RestServiceTest
 
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "deleteDomainAfterDirectoryDeleted" })
-	public void getPdpAfterDomainDirCreated(@Optional String remoteAppBaseUrl) throws IllegalArgumentException, IOException, JAXBException
+	public void getPdpAfterDomainDirCreated(@Optional final String remoteAppBaseUrl) throws IllegalArgumentException, IOException, JAXBException
 	{
 		// skip test if server is remote (remoteAppBaseUrl != null)
 		if (remoteAppBaseUrl != null && !remoteAppBaseUrl.isEmpty())
@@ -433,15 +565,16 @@ public class DomainSetTest extends RestServiceTest
 		}
 
 		// verify domain does not exist by trying the PDP
-		DomainResource testDomainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
-		File testDir = new File(XACML_SAMPLES_DIR, "IIIG301");
+		final DomainResource testDomainRes = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID);
+		final File testDir = new File(XACML_SAMPLES_DIR, "IIIG301");
 		final Request request = (Request) unmarshaller.unmarshal(new File(testDir, REQUEST_FILENAME));
 
 		try
 		{
 			testDomainRes.getPdpResource().requestPolicyDecision(request);
 			fail("Test precondition failed: domain " + SAMPLE_DOMAIN_ID + " already exists");
-		} catch (NotFoundException e)
+		}
+		catch (final NotFoundException e)
 		{ // OK
 		}
 
@@ -455,7 +588,7 @@ public class DomainSetTest extends RestServiceTest
 		assertTrue(actualResponse != null, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
 	}
 
-	@Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
+	// @Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })
 	public void deleteDomains()
 	{
 		for (final String domainId : createdDomainIds)
@@ -471,7 +604,8 @@ public class DomainSetTest extends RestServiceTest
 				// try to do something on the domain expected to be deleted ->
 				// MUST fail
 				domainResource.getDomain();
-			} catch (NotFoundException nfe)
+			}
+			catch (final NotFoundException nfe)
 			{
 				isDeleted = true;
 			}

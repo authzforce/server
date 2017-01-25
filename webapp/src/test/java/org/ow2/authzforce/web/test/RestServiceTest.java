@@ -1,5 +1,20 @@
 /**
- * Copyright (C) 2015-2015 Thales Services SAS. All rights reserved. No warranty, explicit or implicit, provided.
+ * Copyright (C) 2012-2017 Thales Services SAS.
+ *
+ * This file is part of AuthZForce CE.
+ *
+ * AuthZForce CE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AuthZForce CE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.web.test;
 
@@ -15,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.TimeZone;
@@ -22,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletException;
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -35,8 +52,6 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.LifecycleState;
-import org.apache.catalina.deploy.ContextEnvironment;
-import org.apache.catalina.deploy.NamingResources;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.cxf.interceptor.FIStaxInInterceptor;
 import org.apache.cxf.interceptor.FIStaxOutInterceptor;
@@ -46,8 +61,11 @@ import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.jaxrs.provider.AbstractJAXBProvider;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
+import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
+import org.apache.tomcat.util.descriptor.web.NamingResources;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
@@ -70,7 +88,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * Start embedded server on a random port between 9000 and 9999 (inclusive) to avoid conflict with another parallel test run
 	 */
 	private static final AtomicInteger EMBEDDED_SERVER_PORT = new AtomicInteger(9000 + PRNG.nextInt(1000));
-	private static final String EMBEDDED_APP_CONTEXT_PATH = "/";
+	private static final String EMBEDDED_APP_CONTEXT_PATH = ""; // ROOT context path
 
 	protected static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
@@ -79,7 +97,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	/*
 	 * Below that value getWADL() test fails because WADL depth too big
 	 */
-	private static final int XML_MAX_ELEMENT_DEPTH = 10;
+	private static final int XML_MAX_ELEMENT_DEPTH = 15;
 	private static final int XML_MAX_ATTRIBUTE_COUNT = 100;
 	protected static final int XML_MAX_TEXT_LENGTH = 1000;
 
@@ -92,6 +110,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected static final int XML_MAX_ATTRIBUTE_SIZE_EFFECTIVE = 911;
 
 	protected static final File DOMAINS_DIR = new File("target/server/conf/authzforce-ce/domains");
+
+	private static final MediaType FASTINFOSET_MEDIA_TYPE = new MediaType("application", "fastinfoset");
 
 	protected static final File XACML_SAMPLES_DIR = new File("src/test/resources/xacml.samples");
 	static
@@ -142,7 +162,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		try
 		{
 			JAXB_CTX = JAXBContext.newInstance(PolicySet.class, Request.class, Resources.class, DomainProperties.class, TestAttributeProvider.class);
-		} catch (JAXBException e)
+		}
+		catch (final JAXBException e)
 		{
 			throw new RuntimeException("Error instantiating JAXB context for XML to Java binding", e);
 		}
@@ -160,7 +181,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	protected final static String REQUEST_FILENAME = "request.xml";
 
 	/**
-	 * XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists in the test directory
+	 * Root XACML policy filename used by default when no PDP configuration file found, i.e. no file named "pdp.xml" exists in the test directory
 	 */
 	protected final static String TEST_POLICY_FILENAME = "policy.xml";
 
@@ -178,22 +199,24 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	public final static String DOMAIN_POLICIES_DIRNAME = "policies";
 	public final static String DOMAIN_PDP_CONF_FILENAME = "pdp.xml";
 
-	protected static final String FASTINFOSET_MEDIA_TYPE = "application/fastinfoset";
-
 	public final static String DOMAIN_PROPERTIES_FILENAME = "properties.xml";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTest.class);
 
-	protected static PolicySet createDumbPolicySet(String policyId, String version)
+	protected static PolicySet createDumbPolicySet(final String policyId, final String version)
 	{
 		return createDumbPolicySet(policyId, version, null);
 	}
 
-	protected static PolicySet createDumbPolicySet(String policyId, String version, String description)
+	protected static PolicySet createDumbPolicySet(final String policyId, final String version, final String description)
 	{
 		return new PolicySet(description, null, null, new Target(null), null, null, null, policyId, version, "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit",
 				BigInteger.ZERO);
 	}
+
+	@Autowired
+	@Qualifier("clientJsonProvider")
+	private AbstractJAXBProvider<?> clientJsonJaxbProvider;
 
 	@Autowired
 	@Qualifier("pdpModelHandler")
@@ -217,21 +240,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected DomainsResource domainsAPIProxyClient = null;
 
-	/**
-	 * 
-	 * @param port
-	 *            server port, dynamically allocated if negative
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @param addSampleDomain
-	 * @return
-	 * @throws ServletException
-	 * @throws IllegalArgumentException
-	 * @throws IOException
-	 * @throws LifecycleException
-	 */
-	private static Tomcat startServer(int port, boolean enableFastInfoset, int domainSyncIntervalSec, boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException,
-			LifecycleException
+	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
+			final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -289,7 +299,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		 * "Duplicate context initialization parameter") spring.profiles.active may be set either via servletConfig init param or servletContext init param or JNDI property
 		 * java:comp/env/spring.profiles.active or system property
 		 */
-		ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
+		final ContextEnvironment springActiveProfileEnv = new ContextEnvironment();
 		springActiveProfileEnv.setName("spring.profiles.active");
 		springActiveProfileEnv.setType("java.lang.String");
 		springActiveProfileEnv.setValue((enableFastInfoset ? "+" : "-") + "fastinfoset");
@@ -297,50 +307,61 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		webappNamingResources.addEnvironment(springActiveProfileEnv);
 
 		// override env-entry for domains sync interval
-		ContextEnvironment syncIntervalEnv = new ContextEnvironment();
+		final ContextEnvironment syncIntervalEnv = new ContextEnvironment();
 		syncIntervalEnv.setName("org.ow2.authzforce.domains.sync.interval");
 		syncIntervalEnv.setType("java.lang.Integer");
 		syncIntervalEnv.setValue(Integer.toString(domainSyncIntervalSec));
 		syncIntervalEnv.setOverride(false);
 		webappNamingResources.addEnvironment(syncIntervalEnv);
 
-		// Override Anti-XML-DOS properties
-		ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
-		staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
-		staxMaxChildElementsEnv.setType("java.lang.Integer");
-		staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
-		staxMaxChildElementsEnv.setOverride(false);
-		webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
+		// override env-entry for enablePdpOnly
+		final ContextEnvironment enablePdpOnlyFlagEnv = new ContextEnvironment();
+		enablePdpOnlyFlagEnv.setName("org.ow2.authzforce.domains.enablePdpOnly");
+		enablePdpOnlyFlagEnv.setType("java.lang.Boolean");
+		enablePdpOnlyFlagEnv.setValue(Boolean.toString(enablePdpOnly));
+		enablePdpOnlyFlagEnv.setOverride(false);
+		webappNamingResources.addEnvironment(enablePdpOnlyFlagEnv);
 
-		ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
-		staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
-		staxMaxElementDepthEnv.setType("java.lang.Integer");
-		staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
-		staxMaxElementDepthEnv.setOverride(false);
-		webappNamingResources.addEnvironment(staxMaxElementDepthEnv);
-
-		if (!enableFastInfoset)
+		if (enableDoSMitigation)
 		{
-			ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
-			staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
-			staxMaxAttCountEnv.setType("java.lang.Integer");
-			staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
-			staxMaxAttCountEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxAttCountEnv);
+			// Override Anti-XML/JSON-DoS properties
+			final ContextEnvironment staxMaxChildElementsEnv = new ContextEnvironment();
+			staxMaxChildElementsEnv.setName("org.apache.cxf.stax.maxChildElements");
+			staxMaxChildElementsEnv.setType("java.lang.Integer");
+			staxMaxChildElementsEnv.setValue(Integer.toString(XML_MAX_CHILD_ELEMENTS));
+			staxMaxChildElementsEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxChildElementsEnv);
 
-			ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
-			staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
-			staxMaxAttSizeEnv.setType("java.lang.Integer");
-			staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
-			staxMaxAttSizeEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
+			final ContextEnvironment staxMaxElementDepthEnv = new ContextEnvironment();
+			staxMaxElementDepthEnv.setName("org.apache.cxf.stax.maxElementDepth");
+			staxMaxElementDepthEnv.setType("java.lang.Integer");
+			staxMaxElementDepthEnv.setValue(Integer.toString(XML_MAX_ELEMENT_DEPTH));
+			staxMaxElementDepthEnv.setOverride(false);
+			webappNamingResources.addEnvironment(staxMaxElementDepthEnv);
 
-			ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
-			staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
-			staxMaxTextLengthEnv.setType("java.lang.Integer");
-			staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
-			staxMaxTextLengthEnv.setOverride(false);
-			webappNamingResources.addEnvironment(staxMaxTextLengthEnv);
+			if (!enableFastInfoset)
+			{
+				final ContextEnvironment staxMaxAttCountEnv = new ContextEnvironment();
+				staxMaxAttCountEnv.setName("org.apache.cxf.stax.maxAttributeCount");
+				staxMaxAttCountEnv.setType("java.lang.Integer");
+				staxMaxAttCountEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_COUNT));
+				staxMaxAttCountEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxAttCountEnv);
+
+				final ContextEnvironment staxMaxAttSizeEnv = new ContextEnvironment();
+				staxMaxAttSizeEnv.setName("org.apache.cxf.stax.maxAttributeSize");
+				staxMaxAttSizeEnv.setType("java.lang.Integer");
+				staxMaxAttSizeEnv.setValue(Integer.toString(XML_MAX_ATTRIBUTE_SIZE));
+				staxMaxAttSizeEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxAttSizeEnv);
+
+				final ContextEnvironment staxMaxTextLengthEnv = new ContextEnvironment();
+				staxMaxTextLengthEnv.setName("org.apache.cxf.stax.maxTextLength");
+				staxMaxTextLengthEnv.setType("java.lang.Integer");
+				staxMaxTextLengthEnv.setValue(Integer.toString(XML_MAX_TEXT_LENGTH));
+				staxMaxTextLengthEnv.setOverride(false);
+				webappNamingResources.addEnvironment(staxMaxTextLengthEnv);
+			}
 		}
 
 		/*
@@ -353,7 +374,13 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return embeddedServer;
 	}
 
-	protected void startServerAndInitCLient(String remoteAppBaseUrl, boolean enableFastInfoset, int domainSyncIntervalSec) throws Exception
+	protected enum ClientType
+	{
+		XML, FAST_INFOSET, JSON
+	}
+
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
+			throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -361,7 +388,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, enableFastInfoset, domainSyncIntervalSec, false);
+			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -395,36 +422,55 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			 * Server is a local/embedded one
 			 */
 			serverBaseAddress = "http://127.0.0.1:" + EMBEDDED_SERVER_PORT.get() + EMBEDDED_APP_CONTEXT_PATH;
-		} else
+		}
+		else
 		{
 			serverBaseAddress = remoteAppBaseUrl;
 		}
 
 		final ClientConfiguration proxyClientConf;
-		if (enableFastInfoset)
+		switch (clientType)
 		{
-			/*
-			 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
-			 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
-			 */
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
-			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			/*
-			 * WARNING: XmlMediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
-			 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char #0,
-			 * byte #-1)
-			 */
-			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(true));
-			checkFiInterceptors(proxyClientConf);
-		} else
-		{
-			domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
-			proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-			/*
-			 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which causes
-			 * error on this client-side since not supported
-			 */
-			proxyClientConf.getOutInterceptors().add(new XmlMediaTypeHeaderSetter(false));
+			case XML:
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which
+				 * causes error on this client-side since not supported
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(MediaType.APPLICATION_XML_TYPE));
+				break;
+
+			case FAST_INFOSET:
+				/*
+				 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
+				 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
+				 */
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
+				 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char
+				 * #0, byte #-1)
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(FASTINFOSET_MEDIA_TYPE));
+				checkFiInterceptors(proxyClientConf);
+				break;
+
+			case JSON:
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJsonJaxbProvider));
+				proxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
+				/*
+				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/json"
+				 */
+				proxyClientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(MediaType.APPLICATION_JSON_TYPE));
+				// Line below will set Content-Type: application/json even if method is GET
+				// proxyClientConf.getHttpConduit().getClient().setContentType(MediaType.APPLICATION_JSON);
+				proxyClientConf.getHttpConduit().getClient().setAccept(MediaType.APPLICATION_JSON);
+				break;
+
+			default:
+				throw new RuntimeException("Invalid client type: not one of: " + Arrays.toString(ClientType.values()));
 		}
 
 		/**
@@ -465,39 +511,62 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	public static void main(String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
+	private static void showUsage()
+	{
+		System.out.println("Usage using default parameter values: java RestServiceTest");
+		System.out.println("Usage for non-default values: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec enablePdpOnly]");
+		System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
+		System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
+		System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
+		System.out.println("- enablePdpOnly: (true|false) whether to enable PDP features only, i.e. disable PAP/admin features. Default: false.");
+	}
+
+	public static void main(final String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
 	{
 		final int port;
 		final boolean enableFastInfoset;
+		final boolean enableDoSMitigation;
 		final int domainSyncIntervalSec;
+		final boolean enablePdpOnly;
 		if (args.length == 0)
 		{
 			port = 8080;
 			enableFastInfoset = false;
+			enableDoSMitigation = false;
 			domainSyncIntervalSec = -1;
-		} else if (args.length < 2)
+			enablePdpOnly = false;
+		}
+		else if (args.length != 5)
 		{
-			System.out.println("Usage: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec]");
-			System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
-			System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
-			System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
-			throw new IllegalArgumentException("Invalid args. Expected args: enableFastInfoset domainsSyncIntervalSec");
-		} else
+			showUsage();
+			throw new IllegalArgumentException("Invalid number of args. Expected: 0 (using defaults) or 5");
+		}
+		else
 		{
-			port = Integer.parseInt(args[0], 10);
-			enableFastInfoset = Boolean.valueOf(args[1]);
-			domainSyncIntervalSec = Integer.parseInt(args[2], 10);
+			try
+			{
+				port = Integer.parseInt(args[0], 10);
+				enableFastInfoset = Boolean.valueOf(args[1]);
+				enableDoSMitigation = Boolean.valueOf(args[2]);
+				domainSyncIntervalSec = Integer.parseInt(args[3], 10);
+				enablePdpOnly = Boolean.valueOf(args[4]);
+			}
+			catch (final Exception e)
+			{
+				showUsage();
+				throw new IllegalArgumentException("Invalid args. Expected args: port enableFastInfoset domainsSyncIntervalSec enablePdpOnly");
+			}
 		}
 
-		final Tomcat tomcat = startServer(port, enableFastInfoset, domainSyncIntervalSec, true);
+		final Tomcat tomcat = startServer(port, enableFastInfoset, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true);
 		System.out.println("Server up and listening!");
 		tomcat.getServer().await();
 	}
 
-	private static void checkFiInterceptors(ClientConfiguration cfg)
+	private static void checkFiInterceptors(final ClientConfiguration cfg)
 	{
 		int count = 0;
-		for (Interceptor<?> in : cfg.getInInterceptors())
+		for (final Interceptor<?> in : cfg.getInInterceptors())
 		{
 			if (in instanceof FIStaxInInterceptor)
 			{
@@ -505,7 +574,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				break;
 			}
 		}
-		for (Interceptor<?> in : cfg.getOutInterceptors())
+		for (final Interceptor<?> in : cfg.getOutInterceptors())
 		{
 			if (in instanceof FIStaxOutInterceptor)
 			{

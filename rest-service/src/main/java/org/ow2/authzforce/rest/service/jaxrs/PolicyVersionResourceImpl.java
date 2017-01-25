@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2016 Thales Services SAS.
+ * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthZForce CE.
  *
@@ -50,7 +50,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 	{
 
 		@Override
-		public PolicyVersionResourceImpl getInstance(String policyId, PolicyVersion versionId, DomainDAO<?, ?> domainDAO)
+		public PolicyVersionResourceImpl getInstance(final String policyId, final PolicyVersion versionId, final DomainDAO<?, ?> domainDAO)
 		{
 			if (versionId == null)
 			{
@@ -72,7 +72,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 
 	private final String policyId;
 
-	private PolicyVersionResourceImpl(String policyId, PolicyVersion versionId, DomainDAO<?, ?> domainDAO)
+	private PolicyVersionResourceImpl(final String policyId, final PolicyVersion versionId, final DomainDAO<?, ?> domainDAO)
 	{
 		assert versionId != null && domainDAO != null;
 		this.policyId = policyId;
@@ -87,7 +87,8 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 		try
 		{
 			policyVersion = domainDAO.getPolicyVersion(policyId, versionId);
-		} catch (IOException e)
+		}
+		catch (final IOException e)
 		{
 			throw new InternalServerErrorException("Error getting policy version '" + versionId + "'", e);
 		}
@@ -101,13 +102,14 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 	}
 
 	@Override
-	public PolicySet deletePolicyVersion()
+	public PolicySet deletePolicyVersion() throws IllegalArgumentException
 	{
 		final PolicySet deletedPolicyVersion;
 		try
 		{
 			deletedPolicyVersion = domainDAO.removePolicyVersion(policyId, versionId);
-		} catch (IOException e)
+		}
+		catch (final IOException e)
 		{
 			throw new InternalServerErrorException("Error removing policy version '" + versionId + "'", e);
 		}
