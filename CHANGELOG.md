@@ -10,8 +10,8 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 - [GH-9] Configuration parameter `enablePdpOnly` (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
 - PDP engine (AuthzForce Core) enhancements:
 	- Extension mechanism to switch `HashMap`/`HashSet` implementations with different performance properties; default implementation is based on a mix of native JRE and Guava.
-	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this argument is constant (must be a positive integer not greater than the number of remaining arguments)
-	- Validation of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
+	- Static validation (at policy initialization time) of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this argument is constant (must be a positive integer not greater than the number of remaining arguments)
+	- Static validation (at policy initialization time) of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
 
 - Dependency vulnerability checking with OWASP dependency-check tool
 - Source code security validation with Find Security Bugs plugin
@@ -26,18 +26,18 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 	- com.sun.mail:javax.mail v1.5.4 -> com.sun.mail:mailapi v1.5.6
 	- Java Servlet API: 3.0.1 -> 3.1.0
 	- Apache CXF: 3.1.0 -> 3.1.9
-	- [GH-12] Spring framework: 3.2.2 -> 4.3.5.RELEASE
+	- [GH-12] Spring framework: 3.2.2 -> 4.3.5
 	- authzforce-ce-core: 5.0.2 -> 6.1.0
 	- authzforce-ce-pap-dao-flat-file: 6.1.0 -> 7.0.0
 	- authzforce-ce-core-pdp-api: 7.1.1 -> 8.2.0
 - Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
 
 ### Fixed
-- [GH-6] Removing the latest version of a policy now possible using 'latest' keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
+- [GH-6] Removing the latest version of a policy now possible using `latest` keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
 - [GH-11] Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID (related to [OW2-25])
 - Issues in dependency Authzforce Core:
-	- [OW2-23] enforcement of RuleId/PolicyId/PolicySetId uniqueness:
-		- PolicyId (resp. PolicySetId) should be unique across all policies loaded by PDP so that PolicyIdReferences (resp. PolicySetIdReferences) in Responses' PolicyIdentifierList are absolute references to applicable policies (no ambiguity).
+	- [OW2-23] enforcement of XACML `RuleId`/`PolicyId`/`PolicySetId` uniqueness:
+		- `PolicyId` (resp. `PolicySetId`) should be unique across all policies loaded by PDP so that `PolicyIdReferences` (resp. `PolicySetIdReferences`) in XACML Responses' `PolicyIdentifierList` element are absolute references to applicable policies (no ambiguity).
  		- [RuleId should be unique within a policy](https://lists.oasis-open.org/archives/xacml/201310/msg00025.html) -> A rule is globally uniquely identified by the parent PolicyId and the RuleId.
 	- [OW2-25] NullPointerException when parsing Apply expressions using invalid/unsupported Function ID
 
