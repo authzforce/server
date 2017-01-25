@@ -1,45 +1,45 @@
 # Change log
 All notable changes to this project are documented in this file following the [Keep a CHANGELOG](http://keepachangelog.com) conventions. We try to apply [FIWARE Versioning](https://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Releases_and_Sprints_numbering,_with_mapping_to_calendar_dates) with one particular rule: the version must be equal to or greater than the version of the _authzforce-ce-rest-api-model_ dependency (declared in _rest-service_ module's POM). Indeed, this dependency holds the resources of the REST API specification implemented by this project. Therefore, the rule helps relate a specific version of this project to the specific version of the REST API specification that is implemented/supported.
 
-Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-#N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-#N]`, where N is the issue number.
+Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
-## Unreleased
+## 6.0.0
 ### Added
-- [GH-#8] JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
-- [GH-#9] Configuration parameter `enablePdpOnly` (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
-- PDP engine (AuthzForce Core) enhancements: 
+- [GH-8] JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
+- [GH-9] Configuration parameter `enablePdpOnly` (boolean): disables all API features except the PDP if true. Allows to have PDP-only AuthzForce Server instances.
+- PDP engine (AuthzForce Core) enhancements:
 	- Extension mechanism to switch `HashMap`/`HashSet` implementations with different performance properties; default implementation is based on a mix of native JRE and Guava.
-	- Validation of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this argument is constant (must be a positive integer not greater than the number of remaining arguments)
-	- Validation of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
+	- Static validation (at policy initialization time) of the 'n' argument (minimum of *true* arguments) of XACML 'n-of' function if this argument is constant (must be a positive integer not greater than the number of remaining arguments)
+	- Static validation (at policy initialization time) of second and third arguments of XACML substring function if these are constants (arg1 >= 0 && (arg2 == -1 || arg2 >= arg1))
 
-- Dependency vulnerability checking with OWASP dependency-check tool 
+- Dependency vulnerability checking with OWASP dependency-check tool
 - Source code security validation with Find Security Bugs plugin
 
 ### Changed
-- Compatible Java version changed from 1.7 to **1.8** 
+- Compatible Java version changed from 1.7 to **1.8**
 - Packaging for **Ubuntu 16.04 LTS / JRE 8 / Tomcat 8**: changed Ubuntu package dependencies to `openjdk-8-jre | oracle-java8-installer, tomcat8`
-- Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
-- Upgraded parent project authzforce-ce-parent: 3.4.0 -> 4.1.1: 
+- Upgraded parent project authzforce-ce-parent: 3.4.0 -> 4.1.1:
 - Upgraded dependencies:
 	- Guava dependency version: 18.0 -> 20.0
 	- Saxon-HE dependency version: 9.6.0-5 -> 9.7.0-14
 	- com.sun.mail:javax.mail v1.5.4 -> com.sun.mail:mailapi v1.5.6
 	- Java Servlet API: 3.0.1 -> 3.1.0
 	- Apache CXF: 3.1.0 -> 3.1.9
-	- [GH-#12] Spring framework: 3.2.2 -> 4.3.5.RELEASE
+	- [GH-12] Spring framework: 3.2.2 -> 4.3.5
 	- authzforce-ce-core: 5.0.2 -> 6.1.0
 	- authzforce-ce-pap-dao-flat-file: 6.1.0 -> 7.0.0
 	- authzforce-ce-core-pdp-api: 7.1.1 -> 8.2.0
+- Behavior of *unordered* rule combining algorithms (deny-overrides, permit-overrides, deny-unless-permit and permit-unless deny), i.e. for which the order of evaluation may be different from the order of declaration: child elements are re-ordered for more efficiency (e.g. Deny rules evaluated first in case of deny-overrides algorithm), therefore the algorithm implementation, the order of evaluation in particular, now differs from ordered-* variants.
 
 ### Fixed
-- [GH-#6] Removing the latest version of a policy now possible using 'latest' keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
-- [GH-#11] Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID (related to [OW2-#25])
+- [GH-6] Removing the latest version of a policy now possible using `latest` keyword: HTTP DELETE `/domains/{domainId}/policies/{policyId}/latest`
+- [GH-11] Wrong response status code returned by API when trying to activate a policy with invalid/unsupported function ID (related to [OW2-25])
 - Issues in dependency Authzforce Core:
-	- [OW2-#23] enforcement of RuleId/PolicyId/PolicySetId uniqueness:
-		- PolicyId (resp. PolicySetId) should be unique across all policies loaded by PDP so that PolicyIdReferences (resp. PolicySetIdReferences) in Responses' PolicyIdentifierList are absolute references to applicable policies (no ambiguity).
+	- [OW2-23] enforcement of XACML `RuleId`/`PolicyId`/`PolicySetId` uniqueness:
+		- `PolicyId` (resp. `PolicySetId`) should be unique across all policies loaded by PDP so that `PolicyIdReferences` (resp. `PolicySetIdReferences`) in XACML Responses' `PolicyIdentifierList` element are absolute references to applicable policies (no ambiguity).
  		- [RuleId should be unique within a policy](https://lists.oasis-open.org/archives/xacml/201310/msg00025.html) -> A rule is globally uniquely identified by the parent PolicyId and the RuleId.
-	- [OW2-#25] NullPointerException when parsing Apply expressions using invalid/unsupported Function ID 
+	- [OW2-25] NullPointerException when parsing Apply expressions using invalid/unsupported Function ID
 
 ### Removed
 - Dependency on Koloboke, replaced by extension mechanism mentioned in *Added* section that would allow to switch from the default HashMap/HashSet implementation to Koloboke-based.
@@ -47,7 +47,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 
 ## 5.4.1
 ### Fixed
-- [OW2-#22] When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs. 
+- [OW2-22] When handling the same XACML Request twice in the same JVM with the root PolicySet using deny-unless-permit algorithm over a Policy returning simple Deny (no status/obligation/advice) and a Policy returning Permit/Deny with obligations/advice, the obligation is duplicated in the final result at the second time this situation occurs.
 - XACML `StatusCode` XML serialization/marshalling error when Missing Attribute info that is no valid anyURI is returned by PDP in a Indeterminate Result
 - Other issues reported by Codacy
 
@@ -67,11 +67,11 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 
 ## 5.4.0
 ### Added
-- Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html), especially test assertion [urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433) (FIWARE SEC-923). 
+- Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html), especially test assertion [urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433) (FIWARE SEC-923).
 
 ### Changed
 - REST API model (authzforce-ce-rest-api-model) version: 5.3.1: changed `elementFormDefault` to _qualified_ in the XML schema for API payloads (and only text and FastInfoset-encoded XML are supported, not JSON)
-- [GH-#5] Moved maven dependency `cxf-rt-frontend-jaxrs` from child module `rest-service` to child module `webapp`.
+- [GH-5] Moved maven dependency `cxf-rt-frontend-jaxrs` from child module `rest-service` to child module `webapp`.
 
 
 ## 5.3.0
@@ -86,15 +86,15 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 ## 5.2.0
 ### Added
 - REST API spec (authzforce-ce-rest-api-model) v5.1.0 support: enhanced management of PDP features, i.e. all supported features may be listed, and each feature may have a 'type' and an 'enabled' (true or false) state that can be updated via the API
-- [GH-#1] Supported configurable PDP features by type: 
+- [GH-1] Supported configurable PDP features by type:
   - Type `urn:ow2:authzforce:feature-type:pdp:core` (PDP core engine features, as opposed to extensions below): `urn:ow2:authzforce:feature:pdp:core:xpath-eval` (experimental support for XACML AttributeSelector, xpathExpression datatype and xpath-node-count function), `urn:ow2:authzforce:feature:pdp:core:strict-attribute-issuer-match` (enable strict Attribute Issuer matching, i.e. AttributeDesignators without Issuer only match request Attributes with same AttributeId/Category but without Issuer)
-  - [GH-#1] Type `urn:ow2:authzforce:feature-type:pdp:data-type`: any custom XACML Data type extension
-  - [GH-#1] Type `urn:ow2:authzforce:feature-type:pdp:function`: any custom XACML function extension
+  - [GH-1] Type `urn:ow2:authzforce:feature-type:pdp:data-type`: any custom XACML Data type extension
+  - [GH-1] Type `urn:ow2:authzforce:feature-type:pdp:function`: any custom XACML function extension
   - Type `urn:ow2:authzforce:feature-type:pdp:function-set`: any set of custom XACML function extensions
-  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:combining-algorithm`: any custom XACML policy/rule combining algorithm extension
-  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:request-filter`: any custom XACML request filter + native ones, i.e. `urn:ow2:authzforce:xacml:request-filter:default-lax` (default XACML Core-compliant Individual Decision Request filter), `urn:ow2:authzforce:xacml:request-filter:default-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` (request filter implenting XACML profile `urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories`), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed)
-  - [GH-#2] Type `urn:ow2:authzforce:feature-type:pdp:result-filter`: any custom XACML Result filter extension
-- [GH-#4] Distribution upgrader now supporting all 4.x versions as old versions
+  - [GH-2] Type `urn:ow2:authzforce:feature-type:pdp:combining-algorithm`: any custom XACML policy/rule combining algorithm extension
+  - [GH-2] Type `urn:ow2:authzforce:feature-type:pdp:request-filter`: any custom XACML request filter + native ones, i.e. `urn:ow2:authzforce:xacml:request-filter:default-lax` (default XACML Core-compliant Individual Decision Request filter), `urn:ow2:authzforce:xacml:request-filter:default-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-lax` (request filter implenting XACML profile `urn:oasis:names:tc:xacml:3.0:profile:multiple:repeated-attribute-categories`), `urn:ow2:authzforce:xacml:request-filter:multiple:repeated-attribute-categories-strict` (like previous one except duplicate <Attribute> in a <Attributes> is not allowed)
+  - [GH-2] Type `urn:ow2:authzforce:feature-type:pdp:result-filter`: any custom XACML Result filter extension
+- [GH-4] Distribution upgrader now supporting all 4.x versions as old versions
 
 
 ## 5.1.2
@@ -103,9 +103,9 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 	- URL path specific to PDP properties:
 		- `GET /domains/{domainId}/pap/pdp.properties` gives properties of the PDP, including date/time of last modification and active/applicable policies (root policy and policies referenced directly/indirectly from root)
 		- `PUT /domains/{domainId}/pap/pdp.properties` also allows to set PDP's root policy reference and enable PDP implementation-specific features, such as Multiple Decision Profile support (scheme 2.3 - repeated attribute categories)
-	- URL path specific to PRP (Policy Repository Point) properties: `GET or PUT /domains/{domainId}/pap/prp.properties`: set/get properties `maxPolicyCount` (maximum number of policies), `maxVersionCount` (maximum number of versions per policy), `versionRollingEnabled` (enable policy version rolling, i.e. oldest versions auto-removed when the number of versions of a policy is about to exceed `maxVersionCount`) 
+	- URL path specific to PRP (Policy Repository Point) properties: `GET or PUT /domains/{domainId}/pap/prp.properties`: set/get properties `maxPolicyCount` (maximum number of policies), `maxVersionCount` (maximum number of versions per policy), `versionRollingEnabled` (enable policy version rolling, i.e. oldest versions auto-removed when the number of versions of a policy is about to exceed `maxVersionCount`)
 	- Special keyword `latest` usable as version ID pointing to the latest version of a given policy (in addition to XACML version IDs like before), e.g. URL path `/domains/{domainId}/pap/policies/P1/latest` points to the latest version of the policy `P1`
-	- Fast Infoset support with new data representation type `application/fastinfoset` (in addition to `application/xml`) for all API payloads. Requires Authzforce Server to be started in a specific mode using [JavaEE Environment Entry](https://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Environment_Entries) `spring.profiles.active` in Tomcat-specific Authzforce webapp context file (`authzforce-ce.xml`). Default type remains `application/xml` (default type is used when a wildcard is received as Accept header value from the client) 
+	- Fast Infoset support with new data representation type `application/fastinfoset` (in addition to `application/xml`) for all API payloads. Requires Authzforce Server to be started in a specific mode using [JavaEE Environment Entry](https://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Environment_Entries) `spring.profiles.active` in Tomcat-specific Authzforce webapp context file (`authzforce-ce.xml`). Default type remains `application/xml` (default type is used when a wildcard is received as Accept header value from the client)
 	- API caches domains' PDPs and externalIds for performance reasons, but it is now possible to force re-synchronizing this domain cache after any change to the backend domain repository, i.e. reloading domains' PDPs and externalIDs without restarting the webapp or server:
 		- `GET or HEAD /domains` forces re-synchronization of all domains
 		- `GET or HEAD /domains/{domainId}/properties` forces re-synchronization of externalId with domain properties file (properties.xml) in the domain directory
@@ -116,7 +116,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 - Distribution upgrader: tool to upgrade from Authzforce 4.2.0
 
 ### Changed
-- Supported REST API model (authzforce-ce-rest-api-model) upgraded to **v5.1.1** with following changes: 
+- Supported REST API model (authzforce-ce-rest-api-model) upgraded to **v5.1.1** with following changes:
   - PDP's root policy reference set via method `PUT /domains/{domainId}/pap/pdp.properties` (instead of `PUT /domains/{domainId}/properties` in previous version)
   - URL path `/domains/{domainId}/pap/attribute.providers` replaces `/domains/{domainId}/pap/attributeProviders` from previous version, in order to apply better practices of REST API design (case-insensitive URLs) and to be consistent with new API paths `pdp.properties` and `prp.properties` (see *Added* section)
 - Multiple Decision Profile disabled by default after domain creation (enabled by default in previous version)
@@ -134,7 +134,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 - Dependency on commons-io, replaced with Java 7 java.nio.file API for recursive directory copy/deletion
 
 ### Fixed
-- [GH-#6] deleted domain ID still returned by GET /domains?externalId=...
+- [GH-6] deleted domain ID still returned by GET /domains?externalId=...
 - FIWARE JIRA [SEC-870](https://jira.fiware.org/browse/SEC-870): Debian/Ubuntu package dependencies: `java7-jdk` replaced with `openjdk-7-jdk | oracle-java7-installer`
 - Policy versions returned in wrong order by API
 
@@ -149,15 +149,15 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 
 ## 4.4.0
 ### Added
-- XACML 3.0: Support for new XACML 3.0 standard string functions: type-from-string and string-from-type where type can be any XACML datatype (boolean, integer, double, time, date, etc.), string-starts-with, string-ends-with, anyURI-ends-with, anyURI-starts-with, string-contains, anyURI-contains, string-substring, anyURI-substring. 
+- XACML 3.0: Support for new XACML 3.0 standard string functions: type-from-string and string-from-type where type can be any XACML datatype (boolean, integer, double, time, date, etc.), string-starts-with, string-ends-with, anyURI-ends-with, anyURI-starts-with, string-contains, anyURI-contains, string-substring, anyURI-substring.
 - XACML 3.0: Support new xacml 3.0 standard higher-order bag functions: any-of, all-of, any-of-any, map.
 - XACML 3.0: Suppport for new XACML 3.0 standard date/time functions: dateTime-add-dayTimeDuration, dateTime-add-yearMonthDuration, dateTime-subtract-dayTimeDuration, dateTime-subtract-yearMonthDuration, date-add-yearMonthDuration, date-subtract-yearMonthDuration, dayTimeDuration-one-and-only, dayTimeDuration-bag-size, dayTimeDuration-is-in, dayTimeDuration-bag, yearMonthDuration-one-and-only, yearMonthDuration-bag-size.
-- REST API: Enable/Disable logging of API requests and responses with access info (timestamp, source IP address, requested URL path, requested method, message body...) for audit, debugging, troubleshooting purposes 
+- REST API: Enable/Disable logging of API requests and responses with access info (timestamp, source IP address, requested URL path, requested method, message body...) for audit, debugging, troubleshooting purposes
 
 
 ## 4.3.0
 ### Added
-- REST API: CRUD operations per policy with versioning at URL path /domains/{id}/pap/policies/{policyId}/{policyVersion}. Each {policyId}/{policyVersion} represents a specific XACML PolicySet Id/Version that can be referenced from the PDP's root PolicySet or from other policies via PolicySetIdReference 
+- REST API: CRUD operations per policy with versioning at URL path /domains/{id}/pap/policies/{policyId}/{policyVersion}. Each {policyId}/{policyVersion} represents a specific XACML PolicySet Id/Version that can be referenced from the PDP's root PolicySet or from other policies via PolicySetIdReference
 - REST API: Domain property 'externalId' to be set by the client when provisioning/updating a domain (like in SCIM REST API). May be used in query parameter to retrieve a domain resource.
 - REST API: Domain property 'rootPolicyRef' to define the root policy via policy reference to one of the policies managed via URL path /domains/{id}/pap/policies/{policyId}/{policyVersion}.
 - XACML 3.0: Suppport for new xacml 3.0 standard equality functions: string-equal-ignore-case, dayTimeDuration-equal, yearMonthDuration-equal.
