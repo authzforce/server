@@ -64,6 +64,16 @@ AuthzForce provides XACML PIP features in the form of *Attribute Providers*. Mor
 ### High availability and load-balancing
 * Integration with file synchronization tools (e.g. [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g. NFS and CIFS) to build clusters of AuthZForce Servers. 
 
+## Distribution (downloads)
+Every release is distributed as follows:
+- Ubuntu/Debian package (recommended option): `.deb`;
+- Other Linux distributions: `.tar.gz`;
+- Docker image.
+
+For download links, please go to the specific [release page](https://github.com/authzforce/server/releases).
+
+## Documentation
+For links to the documentation of a release, please go to the specific [release page](https://github.com/authzforce/server/releases).
 
 ## Support
 Use the *Issues* tab on the Github repository page.
