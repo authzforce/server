@@ -1,289 +1,340 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.ow2.authzforce</groupId>
-		<artifactId>authzforce-ce-server</artifactId>
-		<version>6.0.0</version>
-		<relativePath>..</relativePath>
-	</parent>
-	<artifactId>authzforce-ce-server-webapp</artifactId>
-	<name>${project.groupId}:${project.artifactId}</name>
-	<packaging>war</packaging>
-	<description>Web application packaging for AuthZForce (PAP/PDP) REST service</description>
-	<url>https://github.com/authzforce/server/rest-service</url>
-	<properties>
-		<!-- Tomcat version on Ubuntu 16.04 LTS (target OS) -->
-		<tomcat.version>8.0.32</tomcat.version>
-	</properties>
-	<scm>
-		<connection>scm:git:${git.url.base}.git</connection>
-		<developerConnection>scm:git:${git.url.base}.git</developerConnection>
-		<tag>HEAD</tag>
-		<url>${git.url.base}/webapp</url>
-	</scm>
-	<dependencies>
-		<!-- <dependency> -->
-		<!-- <groupId>com.sun.xml.bind</groupId> -->
-		<!-- <artifactId>jaxb-impl</artifactId> -->
-		<!-- <version>2.2.6</version> -->
-		<!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: 
-			com.sun.xml.bind.v2.ClassFactory -->
-		<!-- has memory leak (upon webapp undeployment/redeployment). Therefore, 
-			jaxb RI from JDK >= 7 must be used so -->
-		<!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat 
-			lib directory to be loaded by common -->
-		<!-- classloader (shared libraries) -->
-		<!-- <scope>provided</scope> -->
-		<!-- </dependency> -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring.version}</version>
-			<exclusions>
-				<exclusion>
-					<!-- Replaced by jcl-over-slf4j dependency, see http://www.slf4j.org/legacy.html -->
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.logback-extensions</groupId>
-			<artifactId>logback-ext-spring</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.xebia.extras</groupId>
-			<artifactId>xebia-logfilter-extras</artifactId>
-			<version>1.0.1</version>
-		</dependency>
-		<dependency>
-			<!-- Optional cxf-core dependency, needed here for FastInfoSet -->
-			<groupId>com.sun.xml.fastinfoset</groupId>
-			<artifactId>FastInfoset</artifactId>
-			<version>1.2.13</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jsr173</artifactId>
-					<groupId>javax.xml</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jsr173_api</artifactId>
-					<groupId>javax.xml.bind</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- JSON Support -->
-		<dependency>
-			<groupId>org.codehaus.jettison</groupId>
-			<artifactId>jettison</artifactId>
-			<version>1.3.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-extension-providers</artifactId>
-			<version>${cxf.version}</version>
-		</dependency>
-		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 
-			, item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-service-description</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${project.parent.artifactId}-rest-service</artifactId>
-			<version>${project.parent.version}</version>
-		</dependency>
-		<!-- Test dependencies -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-core</artifactId>
-			<version>${tomcat.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-logging-juli</artifactId>
-			<version>${tomcat.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-client</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>${artifactId.prefix}-core</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<!-- target JDK already set by parent project's maven.compiler.target 
-					property -->
-				<configuration>
-					<verbose>true</verbose>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>check</goal>
-							<goal>cpd-check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<!-- Consider combining with Red Hat Victims and OSS Index. More info 
-					on Victims vs. Dependency-check: https://bugzilla.redhat.com/show_bug.cgi?id=1388712 -->
-				<groupId>org.owasp</groupId>
-				<artifactId>dependency-check-maven</artifactId>
-				<configuration>
-					<!-- The plugin has numerous issues with version matching, which triggers 
-						false positives so we need a "suppresion" file for those. More info: https://github.com/jeremylong/DependencyCheck/issues -->
-					<suppressionFile>owasp-dependency-check-suppression.xml</suppressionFile>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects 
-					Property ${currentYear} is defined in parent POM. -->
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<configuration>
-					<header>license/thales-gpl.header.txt</header>
-					<excludes>
-						<exclude>src/main/java/org/ow2/authzforce/webapp/org/apache/**</exclude>
-					</excludes>
-					<includes>
-						<include>src/main/java/**</include>
-						<include>src/test/java/**</include>
-					</includes>
-				</configuration>
-				<executions>
-					<execution>
-						<id>format-sources-license</id>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>format</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>format-test-sources-license</id>
-						<phase>process-test-sources</phase>
-						<goals>
-							<goal>format</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Create folder for authzforce server test data (domains) -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<includeEmptyDirs>true</includeEmptyDirs>
-							<outputDirectory>${basedir}/target/server/conf</outputDirectory>
-							<resources>
-								<resource>
-									<directory>src/test/server.conf</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<!-- This execution of surefire is overwritten by a default one unless 
-					we specify a different version in pluginManagement. -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<suiteXmlFiles>
-						<!-- Parameters in the XML files seem to be ignored (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
-						<!-- Using multiple test suites simplifies debugging and prevent some 
-							TestNG issues happening when reusing same class/methods over multiple tests in same 
-							test suite -->
-						<suiteXmlFile>src/test/resources/test.suites/xml_pdp_only.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/xml_full.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/fast_infoset.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/json.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/others.xml</suiteXmlFile>
-					</suiteXmlFiles>
-					<skipAfterFailureCount>1</skipAfterFailureCount>
-					<!-- redirectTestOutputToFile: set this to 'true' to redirect the unit 
-						test standard output to a file (found in reportsDirectory/testName-output.txt) -->
-					<redirectTestOutputToFile>false</redirectTestOutputToFile>
-					<systemPropertyVariables>
-						<javax.xml.accessExternalSchema>all</javax.xml.accessExternalSchema>
-					</systemPropertyVariables>
-					<properties>
-						<property>
-							<name>surefire.testng.verbose</name>
-							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 
-								for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
-							<value>2</value>
-						</property>
-					</properties>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>org.ow2.authzforce</groupId>
+      <artifactId>authzforce-ce-server</artifactId>
+      <version>7.0.0</version>
+      <relativePath>..</relativePath>
+   </parent>
+   <artifactId>authzforce-ce-server-webapp</artifactId>
+   <name>${project.groupId}:${project.artifactId}</name>
+   <packaging>war</packaging>
+   <description>Web application packaging for AuthZForce (PAP/PDP) REST service</description>
+   <url>https://github.com/authzforce/server/rest-service</url>
+   <properties>
+      <!-- Tomcat version on Ubuntu 16.04 LTS (target OS) -->
+      <tomcat.version>8.0.32</tomcat.version>
+   </properties>
+   <scm>
+      <connection>scm:git:${git.url.base}.git</connection>
+      <developerConnection>scm:git:${git.url.base}.git</developerConnection>
+      <tag>HEAD</tag>
+      <url>${git.url.base}/webapp</url>
+   </scm>
+   <dependencies>
+      <!-- <dependency> -->
+      <!-- <groupId>com.sun.xml.bind</groupId> -->
+      <!-- <artifactId>jaxb-impl</artifactId> -->
+      <!-- <version>2.2.6</version> -->
+      <!-- Prevent inclusion in war for Tomcat because of https://java.net/jira/browse/JAXB-1000: com.sun.xml.bind.v2.ClassFactory -->
+      <!-- has memory leak (upon webapp undeployment/redeployment). Therefore, jaxb RI from JDK >= 7 must be used so -->
+      <!-- no need to ship it with webapp; or jaxb-impl must be only in Tomcat lib directory to be loaded by common -->
+      <!-- classloader (shared libraries) -->
+      <!-- <scope>provided</scope> -->
+      <!-- </dependency> -->
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>javax.servlet-api</artifactId>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.springframework</groupId>
+         <artifactId>spring-web</artifactId>
+         <version>${spring.version}</version>
+         <exclusions>
+            <exclusion>
+               <!-- Replaced by jcl-over-slf4j dependency, see http://www.slf4j.org/legacy.html -->
+               <artifactId>commons-logging</artifactId>
+               <groupId>commons-logging</groupId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.logback-extensions</groupId>
+         <artifactId>logback-ext-spring</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>fr.xebia.extras</groupId>
+         <artifactId>xebia-logfilter-extras</artifactId>
+         <version>1.0.1</version>
+      </dependency>
+      <dependency>
+         <!-- Optional cxf-core dependency, needed here for FastInfoSet -->
+         <groupId>com.sun.xml.fastinfoset</groupId>
+         <artifactId>FastInfoset</artifactId>
+         <version>1.2.13</version>
+         <exclusions>
+            <exclusion>
+               <artifactId>jsr173</artifactId>
+               <groupId>javax.xml</groupId>
+            </exclusion>
+            <exclusion>
+               <artifactId>jsr173_api</artifactId>
+               <groupId>javax.xml.bind</groupId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <!-- JSON Support -->
+      <dependency>
+         <groupId>org.codehaus.jettison</groupId>
+         <artifactId>jettison</artifactId>
+         <version>1.3.8</version>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-rs-extension-providers</artifactId>
+         <version>${cxf.version}</version>
+      </dependency>
+      <!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 , item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-rs-service-description</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${project.parent.artifactId}-rest-service</artifactId>
+         <version>${project.parent.version}</version>
+      </dependency>
+      <!-- Test dependencies -->
+      <dependency>
+         <groupId>org.springframework</groupId>
+         <artifactId>spring-test</artifactId>
+         <version>${spring.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.testng</groupId>
+         <artifactId>testng</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.tomcat.embed</groupId>
+         <artifactId>tomcat-embed-core</artifactId>
+         <version>${tomcat.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.tomcat.embed</groupId>
+         <artifactId>tomcat-embed-logging-juli</artifactId>
+         <version>${tomcat.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>jul-to-slf4j</artifactId>
+         <version>${slf4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-rs-client</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-testutils</artifactId>
+         <version>${cxf.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-frontend-jaxws</artifactId>
+         <version>${cxf.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf</groupId>
+         <artifactId>cxf-rt-transports-http-jetty</artifactId>
+         <version>${cxf.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.cxf.services.sts</groupId>
+         <artifactId>cxf-services-sts-core</artifactId>
+         <version>${cxf.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>4.11</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>${artifactId.prefix}-core</artifactId>
+         <classifier>tests</classifier>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <!-- target JDK already set by parent project's maven.compiler.target property -->
+            <configuration>
+               <verbose>true</verbose>
+               <excludeRoots>
+                  <excludeRoot>target/generated-sources/xjc</excludeRoot>
+                  <excludeRoot>target/generated-test-sources/xjc</excludeRoot>
+                  <excludeRoot>target/generated-test-sources/cxf</excludeRoot>
+               </excludeRoots>
+            </configuration>
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>check</goal>
+                     <goal>cpd-check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <configuration>
+               <onlyAnalyze>org.ow2.authzforce.*</onlyAnalyze>
+            </configuration>
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- Consider combining with Red Hat Victims and OSS Index. More info on Victims vs. Dependency-check: https://bugzilla.redhat.com/show_bug.cgi?id=1388712 -->
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <configuration>
+               <!-- The plugin has numerous issues with version matching, which triggers false positives so we need a "suppresion" file for those. More info: https://github.com/jeremylong/DependencyCheck/issues -->
+               <suppressionFile>owasp-dependency-check-suppression.xml</suppressionFile>
+            </configuration>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>check</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- For license management with Maven, see also: https://wiki.52north.org/bin/view/Documentation/BestPracticeLicenseManagementInSoftwareProjects Property ${currentYear} is defined in parent 
+               POM. -->
+            <groupId>com.mycila</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <configuration>
+               <header>license/thales-gpl.header.txt</header>
+               <excludes>
+                  <exclude>src/main/java/org/ow2/authzforce/webapp/org/apache/**</exclude>
+               </excludes>
+               <includes>
+                  <include>src/main/java/**</include>
+                  <include>src/test/java/**</include>
+               </includes>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>format-sources-license</id>
+                  <phase>process-sources</phase>
+                  <goals>
+                     <goal>format</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>format-test-sources-license</id>
+                  <phase>process-test-sources</phase>
+                  <goals>
+                     <goal>format</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <!-- Create folder for authzforce server test data (domains) -->
+         <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>copy-resources</id>
+                  <phase>validate</phase>
+                  <goals>
+                     <goal>copy-resources</goal>
+                  </goals>
+                  <configuration>
+                     <includeEmptyDirs>true</includeEmptyDirs>
+                     <outputDirectory>${basedir}/target/server/conf</outputDirectory>
+                     <resources>
+                        <resource>
+                           <directory>src/test/server.conf</directory>
+                           <filtering>true</filtering>
+                        </resource>
+                     </resources>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-codegen-plugin</artifactId>
+            <version>${cxf.version}</version>
+            <executions>
+               <execution>
+                  <phase>generate-sources</phase>
+                  <configuration>
+                     <sourceRoot>
+                        ${basedir}/target/generated-test-sources/cxf
+                     </sourceRoot>
+                     <wsdlOptions>
+                        <wsdlOption>
+                           <wsdl>
+                              ${basedir}/src/test/resources/org/apache/coheigea/cxf/sts/xacml/common/DoubleItLogical.wsdl
+                           </wsdl>
+                        </wsdlOption>
+                     </wsdlOptions>
+                  </configuration>
+                  <goals>
+                     <goal>wsdl2java</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- This execution of surefire is overwritten by a default one unless we specify a different version in pluginManagement. -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <suiteXmlFiles>
+                  <!-- Parameters in the XML files seem to be ignored (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
+                  <!-- Using multiple test suites simplifies debugging and prevent some TestNG issues happening when reusing same class/methods over multiple tests in same test suite -->
+                  <suiteXmlFile>src/test/resources/test.suites/xml_pdp_only.xml</suiteXmlFile>
+                  <suiteXmlFile>src/test/resources/test.suites/xml_full.xml</suiteXmlFile>
+                  <suiteXmlFile>src/test/resources/test.suites/fast_infoset.xml</suiteXmlFile>
+                  <suiteXmlFile>src/test/resources/test.suites/json.xml</suiteXmlFile>
+                  <suiteXmlFile>src/test/resources/test.suites/others.xml</suiteXmlFile>
+               </suiteXmlFiles>
+               <skipAfterFailureCount>1</skipAfterFailureCount>
+               <!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->
+               <redirectTestOutputToFile>false</redirectTestOutputToFile>
+               <systemPropertyVariables>
+                  <javax.xml.accessExternalSchema>all</javax.xml.accessExternalSchema>
+               </systemPropertyVariables>
+               <properties>
+                  <property>
+                     <name>surefire.testng.verbose</name>
+                     <!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
+                     <value>2</value>
+                  </property>
+               </properties>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
 </project>

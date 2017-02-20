@@ -55,15 +55,25 @@ AuthzForce provides XACML PIP features in the form of *Attribute Providers*. Mor
 * Optional policy version rolling (when the maximum of versions per policy has been reached, oldest versions are automatically removed to make place).
 
 ### REST API
-* Defined in standard [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources) so that you can automatically generate client code. 
-* Provides access to all PAP/PDP features mentioned in previous sections.
+* Provides access to all PAP/PDP features mentioned in previous sections with possibility to have PDP-only instances (i.e. without PAP features).
 * Multi-tenant: allows to have multiple domains/tenants, each with its own PAP/PDP, in particular its own policy repository.
 * Conformance with [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html) 
-* [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) support for requests/responses.
+* Supported data formats: JSON, XML, [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx).
+* Defined in standard [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources) so that you can automatically generate client code. 
 
 ### High availability and load-balancing
 * Integration with file synchronization tools (e.g. [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g. NFS and CIFS) to build clusters of AuthZForce Servers. 
 
+## Distribution (downloads)
+Every release is distributed as follows:
+- Ubuntu/Debian package (recommended option): `.deb`;
+- Other Linux distributions: `.tar.gz`;
+- Docker image.
+
+For download links, please go to the specific [release page](https://github.com/authzforce/server/releases).
+
+## Documentation
+For links to the documentation of a release, please go to the specific [release page](https://github.com/authzforce/server/releases).
 
 ## Support
 Use the *Issues* tab on the Github repository page.
@@ -84,16 +94,16 @@ The sources for the manuals are located in [fiware repository](http://github.com
 ### Releasing
 1. From the develop branch, prepare a release (example using a HTTP proxy):
 <pre><code>
-    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-start
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 </code></pre>
 1. Update the CHANGELOG according to keepachangelog.com.
 1. To perform the release (example using a HTTP proxy):
 <pre><code>
-    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 jgitflow:release-finish
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
 </code></pre>
     If, after deployment, the command does not succeed because of some issue with the branches. Fix the issue, then re-run the same command but with 'noDeploy' option set to true to avoid re-deployment:
 <pre><code>
-    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=3128 -DnoDeploy=true jgitflow:release-finish
+    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 -DnoDeploy=true jgitflow:release-finish
 </code></pre>
   More info on jgitflow: http://jgitflow.bitbucket.org/
 1. Connect and log in to the OSS Nexus Repository Manager: https://oss.sonatype.org/

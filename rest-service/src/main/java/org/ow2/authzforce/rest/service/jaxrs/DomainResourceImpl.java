@@ -51,7 +51,7 @@ import org.ow2.authzforce.core.pap.api.dao.ReadableDomainProperties;
 import org.ow2.authzforce.core.pap.api.dao.ReadablePdpProperties;
 import org.ow2.authzforce.core.pap.api.dao.TooManyPoliciesException;
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
-import org.ow2.authzforce.core.pdp.api.PDP;
+import org.ow2.authzforce.core.pdp.api.PDPEngine;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -295,7 +295,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public Response requestPolicyDecision(final Request request)
 	{
-		final PDP pdp = domainDAO.getPDP();
+		final PDPEngine<?> pdp = domainDAO.getPDP();
 		if (pdp == null)
 		{
 			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
