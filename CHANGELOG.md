@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## Unreleased
+### Changed
+- Version of AuthzForce dependencies:
+	- Parent project (authzforce-ce-parent): 5.0.0
+	- authzforce-ce-pap-dao-flat-file: 8.0.0
+	- authzforce-ce-core-pap-api: 6.3.0
+	- authzforce-ce-core: 7.1.0
+	- authzforce-ce-core-pdp-api: 9.0.0 
+		-> API changes (non-backward compatible) for PDP extensions:  DecisionCache, DecisionResultFilter
+		
+- Versions of third-party dependencies:
+	- SLF4J: 1.7.22
+	- Spring: 4.3.6
+	- Guava: 21.0
+	- CXF: 3.1.10
+	- Logback-classic: 1.1.9
+
+### Added
+- Class [RESTfulPdpBasedAuthzInterceptor](webapp/src/test/java/org/ow2/authzforce/web/test/pep/cxf/RESTfulPdpBasedAuthzInterceptor): an example of PEP using PDP's REST API in the form of a CXF interceptor. More info on the test scenario in the associated test class [RESTfulPdpBasedAuthzInterceptorTest](webapp/src/test/java/org/ow2/authzforce/web/test/pep/cxf/RESTfulPdpBasedAuthzInterceptorTest).
+
+### Fixed
+- [OW2-25] NullPointerException when parsing Apply expressions using invalid/unsupported Function ID. This is the final fix addressing higher-order functions. Initial fix in v7.0.0 only addressed first-order ones.
+
+
 ## 6.0.0
 ### Added
 - [GH-8] JSON support on the REST API using [*mapped* convention](http://cxf.apache.org/docs/json-support.html) with configurable namespace-to-JSON-prefix mappings (new configuration file `xmlns-to-json-key-prefix-map.properties`)
