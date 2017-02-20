@@ -62,10 +62,10 @@ import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.ow2.authzforce.core.pdp.impl.DefaultRequestFilter;
 import org.ow2.authzforce.core.pdp.impl.MultiDecisionRequestFilter;
-import org.ow2.authzforce.core.test.custom.TestCombinedDecisionResultFilter;
-import org.ow2.authzforce.core.test.custom.TestDNSNameValueEqualFunction;
-import org.ow2.authzforce.core.test.custom.TestDNSNameWithPortValue;
-import org.ow2.authzforce.core.test.custom.TestOnPermitApplySecondCombiningAlg;
+import org.ow2.authzforce.core.pdp.impl.test.custom.TestCombinedDecisionResultFilter;
+import org.ow2.authzforce.core.pdp.impl.test.custom.TestDNSNameValueEqualFunction;
+import org.ow2.authzforce.core.pdp.impl.test.custom.TestDNSNameWithPortValue;
+import org.ow2.authzforce.core.pdp.impl.test.custom.TestOnPermitApplySecondCombiningAlg;
 import org.ow2.authzforce.core.xmlns.test.TestAttributeProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO.PdpCoreFeature;
@@ -86,7 +86,7 @@ import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
 import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.ResourceContent;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
-import org.ow2.authzforce.xacml.identifiers.XACMLCategory;
+import org.ow2.authzforce.xacml.identifiers.XACMLAttributeCategory;
 import org.ow2.authzforce.xacml.identifiers.XPATHVersion;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
@@ -1494,7 +1494,7 @@ public class DomainMainTestWithoutAutoSyncOrVersionRolling extends RestServiceTe
 		 * This test is mostly for enablePdpOnly=true
 		 */
 		final Request xacmlReq = new Request(new RequestDefaults(XPATHVersion.V2_0.getURI()), Collections.singletonList(new Attributes(null, Collections.<Attribute> emptyList(),
-				XACMLCategory.XACML_1_0_SUBJECT_CATEGORY_ACCESS_SUBJECT.value(), null)), null, false, false);
+				XACMLAttributeCategory.XACML_1_0_ACCESS_SUBJECT.value(), null)), null, false, false);
 		testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 	}
 

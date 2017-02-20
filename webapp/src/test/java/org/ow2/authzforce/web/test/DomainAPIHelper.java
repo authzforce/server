@@ -42,7 +42,7 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
-import org.ow2.authzforce.core.test.utils.TestUtils;
+import org.ow2.authzforce.core.pdp.impl.test.utils.TestUtils;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
 import org.ow2.authzforce.core.xmlns.pdp.StaticRefBasedRootPolicyProvider;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
