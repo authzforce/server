@@ -6,7 +6,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 
 ## 7.0.0
 ### Changed
-- Version of AuthzForce dependencies:
+- Versions of AuthzForce dependencies:
 	- Parent project (authzforce-ce-parent): 5.0.0
 	- authzforce-ce-pap-dao-flat-file: 8.0.0
 	- authzforce-ce-core-pap-api: 6.3.0
