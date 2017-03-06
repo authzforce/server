@@ -10,7 +10,7 @@
    <name>${project.groupId}:${project.artifactId}</name>
    <packaging>war</packaging>
    <description>Web application packaging for AuthZForce (PAP/PDP) REST service</description>
-   <url>https://github.com/authzforce/server/rest-service</url>
+   <url>https://github.com/authzforce/server/webapp</url>
    <properties>
       <!-- Tomcat version on Ubuntu 16.04 LTS (target OS) -->
       <tomcat.version>8.0.32</tomcat.version>
@@ -166,8 +166,7 @@
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
-         <artifactId>${artifactId.prefix}-core</artifactId>
-         <classifier>tests</classifier>
+         <artifactId>${artifactId.prefix}-core-pdp-testutils</artifactId>
          <scope>test</scope>
       </dependency>
    </dependencies>

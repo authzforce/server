@@ -51,8 +51,7 @@
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
-         <artifactId>${artifactId.prefix}-core</artifactId>
-         <classifier>tests</classifier>
+         <artifactId>${artifactId.prefix}-core-pdp-testutils</artifactId>
          <scope>test</scope>
       </dependency>
       <dependency>

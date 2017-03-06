@@ -25,7 +25,7 @@
 		<value>classpath:/atom.xsd</value>
 		<value>classpath:/xacml-core-v3-schema-wd-17.xsd</value>
 		<value>classpath:/pdp-ext-base.xsd</value>
-		<value>classpath:/org.ow2.authzforce.core.test.xsd</value>
+		<value>classpath:/org.ow2.authzforce.core.pdp.testutil.ext.xsd</value>
 		<value>classpath:/xsd/authz-rest-api.xsd</value>
 	</util:list>
 
@@ -37,8 +37,7 @@
 	</bean>
 
 	<util:list id="extraJaxbClasses" value-type="java.lang.Class">
-		<value>org.ow2.authzforce.core.xmlns.test.TestAttributeProvider
-		</value>
+		<value>org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProvider</value>
 	</util:list>
 
 	<bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">

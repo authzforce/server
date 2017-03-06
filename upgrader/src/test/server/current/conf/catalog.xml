@@ -9,5 +9,5 @@
 	<!-- PDP Extensions -->
 	<uri name="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6" uri="classpath:org.ow2.authzforce.pap.dao.flatfile.pdp-ext.xsd"/>
 	<!-- Test extension -->
-	<uri name="http://authzforce.github.io/core/xmlns/test/3" uri="classpath:org.ow2.authzforce.core.test.xsd"/>
+	<uri name="http://authzforce.github.io/core/xmlns/test/3" uri="classpath:org.ow2.authzforce.core.pdp.testutil.ext.xsd"/>
 </catalog>
