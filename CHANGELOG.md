@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## Unreleased
+### Changed
+- Project URL: https://tuleap.ow2.org/projects/authzforce -> https://authzforce.ow2.org
+- GIT repository URL base: https://tuleap.ow2.org/plugins/git/authzforce -> https://gitlab.ow2.org/authzforce
+- Versions of AuthzForce dependencies:
+	- Parent project (authzforce-ce-parent): 5.1.0
+	- authzforce-ce-pap-dao-flat-file: 8.1.0
+	- authzforce-ce-core-pap-api: 6.4.0
+	- authzforce-ce-core-pdp-api: 9.1.0 
+
+- Dependency authzforce-ce-core replaced with authzforce-ce-core-pdp-engine with version 8.0.0 (authzforce-ce-core is now a multi-module project made of the core module `pdp-engine` and test utilities module `pdp-testutils` which is used by tests of webapp module) 
+
+
 ## 7.0.0
 ### Changed
 - Versions of AuthzForce dependencies:
