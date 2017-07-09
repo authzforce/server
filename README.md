@@ -102,9 +102,8 @@ The sources for the manuals are located in [fiware repository](http://github.com
 </code></pre>
 1. Update the `AUTHZFORCE_SERVER_VERSION` ENV variable to the new version in [Dockerfile](dist/src/docker/Dockerfile).
 1. Update the [changelog](CHANGELOG.md) with the new version according to keepachangelog.com.
-1. Commit and push latest changes
-1. Test the Dockerfile by triggering Docker automated build on the current Github release branch in [authzforce-ce-server's Docker repository](https://hub.docker.com/r/authzforce/server/) (*Build Settings*). Check the result in *Build Details*.
-1. After Docker build is OK, perform the software release (example using a HTTP proxy):
+1. Commit 
+1. Perform the software release (example using a HTTP proxy):
 <pre><code>
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
 </code></pre>
@@ -117,5 +116,6 @@ The sources for the manuals are located in [fiware repository](http://github.com
 1. Go to Staging Profiles and select the pending repository authzforce-*... you just uploaded with `jgitflow:release-finish`
 1. Click the Release button to release to Maven Central.
 1. When the artifacts have been successfully published on Maven Central, follow the instructions in the [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
+1. Build the Dockerfile by triggering Docker automated build on the current Github release branch in [authzforce-ce-server's Docker repository](https://hub.docker.com/r/authzforce/server/) (*Build Settings*). Check the result in *Build Details*.
 1. Update the versions in badges at the top of this file.
 1. Create a release on Github with a description based on the [release description template](release.description.tmpl.md), replacing M/m/P with the new major/minor/patch versions.
