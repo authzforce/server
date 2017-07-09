@@ -14,7 +14,10 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 	- authzforce-ce-core-pap-api: 6.4.0
 	- authzforce-ce-core-pdp-api: 9.1.0 
 
-- Dependency authzforce-ce-core replaced with authzforce-ce-core-pdp-engine with version 8.0.0 (authzforce-ce-core is now a multi-module project made of the core module `pdp-engine` and test utilities module `pdp-testutils` which is used by tests of webapp module) 
+- Dependency authzforce-ce-core replaced with authzforce-ce-core-pdp-engine with version 8.0.0 (authzforce-ce-core is now a multi-module project made of the core module `pdp-engine` and test utilities module `pdp-testutils` which is used by tests of webapp module)
+
+### Added
+- [Dockerfile](dist/src/docker/Dockerfile) for building Docker image of AuthzForce Server with minimal configuration 
 
 
 ## 7.0.0

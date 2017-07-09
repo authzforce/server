@@ -11,7 +11,7 @@ AuthZForce Server provides a multi-tenant RESTful API to Policy Administration P
 
 AuthZForce Server is also the Reference Implementation (GEri) of [FIWARE](https://www.fiware.org) *Authorization PDP* Generic Enabler (GE). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).
 
-**Go to the [tags](https://gitlab.ow2.org/authzforce/server/tags) page for specific release info: downloads (Linux packages), Docker image, [release notes](CHANGELOG.md), and [documentation](http://readthedocs.org/projects/authzforce-ce-fiware/versions/).**
+**Go to the [releases](https://github.com/authzforce/server/releases) page for specific release info: downloads (Linux packages), Docker image, [release notes](CHANGELOG.md), and [documentation](http://readthedocs.org/projects/authzforce-ce-fiware/versions/).**
 
 *If you are interested in using an embedded XACML-compliant PDP in your Java applications, AuthZForce also provides a PDP engine as a Java library in [Authzforce core project](http://github.com/authzforce/core).*
 
@@ -70,10 +70,10 @@ Every release is distributed as follows:
 - Other Linux distributions: `.tar.gz`;
 - Docker image.
 
-For download links, please go to the specific [release tag description](https://gitlab.ow2.org/authzforce/server/tags).
+For download links, please go to the specific [release page](https://github.com/authzforce/server/releases).
 
 ## Documentation
-For documentation links, please go to the specific [release tag description](https://gitlab.ow2.org/authzforce/server/tags).
+For links to the documentation of a release, please go to the specific [release page](https://github.com/authzforce/server/releases).
 
 ## Examples of usage and PEP code with a web service authorization module
 For an example of using an AuthzForce Server's RESTful PDP API in a real-life use case, please refer to the JUnit test class [RESTfulPdpBasedAuthzInterceptorTest](webapp/src/test/java/org/ow2/authzforce/web/test/pep/cxf/RESTfulPdpBasedAuthzInterceptorTest.java) and the Apache CXF authorization interceptor [RESTfulPdpBasedAuthzInterceptor](webapp/src/test/java/org/ow2/authzforce/web/test/pep/cxf/RESTfulPdpBasedAuthzInterceptor.java). The test class runs a test similar to @coheigea's [XACML 3.0 Authorization Interceptor test](https://github.com/coheigea/testcases/blob/master/apache/cxf/cxf-sts-xacml/src/test/java/org/apache/coheigea/cxf/sts/xacml/authorization/xacml3/XACML3AuthorizationTest.java) but using AuthzForce Server as PDP instead of OpenAZ. In this test, a web service client requests a Apache-CXF-based web service with a SAML token as credentials (previously issued by a Security Token Service upon successful client authentication) that contains the user ID and roles. Each request is intercepted on the web service side by a [RESTfulPdpBasedAuthzInterceptor](webapp/src/test/java/org/ow2/authzforce/web/test/pep/cxf/RESTfulPdpBasedAuthzInterceptor.java) that plays the role of PEP (Policy Enforcement Point in XACML jargon), i.e. it extracts the various authorization attributes (user ID and roles, web service name, operation...) and requests a decision with these attributes from a remote PDP provided by AuthzForce Server, then enforces the PDP's decision, i.e. forwards the request to the web service implementation if the decision is Permit, else rejects it.
@@ -100,8 +100,11 @@ The sources for the manuals are located in [fiware repository](http://github.com
 <pre><code>
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 </code></pre>
-1. Update the CHANGELOG according to keepachangelog.com.
-1. To perform the release (example using a HTTP proxy):
+1. Update the `AUTHZFORCE_SERVER_VERSION` ENV variable to the new version in [Dockerfile](dist/src/docker/Dockerfile).
+1. Update the [changelog](CHANGELOG.md) with the new version according to keepachangelog.com.
+1. Commit and push latest changes
+1. Test the Dockerfile by triggering Docker automated build on the current Github release branch in [authzforce-ce-server's Docker repository](https://hub.docker.com/r/authzforce/server/) (*Build Settings*). Check the result in *Build Details*.
+1. After Docker build is OK, perform the software release (example using a HTTP proxy):
 <pre><code>
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
 </code></pre>
