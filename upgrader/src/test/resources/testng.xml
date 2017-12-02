@@ -16,26 +16,8 @@
       <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
    
-   <test name="Test_upgrade_from_4.2.x" preserve-order="true" enabled="true">
-      <parameter name="server.root.dir" value="target/server/from-4.2.x" />
-      <classes>
-         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
-      </classes>
-   </test>
-   <test name="Test_upgrade_from_4.3.x" preserve-order="true" enabled="true">
-      <parameter name="server.root.dir" value="target/server/from-4.3.x" />
-      <classes>
-         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
-      </classes>
-   </test>
-   <test name="Test_upgrade_from_4.4.x" preserve-order="true" enabled="true">
-      <parameter name="server.root.dir" value="target/server/from-4.4.x" />
-      <classes>
-         <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
-      </classes>
-   </test>
-   <test name="Test_upgrade_from_5.1.x" preserve-order="true" enabled="true">
-      <parameter name="server.root.dir" value="target/server/from-5.1.x" />
+   <test name="Test_upgrade_from_6.x_or_7.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-6.x,7.x" />
       <classes>
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
       </classes>

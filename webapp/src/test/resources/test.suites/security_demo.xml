@@ -14,13 +14,13 @@
    <parameter name="enableFastInfoset" value="false" />
    <!-- If testing a remote AuthZForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
    <parameter name="enableDoSMitigation" value="true" />
-   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
+   <parameter name="enablePdpOnly" value="false" />
    <parameter name="org.ow2.authzforce.domain.maxPolicyCount" value="5" />
    <parameter name="org.ow2.authzforce.domain.policy.maxVersionCount" value="5" />
    <test name="SecurityDemo_FastInfoset:No.AutoSync:No.AutoVersionRemovalIfTooMany:No" preserve-order="true" enabled="true">
       <!-- Test using default parameter values -->
       <classes>
-         <class name="org.ow2.authzforce.rest.service.test.SecurityDemoTest">
+         <class name="org.ow2.authzforce.webapp.test.SecurityDemoTest">
             <methods>
                <include name="addPolicyWithTooBigId" />
                <include name="addPolicyWithTooBigDescription" />

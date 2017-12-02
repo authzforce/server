@@ -1,0 +1,114 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright ownership. 
+   The ASF licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+   Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+   See the License for the specific language governing permissions and limitations under the License. -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:cxf="http://cxf.apache.org/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security"
+   xmlns:http="http://cxf.apache.org/transports/http/configuration" xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration" xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:jaxrs="http://cxf.apache.org/jaxrs-client"
+   xmlns:util="http://www.springframework.org/schema/util"
+   xsi:schemaLocation="
+            http://cxf.apache.org/core
+            http://cxf.apache.org/schemas/core.xsd
+            http://cxf.apache.org/configuration/security
+            http://cxf.apache.org/schemas/configuration/security.xsd
+            http://cxf.apache.org/jaxws
+            http://cxf.apache.org/schemas/jaxws.xsd
+            http://cxf.apache.org/transports/http/configuration
+            http://cxf.apache.org/schemas/configuration/http-conf.xsd
+            http://cxf.apache.org/transports/http-jetty/configuration
+            http://cxf.apache.org/schemas/configuration/http-jetty.xsd
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://cxf.apache.org/jaxrs-client 
+            http://cxf.apache.org/schemas/jaxrs-client.xsd
+            http://www.springframework.org/schema/util 
+            http://www.springframework.org/schema/util/spring-util.xsd">
+
+   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+   <cxf:bus>
+      <cxf:features>
+         <cxf:logging />
+      </cxf:features>
+   </cxf:bus>
+
+   <!-- PDP service client -->
+   <http:conduit name="https://localhost.*">
+      <http:tlsClientParameters disableCNCheck="true">
+         <sec:trustManagers>
+            <sec:keyStore type="jks" password="sspass" resource="stsservicestore.jks" />
+         </sec:trustManagers>
+      </http:tlsClientParameters>
+      <http:authorization>
+         <!-- Client authentication to PDP service -->
+         <sec:UserName>bob</sec:UserName>
+         <sec:Password>security</sec:Password>
+         <sec:AuthorizationType>Basic</sec:AuthorizationType>
+      </http:authorization>
+   </http:conduit>
+
+   <util:list id="clientApiSchemaLocations">
+      <value>classpath:/xml.xsd</value>
+      <value>classpath:/atom.xsd</value>
+      <value>classpath:/xacml-core-v3-schema-wd-17.xsd</value>
+      <value>classpath:/pdp-ext-base.xsd</value>
+      <value>classpath:/xsd/authz-rest-api.xsd</value>
+   </util:list>
+
+   <bean id="clientApiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+      <!-- FIXME: using catalog causes error: authz-ext:AbstractAttributeFinder type undefined -->
+      <!-- <property name="catalogLocation" value="classpath:/catalog.xml" /> -->
+      <property name="schemaLocations" ref="clientApiSchemaLocations" />
+   </bean>
+
+   <bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+      <property name="singleJaxbContext" value="true" />
+      <property name="schemaHandler" ref="clientApiSchemaHandler" />
+   </bean>
+
+   <bean id="xmlMediaTypeSetter" class="org.ow2.authzforce.webapp.test.MediaTypeHeaderSetter">
+      <constructor-arg value="#{T(javax.ws.rs.core.MediaType).APPLICATION_XML_TYPE}" />
+   </bean>
+   
+<!--    <jaxrs:client id="pdpDomainsResourceClient" address="https://localhost:${testutil.ports.PdpServer}" serviceClass="org.ow2.authzforce.rest.api.jaxrs.DomainsResource"> -->
+   <jaxrs:client id="pdpDomainsResourceClient" address="http://localhost:${testutil.ports.PdpServer}/authzforce-ce" serviceClass="org.ow2.authzforce.rest.api.jaxrs.DomainsResource">
+      <jaxrs:providers>
+         <ref bean="clientJaxbProvider" />
+      </jaxrs:providers>
+      <jaxrs:outInterceptors>
+         <ref bean="xmlMediaTypeSetter" />
+      </jaxrs:outInterceptors>
+   </jaxrs:client>
+
+   <bean class="org.ow2.authzforce.webapp.test.pep.cxf.RESTfulPdpBasedAuthzInterceptor" id="XACMLInterceptor">
+      <!-- Specific PDP domain (Service is multi-domain/multi-tenant, one PDP per domain/tenant) used by this authorizing interceptor (domain ID = 'A0bdIbmGEeWhFwcKrC9gSR' in this example) -->
+      <constructor-arg value="#{pdpDomainsResourceClient.getDomainResource('A0bdIbmGEeWhFwcKrC9gSR').getPdpResource()}" />
+   </bean>
+
+   <httpj:engine-factory id="ClientAuthHttpsSettings" bus="cxf">
+      <httpj:engine port="${testutil.ports.Server}">
+         <httpj:tlsServerParameters>
+            <sec:keyManagers keyPassword="skpass">
+               <sec:keyStore type="jks" password="sspass" resource="stsservicestore.jks" />
+            </sec:keyManagers>
+            <sec:trustManagers>
+               <sec:keyStore type="jks" password="stsspass" resource="stsstore.jks" />
+            </sec:trustManagers>
+            <sec:clientAuthentication want="true" required="false" />
+         </httpj:tlsServerParameters>
+      </httpj:engine>
+   </httpj:engine-factory>
+
+   <jaxws:endpoint id="doubleittransport" implementor="org.apache.coheigea.cxf.sts.xacml.common.DoubleItPortTypeImpl" endpointName="s:DoubleItTransportPort" serviceName="s:DoubleItService"
+      depends-on="ClientAuthHttpsSettings" address="https://localhost:${testutil.ports.Server}/doubleit/services/doubleittransportxacml3" wsdlLocation="org/ow2/authzforce/webapp/test/pep/cxf/DoubleItSecure.wsdl"
+      xmlns:s="http://www.example.org/contract/DoubleIt">
+
+      <jaxws:properties>
+         <entry key="security.signature.properties" value="stsServiceKeystore.properties" />
+      </jaxws:properties>
+      <jaxws:inInterceptors>
+         <ref bean="XACMLInterceptor" />
+      </jaxws:inInterceptors>
+   </jaxws:endpoint>
+
+</beans>
+

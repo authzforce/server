@@ -42,16 +42,17 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
-import org.ow2.authzforce.core.pap.api.dao.DomainDAO;
-import org.ow2.authzforce.core.pap.api.dao.DomainDAOClient;
+import org.json.JSONObject;
+import org.ow2.authzforce.core.pap.api.dao.DomainDao;
+import org.ow2.authzforce.core.pap.api.dao.DomainDaoClient;
 import org.ow2.authzforce.core.pap.api.dao.PdpFeature;
-import org.ow2.authzforce.core.pap.api.dao.PolicyDAOClient;
-import org.ow2.authzforce.core.pap.api.dao.PrpRWProperties;
+import org.ow2.authzforce.core.pap.api.dao.PolicyDaoClient;
+import org.ow2.authzforce.core.pap.api.dao.PrpRwProperties;
 import org.ow2.authzforce.core.pap.api.dao.ReadableDomainProperties;
 import org.ow2.authzforce.core.pap.api.dao.ReadablePdpProperties;
 import org.ow2.authzforce.core.pap.api.dao.TooManyPoliciesException;
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
-import org.ow2.authzforce.core.pdp.api.PDPEngine;
+import org.ow2.authzforce.core.pdp.api.io.PdpEngineInoutAdapter;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -85,7 +86,7 @@ import com.google.common.net.UrlEscapers;
  *            Domain DAO implementation class
  *
  */
-public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>> implements DomainDAOClient<DAO>, DomainResource, DomainPropertiesResource, PapResource,
+public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>> implements DomainDaoClient<DAO>, DomainResource, DomainPropertiesResource, PapResource,
 		PdpResource, PoliciesResource, AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
 {
 	/**
@@ -130,8 +131,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	 * 
 	 *
 	 */
-	public static class Factory<DOMAIN_DAO extends DomainDAO<PolicyVersionResourceImpl, PolicyResourceImpl>> implements
-			DomainDAOClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
+	public static class Factory<DOMAIN_DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>> implements
+			DomainDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
 	{
 		private static final IllegalArgumentException ILLEGAL_DOMAIN_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain ID for domain resource undefined");
 		private static final IllegalArgumentException ILLEGAL_DOMAIN_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain DAO for domain resource undefined");
@@ -153,7 +154,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		}
 
 		@Override
-		public PolicyDAOClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl> getPolicyDAOClientFactory()
+		public PolicyDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl> getPolicyDaoClientFactory()
 		{
 			return PolicyResourceImpl.FACTORY;
 		}
@@ -295,7 +296,19 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public Response requestPolicyDecision(final Request request)
 	{
-		final PDPEngine<?> pdp = domainDAO.getPDP();
+		final PdpEngineInoutAdapter<Request, Response> pdp = domainDAO.getXacmlJaxbPdp();
+		if (pdp == null)
+		{
+			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
+		}
+
+		return pdp.evaluate(request);
+	}
+
+	@Override
+	public JSONObject requestPolicyDecisionXacmlJson(final JSONObject request)
+	{
+		final PdpEngineInoutAdapter<JSONObject, JSONObject> pdp = domainDAO.getXacmlJsonPdp();
 		if (pdp == null)
 		{
 			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
@@ -307,7 +320,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public ResourceContent getPAP()
 	{
-		if (!domainDAO.isPAPEnabled())
+		if (!domainDAO.isPapEnabled())
 		{
 			throw new ServerErrorException("PAP disabled", Status.NOT_IMPLEMENTED);
 		}
@@ -533,7 +546,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PolicyResource policyRes = domainDAO.getPolicyDAOClient(policyId);
+		final PolicyResource policyRes = domainDAO.getPolicyDaoClient(policyId);
 		if (policyRes == null)
 		{
 			throw NOT_FOUND_EXCEPTION;
@@ -548,7 +561,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final Set<String> policyResourceIDs;
 		try
 		{
-			policyResourceIDs = domainDAO.getPolicyIDs();
+			policyResourceIDs = domainDAO.getPolicyIdentifiers();
 		}
 		catch (final IOException e)
 		{
@@ -573,7 +586,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	}
 
 	@Override
-	public DAO getDAO()
+	public DAO getDao()
 	{
 		return domainDAO;
 	}
@@ -610,7 +623,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final List<Feature> features = new ArrayList<>(pdpFeatures.size());
 		for (final PdpFeature pdpFeature : pdpFeatures)
 		{
-			features.add(new Feature(pdpFeature.getID(), pdpFeature.getType(), pdpFeature.isEnabled()));
+			features.add(new Feature(pdpFeature.getId(), pdpFeature.getType(), pdpFeature.isEnabled()));
 		}
 		return new PdpProperties(features, props.getRootPolicyRefExpression(), new ApplicablePolicies(props.getApplicableRootPolicyRef(), props.getApplicableRefPolicyRefs()),
 				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
@@ -646,7 +659,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 		final List<Feature> allFeatures = new ArrayList<>(allPdpFeatures.size());
 		for (final PdpFeature pdpFeature : allPdpFeatures)
 		{
-			allFeatures.add(new Feature(pdpFeature.getID(), pdpFeature.getType(), pdpFeature.isEnabled()));
+			allFeatures.add(new Feature(pdpFeature.getId(), pdpFeature.getType(), pdpFeature.isEnabled()));
 		}
 		return new PdpProperties(allFeatures, allProps.getRootPolicyRefExpression(), new ApplicablePolicies(allProps.getApplicableRootPolicyRef(), allProps.getApplicableRefPolicyRefs()),
 				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
@@ -666,8 +679,8 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PrpRWProperties propsUpdate = new PrpRWPropertiesImpl(properties);
-		final PrpRWProperties allProps;
+		final PrpRwProperties propsUpdate = new PrpRWPropertiesImpl(properties);
+		final PrpRwProperties allProps;
 		try
 		{
 			allProps = domainDAO.setOtherPrpProperties(propsUpdate);
@@ -691,7 +704,7 @@ public class DomainResourceImpl<DAO extends DomainDAO<PolicyVersionResourceImpl,
 	@Override
 	public PrpProperties getOtherPrpProperties()
 	{
-		final PrpRWProperties props;
+		final PrpRwProperties props;
 		try
 		{
 			props = domainDAO.getOtherPrpProperties();

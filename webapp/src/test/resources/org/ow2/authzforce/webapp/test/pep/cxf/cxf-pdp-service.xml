@@ -1,0 +1,132 @@
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright ownership. 
+   The ASF licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+   Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+   See the License for the specific language governing permissions and limitations under the License. -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:cxf="http://cxf.apache.org/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security"
+   xmlns:http="http://cxf.apache.org/transports/http/configuration" xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:context="http://www.springframework.org/schema/context"
+   xmlns:util="http://www.springframework.org/schema/util"
+   xsi:schemaLocation="
+            http://cxf.apache.org/core
+            http://cxf.apache.org/schemas/core.xsd
+            http://cxf.apache.org/configuration/security
+            http://cxf.apache.org/schemas/configuration/security.xsd
+            http://cxf.apache.org/jaxws
+            http://cxf.apache.org/schemas/jaxws.xsd
+            http://cxf.apache.org/jaxrs
+            http://cxf.apache.org/schemas/jaxrs.xsd
+            http://cxf.apache.org/transports/http/configuration
+            http://cxf.apache.org/schemas/configuration/http-conf.xsd
+            http://cxf.apache.org/transports/http-jetty/configuration
+            http://cxf.apache.org/schemas/configuration/http-jetty.xsd
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context 
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+   <!-- <cxf:bus> -->
+   <!-- <cxf:features> -->
+   <!-- <cxf:logging /> -->
+   <!-- </cxf:features> -->
+   <!-- </cxf:bus> -->
+
+   <!-- <httpj:engine-factory id="ClientAuthHttpsSettings" bus="cxf"> -->
+   <!-- <httpj:engine port="${testutil.ports.PdpServer}"> -->
+   <!-- <httpj:tlsServerParameters> -->
+   <!-- <sec:keyManagers keyPassword="stskpass"> -->
+   <!-- <sec:keyStore type="jks" password="stsspass" resource="stsstore.jks" /> -->
+   <!-- </sec:keyManagers> -->
+   <!-- <sec:trustManagers> -->
+   <!-- <sec:keyStore type="jks" password="stsspass" resource="stsstore.jks" /> -->
+   <!-- </sec:trustManagers> -->
+   <!-- <sec:clientAuthentication want="true" required="false" /> -->
+   <!-- </httpj:tlsServerParameters> -->
+   <!-- </httpj:engine> -->
+   <!-- </httpj:engine-factory> -->
+
+   <util:properties id="propertiesBean">
+      <prop key="jndi_configDir">classpath:authzforce-ce-server/conf</prop>
+      <prop key="jndi_dataDir">file:src/test/resources/authzforce-ce-server/data</prop>
+      <prop key="jndi_syncIntervalSec">0</prop>
+      <prop key="jndi_enablePdpOnly">true</prop>
+      <prop key="jndi_enableXacmlJsonProfile">false</prop>
+      <prop key="jndi_useRandomAddressBasedUUID">true</prop>
+   </util:properties>
+   <context:property-placeholder properties-ref="propertiesBean" />
+
+   <bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
+      <constructor-arg name="catalogLocation" value="${jndi_configDir}/catalog.xml" />
+      <constructor-arg name="extensionXsdLocation" value="${jndi_configDir}/authzforce-ext.xsd" />
+   </bean>
+
+   <bean id="domainDAOClientFactoryBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
+
+   <bean id="domainsDAOBean" class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO" destroy-method="closeDomains">
+      <!-- Root directory of domain folders; a domain folder contains all configuration data of a specific domain, and is named after the domain ID encoded with base64url. -->
+      <constructor-arg name="domainsRoot" value="${jndi_dataDir}/domains" />
+      <!-- domain template directory for domain creation -->
+      <constructor-arg name="domainTmpl" value="${jndi_configDir}/domain.tmpl" />
+      <!-- domains directory-to-memory synchronization interval in seconds -->
+      <constructor-arg name="domainsSyncIntervalSec" value="${jndi_syncIntervalSec}" />
+      <constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+      <constructor-arg name="enablePdpOnly" value="${jndi_enablePdpOnly}" />
+      <constructor-arg name="enableXacmlJsonProfile" value="${jndi_enableXacmlJsonProfile}" />
+      <constructor-arg name="useRandomAddressBasedUUID" value="#{T(java.lang.Boolean).valueOf(${jndi_useRandomAddressBasedUUID})}" />
+      <constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
+   </bean>
+
+   <bean id="domainsResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
+      <constructor-arg name="domainsDAO" ref="domainsDAOBean" />
+      <constructor-arg name="authorizedResourceAttribute" value="authorizedResource" />
+      <constructor-arg name="anyResourceId">
+         <null />
+      </constructor-arg>
+   </bean>
+
+   <bean id="apiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+      <property name="catalogLocation" value="${jndi_configDir}/catalog.xml" />
+      <property name="schemaLocations">
+         <util:list>
+            <value>${jndi_configDir}/authzforce-ext.xsd</value>
+            <value>classpath:/xsd/authz-rest-api.xsd</value>
+         </util:list>
+      </property>
+   </bean>
+
+   <!-- <bean id="callbackHandler" class="org.apache.coheigea.cxf.sts.xacml.common.CommonCallbackHandler" /> -->
+   <!-- <bean id="basicAuthFilter" class="org.apache.coheigea.cxf.sts.xacml.pdp.xacml2.WSS4JBasicAuthFilter"> -->
+   <!-- <property name="callbackHandler" ref="callbackHandler" /> -->
+   <!-- </bean> -->
+
+   <!-- <jaxrs:server depends-on="ClientAuthHttpsSettings" address="https://localhost:${testutil.ports.PdpServer}/authzforce-ce"> -->
+   <jaxrs:server id="tazService" address="http://localhost:${testutil.ports.PdpServer}/authzforce-ce" docLocation="classpath:authz-api+json.wadl" staticSubresourceResolution="true">
+      <jaxrs:serviceBeans>
+         <ref bean="domainsResourceBean" />
+      </jaxrs:serviceBeans>
+      <jaxrs:providers>
+         <!-- <ref bean="basicAuthFilter" /> -->
+         <bean class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+            <property name="singleJaxbContext" value="true" />
+            <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
+            <property name="schemaHandler" ref="apiSchemaHandler" />
+         </bean>
+         <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
+         <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
+         <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
+         <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
+         <bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
+      </jaxrs:providers>
+      <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
+      <!-- <jaxrs:inInterceptors> -->
+      <!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
+      <!-- </jaxrs:inInterceptors> -->
+      <!-- <jaxrs:outInterceptors> -->
+      <!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
+      <!-- </jaxrs:outInterceptors> -->
+      <jaxrs:outFaultInterceptors>
+         <bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
+      </jaxrs:outFaultInterceptors>
+   </jaxrs:server>
+
+</beans>
+

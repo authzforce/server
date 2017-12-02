@@ -5,4 +5,4 @@
 
  Docker image available on [Docker Hub](https://hub.docker.com/r/fiware/authzforce-ce-server/tags/).
 
- Documentation available [online](http://authzforce-ce-fiware.readthedocs.io/en/release-M.m.P/) and as  downloadable [HTML](https://media.readthedocs.org/htmlzip/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.zip) and [PDF](https://media.readthedocs.org/pdf/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.pdf).
+ Documentation available [online](http://authzforce-ce-fiware.readthedocs.io/en/release-M.m.P/) and as downloadable [HTML](https://media.readthedocs.org/htmlzip/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.zip) and [PDF](https://media.readthedocs.org/pdf/authzforce-ce-fiware/release-M.m.P/authzforce-ce-fiware.pdf).

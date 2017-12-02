@@ -120,6 +120,11 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		super.springTestContextPrepareTestInstance();
 		testDomainId = domainsResourceBean.getDomains(null).getLinks().get(0).getHref();
 		testDomain = domainsResourceBean.getDomainResource(testDomainId);
+		// force externalId
+		final DomainPropertiesResource testDomainPropsResource = testDomain.getDomainPropertiesResource();
+		final DomainProperties domainProperties = new DomainProperties(testDomainPropsResource.getDomainProperties().getDescription(), "external" + Integer.toString(domainExternalId));
+		domainExternalId += 1;
+		testDomain.getDomainPropertiesResource().updateDomainProperties(domainProperties);
 	}
 
 	/**
@@ -214,6 +219,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	public void getDomainByExternalId()
 	{
 		final String externalId = testDomain.getDomain().getProperties().getExternalId();
+		assert externalId != null;
 
 		final List<Link> domainLinks = domainsResourceBean.getDomains(externalId).getLinks();
 		// verify that there is only one domain resource link and it is the one

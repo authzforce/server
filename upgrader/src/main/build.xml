@@ -30,26 +30,14 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 
-	<property name="old.version" value="" description="Old Authzforce version: 4.2.x, 4.3.x, 4.4.x, 5.1.x, 5.2.x, 5.3.x" />
-	<condition property="old.version.pattern" value="4.2.x">
-		<matches pattern="4\.2\..*" string="${old.version}" />
+	<property name="old.version" value="" description="Old Authzforce version: 6.x, 7.x" />
+	<condition property="old.version.pattern" value="6.x,7.x">
+		<matches pattern="(6|7)\..*" string="${old.version}" />
 	</condition>
-	<condition property="no.old.policies.dir" value="true">
-		<equals arg1="${old.version.pattern}" arg2="4.2.x" />
-	</condition>
-	<condition property="old.version.pattern" value="4.3.x">
-		<matches pattern="4\.3\..*" string="${old.version}" />
-	</condition>
-	<condition property="old.version.pattern" value="4.4.x">
-		<matches pattern="4\.4\..*" string="${old.version}" />
-	</condition>
-	<condition property="old.version.pattern" value="5.1.x">
-		<matches pattern="5\.(1|2|3)\..*" string="${old.version}" />
-	</condition>
-	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 4.2.x, 4.3.x or 4.4.x" unless="old.version.pattern" />
+	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 6.x, 7.x" unless="old.version.pattern" />
 	<property name="xslt.dir" location="xslt/${old.version.pattern}" />
 
-	<property name="old.install.dir" value="" description="Old Authzforce (4.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
+	<property name="old.install.dir" value="" description="Old Authzforce (6.x,7.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
 	<fail message="Invalid old.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>
@@ -60,7 +48,7 @@
 		</condition>
 	</fail>
 
-	<property name="new.install.dir" value="" description="Current Authzforce (5.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
+	<property name="new.install.dir" value="" description="Current Authzforce (8.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
 	<fail message="Invalid new.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>
@@ -70,8 +58,6 @@
 			</not>
 		</condition>
 	</fail>
-
-	<property name="ignore.domain.name" value="" description="If &lt;name&gt; elements in properties.xml files of domains in input old.install.dir/data are NOT unique, ignore them, i.e. do not convert to externalId values (which must be unique), by setting option below to 'true' (leave empty to disable)" />
 
 	<!-- PDP properties (may be overridden by Java system properties): -->
 	<property name="pdp.max.var.ref.depth" value="10" description="PDP property: maximum length of (XACML) PolicySetIdReference chain" />
@@ -92,19 +78,7 @@
 		</condition>
 	</fail>
 
-	<property name="pdp.request.filter" value="urn:ow2:authzforce:feature:pdp:request-filter:default-lax" description="PDP property: request filter" />
-	<fail message="Invalid pdp.request.filter arg: not one of: 'urn:ow2:authzforce:feature:pdp:request-filter:default-lax', 'urn:ow2:authzforce:feature:pdp:request-filter:default-strict', 'urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax', 'urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-strict'.">
-		<condition>
-			<not>
-				<or>
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:default-lax" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:default-strict" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-lax" />
-					<equals arg1="${pdp.request.filter}" arg2="urn:ow2:authzforce:feature:pdp:request-filter:multiple:repeated-attribute-categories-strict" />
-				</or>
-			</not>
-		</condition>
-	</fail>
+	<property name="pdp.request.preproc" value="urn:ow2:authzforce:feature:pdp:request-preproc:xacml-xml:default-lax" description="PDP property: request preprocessor" />
 
 	<macrodef name="saxon-xslt">
 		<attribute name="basedir" />
@@ -118,7 +92,7 @@
 				<param name="ignoreDomainName" expression="${ignore.domain.name}" />
 				<param name="maxVariableRefDepth" expression="${pdp.max.var.ref.depth}" />
 				<param name="maxPolicyRefDepth" expression="${pdp.max.policy.ref.depth}" />
-				<param name="requestFilter" expression="${pdp.request.filter}" />
+				<param name="requestPreproc" expression="${pdp.request.preproc}" />
 				<!--
         			    		http://www.saxonica.com/html/documentation/using-xsl/xsltfromant.html
         			    		-->
@@ -174,7 +148,7 @@
 		</delete>
 		<!-- Handle root policy, ref policies, attribute providers and PDP configuration using them in domain template directory -->
 		<property name="new.policies.dir" value="${new.domain.dir.path}/policies" />
-		<antcall target="copy-policies-dir" description="Copy domain policies directory (except for v4.2.x)" inheritall="true" inheritrefs="true" />
+		<antcall target="copy-policies-dir" description="Copy domain policies directory" inheritall="true" inheritrefs="true" />
 		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="pdp.xml" style="${xslt.dir}/domain-pdp-upgrade.xsl" />
 	</target>
 
@@ -187,7 +161,7 @@
 
 		<!-- Clean directory 'policies' whose content will be replaced from old domain template using XSLT task down below-->
 		<property name="new.policies.dir" value="${new.domain.dir.path}/policies" />
-		<antcall target="copy-policies-dir" description="Copy domain policies directory (except for v4.2.x)" inheritall="true" inheritrefs="true" />
+		<antcall target="copy-policies-dir" description="Copy domain policies directory" inheritall="true" inheritrefs="true" />
 
 		<!-- Upgrade domain properties -->
 		<saxon-xslt basedir="${old.domain.dir.path}" destdir="${new.domain.dir.path}" includes="properties.xml" style="${xslt.dir}/domain-properties-upgrade.xsl" />

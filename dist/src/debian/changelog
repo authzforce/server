@@ -1,3 +1,3 @@
-authzforce-ce-server (${project.version}) trusty; urgency=low
+authzforce-ce-server (${project.version}) xenial; urgency=low
   * See https://github.com/authzforce/server/blob/release-${project.version}/CHANGELOG.md
  -- Thales Services <http://www.thalesgroup.com>  ${debian.changelog.timestamp}

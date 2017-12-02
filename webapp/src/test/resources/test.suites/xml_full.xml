@@ -20,12 +20,12 @@
    <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
    <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
-   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="false" />
+   <parameter name="enablePdpOnly" value="false" />
 
    <test name="Test_PDPOnly:No.FastInfoset:No.JSON:No.AutoSync:No.VersionRolling:No.DoSMitigation:Yes" preserve-order="true" enabled="true">
       <!-- Test using default parameter values -->
       <classes>
-         <class name="org.ow2.authzforce.web.test.DomainSetTest">
+         <class name="org.ow2.authzforce.webapp.test.RootResourcesTest">
             <methods>
                <include name="getWADL" />
                <include name="getDomainsWithoutAcceptHeader" />
@@ -45,14 +45,14 @@
             </methods>
          </class>
          <!-- Domain-specific testing -->
-         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling" />
+         <class name="org.ow2.authzforce.webapp.test.DomainResourceTestWithoutAutoSyncOrVersionRolling" />
       </classes>
    </test>
    <test name="Test_PDPOnly:No.FastInfoset:No.JSON:No.AutoSync:No.VersionRolling:No.DoSMitigation:No" preserve-order="true" enabled="true">
       <parameter name="enableDoSMitigation" value="false" />
       <classes>
          <!-- Domain-specific testing -->
-         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling">
+         <class name="org.ow2.authzforce.webapp.test.DomainResourceTestWithoutAutoSyncOrVersionRolling">
             <methods>
                <!-- Exclude methods for testing enableDoSMitigation=true -->
                <exclude name="addPolicyTooDeep" />

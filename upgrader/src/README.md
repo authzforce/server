@@ -2,7 +2,7 @@
 {currentYear=${currentYear}}
 # AuthZForce Upgrader
 
-If you intend to install a new version of Authzforce on the same server as the old version, first create a backup of the folder `/opt/authzforce` in the case of v4.2.0, or `/opt/authzforce-ce-server` for later versions, and proceed with the instructions below, using the backup folder as `old.install.dir`.
+If you intend to install a new version of Authzforce on the same server as the old version, first create a backup of the folder `/opt/authzforce-ce-server`, and proceed with the instructions below, using the backup folder as `old.install.dir`.
 
 To upgrade AuhZForce data from an older version to ${project.version}, proceed as follows:
 
@@ -29,38 +29,21 @@ To upgrade AuhZForce data from an older version to ${project.version}, proceed a
 
 1. Run the following command, where argument `old.version` is the old version (in the form `x.y.z`) of Authzforce you are upgrading from, argument `old.install.dir` is the installation directory of the old version, or a backup of it if you are installing the new version on the same server, and argument `new.install.dir` is the new installation directory of the Authzforce version corresponding to this upgrade tool:
 
-    *WARNING 1: by default, for each domain, the following command will convert the old domain property 'name' to the new 'externalId' property (the value is copied from one to the other during the upgrade).* **Make sure that each old domain 'name' is UNIQUE.** *Indeed, each 'externalId' MUST BE UNIQUE after the upgrade. If this is not the case, either fix it or skip this conversion step by adding the following argument: `-Dignore.domain.name=true`. In this case, the 'externalId' will not be set by the upgrader tool. This is not an issue for new AuthZForce versions since 'externalId' values are optional. You may set them later with the API if you need to.*
-
     *WARNING 2: the following command will replace all standard XACML identifiers planned for deprecation in Appendix A.4 of XACML 3.0 Core specification with the new XACML 3.0 identifiers.*
     
     *WARNING 3: if you don't use `sudo`, make sure you are executing the command as a user with read-write permissions on `new.install.dir`.*
     
     ```shell
-    $ sudo ant -Dold.version=4.2.0 \
-      -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
+    $ sudo ant -Dold.version=6.0.0 \
+      -Dold.install.dir=/path/to/old/opt/authzforce-ce-server-6.0.0 \
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
-    ```
-    
-    Another example with extra argument `ignore.domain.name` to skip domain name-to-externalId conversion, in case domain name properties of the old Authzforce installation are not unique:
-    
-    ```shell
-    $ sudo ant -Dold.version=4.2.0 \
-      -Dold.install.dir=/path/to/old/opt/authzforce-4.2.0 \
-      -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
-      -Dignore.domain.name=true
     ```
     
 1. Set the permissions properly on the new data:  
   
     ```shell
-    $ sudo chown -RH tomcat7 /path/to/new/opt/authzforce-ce-server
-    $ sudo chgrp -RH tomcat7 /path/to/new/opt/authzforce-ce-server
+    $ sudo chown -RH tomcat8 /path/to/new/opt/authzforce-ce-server
+    $ sudo chgrp -RH tomcat8 /path/to/new/opt/authzforce-ce-server
     ```
 
-1. Restart Tomcat on the new AuthZForce server to load the new data.
-
-1. If your old Authzforce version was 4.2.0 and the upgrade was successful, you may remove this old version:
-   ```shell
-    $ sudo aptitude purge authzforce
-    ```
-    *Note: in v4.2.0, the Ubuntu package name was called `authzforce`, then it was renamed `authzforce-ce-server` in later versions. Therefore, the command above should remove only the old v4.2.0.*
+1. Restart Tomcat on the new AuthzForce server to load the new data.

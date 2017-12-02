@@ -1,0 +1,13 @@
+<pdp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pap-dao="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6" xmlns="http://authzforce.github.io/core/xmlns/pdp/6.0"
+   version="6.0.0" maxVariableRefDepth="10" maxPolicyRefDepth="10" strictAttributeIssuerMatch="false">
+   <!-- Replace with requestPreproc = "urn:ow2:authzforce:feature:pdp:request-preproc:xacml-xml:multiple:repeated-attribute-categories-lax" for Multiple Decision Profile support. -->
+   <!-- You may customize this PDP configuration except 'rootPolicyProvider' and 'refPolicyProvider' elements. -->
+   <!-- policyLocation must start with ${PARENT_DIR}/ and end with: /*SUFFIX (* is expanded to base64url(policyId)/policyVersion) -->
+   <refPolicyProvider id="refPolicyProvider" xsi:type="pap-dao:StaticFlatFileDAORefPolicyProvider" policyLocationPattern="${PARENT_DIR}/policies/*.xml" />
+   <rootPolicyProvider id="rootPolicyProvider" xsi:type="StaticRefBasedRootPolicyProvider">
+      <policyRef>root</policyRef>
+   </rootPolicyProvider>
+   <ioProcChain>
+      <requestPreproc>urn:ow2:authzforce:feature:pdp:request-preproc:xacml-xml:default-lax</requestPreproc>
+   </ioProcChain>
+</pdp>

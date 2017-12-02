@@ -30,15 +30,91 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-         <version>5.4.0</version>
+         <version>5.6.0</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-core-pap-api</artifactId>
       </dependency>
+      <dependency>
+         <groupId>org.ow2.authzforce</groupId>
+         <artifactId>authzforce-ce-jaxrs-utils</artifactId>
+         <version>1.0.0</version>
+      </dependency>
    </dependencies>
    <build>
       <plugins>
+         <plugin>
+            <!-- Compute timestamp to be used in org.ow2.authzforce.server.product.properties. We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' 
+               property -->
+            <!-- inherited from authzforce-ce-parent, with a different format, so we use a plugin. -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.12</version>
+            <executions>
+               <execution>
+                  <id>set-current-date-property</id>
+                  <phase>initialize</phase>
+                  <goals>
+                     <goal>timestamp-property</goal>
+                  </goals>
+                  <configuration>
+                     <locale>en_US</locale>
+                     <timeZone>UTC</timeZone>
+                     <name>build.date</name>
+                     <pattern>yyyy-MM-dd</pattern>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <!-- <plugin> -->
+         <!-- Compute timestamp to be used in org.ow2.authzforce.server.product.properties. We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' property 
+            inherited from authzforce-ce-parent, with a different format, so we use a plugin. -->
+         <!-- <groupId>org.codehaus.mojo</groupId> -->
+         <!-- <artifactId>buildnumber-maven-plugin</artifactId> -->
+         <!-- <version>1.3</version> -->
+         <!-- <executions> -->
+         <!-- <execution> -->
+         <!-- <id>set-current-date-property</id> -->
+         <!-- <phase>initialize</phase> -->
+         <!-- <goals> -->
+         <!-- <goal>create-timestamp</goal> -->
+         <!-- </goals> -->
+         <!-- <configuration> -->
+         <!-- <timezone>UTC</timezone> -->
+         <!-- <timestampPropertyName>build.date</timestampPropertyName> -->
+         <!-- <timestampFormat>yyyy-MM-dd</timestampFormat> -->
+         <!-- </configuration> -->
+         <!-- </execution> -->
+         <!-- </executions> -->
+         <!-- </plugin> -->
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>filter-product-properties-file</id>
+                  <phase>process-sources</phase>
+                  <goals>
+                     <goal>resources</goal>
+                  </goals>
+                  <configuration>
+                     <escapeString>\</escapeString>
+                     <overwrite>true</overwrite>
+                     <resources>
+                        <!-- Replace variable 'productName', 'project.version', 'build.date' in some source files. The result goes to ${project.build.directory}. -->
+                        <resource>
+                           <directory>src</directory>
+                           <filtering>true</filtering>
+                           <includes>
+                              <include>org.ow2.authzforce.server.product.properties</include>
+                           </includes>
+                        </resource>
+                     </resources>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>

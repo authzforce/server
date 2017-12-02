@@ -234,6 +234,7 @@
                <header>license/thales-gpl.header.txt</header>
                <excludes>
                   <exclude>src/main/java/org/ow2/authzforce/webapp/org/apache/**</exclude>
+                  <exclude>src/main/java/org/ow2/authzforce/webapp/org/codehaus/**</exclude>
                </excludes>
                <includes>
                   <include>src/main/java/**</include>
@@ -269,10 +270,10 @@
                   </goals>
                   <configuration>
                      <includeEmptyDirs>true</includeEmptyDirs>
-                     <outputDirectory>${basedir}/target/server/conf</outputDirectory>
+                     <outputDirectory>${basedir}/target/tomcat/authzforce-ce-server</outputDirectory>
                      <resources>
                         <resource>
-                           <directory>src/test/server.conf</directory>
+                           <directory>src/test/resources/authzforce-ce-server</directory>
                            <filtering>true</filtering>
                         </resource>
                      </resources>

@@ -20,12 +20,12 @@
    <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
    <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
-   <parameter name="org.ow2.authzforce.domains.enablePdpOnly" value="true" />
+   <parameter name="enablePdpOnly" value="true" />
 
    <test name="Test_PDPOnly:Yes.FastInfoset:No.JSON:No.AutoSync:No.VersionRolling:No" preserve-order="true" enabled="true">
       <!-- Test using default parameter values -->
       <classes>
-         <class name="org.ow2.authzforce.web.test.DomainSetTest">
+         <class name="org.ow2.authzforce.webapp.test.RootResourcesTest">
             <methods>
                <include name="getWADL" />
                <!-- 'invocation-numbers' attribute on include element not working as expected: https://github.com/cbeust/testng/issues/613 -->
@@ -37,7 +37,7 @@
             </methods>
          </class>
          <!-- Domain-specific testing -->
-         <class name="org.ow2.authzforce.web.test.DomainMainTestWithoutAutoSyncOrVersionRolling">
+         <class name="org.ow2.authzforce.webapp.test.DomainResourceTestWithoutAutoSyncOrVersionRolling">
             <methods>
                <include name="getDomainProperties" />
                <include name="updateDomainProperties" />
@@ -52,6 +52,7 @@
                <include name="requestPDPDumb" />
             </methods>
          </class>
+         <class name="org.ow2.authzforce.webapp.test.pep.cxf.RESTfulPdpBasedAuthzInterceptorTest" />
       </classes>
    </test>
    

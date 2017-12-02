@@ -31,6 +31,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
+import org.ow2.authzforce.jaxrs.util.JaxbErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 	{
 		try
 		{
-			AUTHZ_API_JAXB_CONTEXT = JAXBContext.newInstance(org.ow2.authzforce.rest.api.xmlns.Error.class);
+			AUTHZ_API_JAXB_CONTEXT = JAXBContext.newInstance(JaxbErrorMessage.class);
 		}
 		catch (final JAXBException e)
 		{
@@ -93,7 +94,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 				errMsg = INTERNAL_SERVER_ERROR_MSG;
 			}
 
-			final org.ow2.authzforce.rest.api.xmlns.Error errorEntity = new org.ow2.authzforce.rest.api.xmlns.Error(errMsg);
+			final JaxbErrorMessage errorEntity = new JaxbErrorMessage(errMsg);
 			response.setStatus(respStatus);
 			try (final ServletOutputStream out = response.getOutputStream())
 			{

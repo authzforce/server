@@ -20,36 +20,39 @@ package org.ow2.authzforce.rest.service.jaxrs;
 
 import java.math.BigInteger;
 
-import org.ow2.authzforce.core.pap.api.dao.PrpRWProperties;
+import org.ow2.authzforce.core.pap.api.dao.PrpRwProperties;
 import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
 
-class PrpRWPropertiesImpl implements PrpRWProperties
+class PrpRWPropertiesImpl implements PrpRwProperties
 {
 	private final int maxPolicyCountPerDomain;
 	private final int maxVersionCountPerPolicy;
 	private final boolean isVersionRollingEnabled;
 
-	PrpRWPropertiesImpl(PrpProperties props)
+	PrpRWPropertiesImpl(final PrpProperties props)
 	{
 		final BigInteger maxPolicyCountProp = props.getMaxPolicyCount();
-		this.maxPolicyCountPerDomain = maxPolicyCountProp == null? -1: maxPolicyCountProp.intValue();
+		this.maxPolicyCountPerDomain = maxPolicyCountProp == null ? -1 : maxPolicyCountProp.intValue();
 		final BigInteger maxVersionCountProp = props.getMaxVersionCountPerPolicy();
-		this.maxVersionCountPerPolicy = maxVersionCountProp == null? -1: maxVersionCountProp.intValue();
+		this.maxVersionCountPerPolicy = maxVersionCountProp == null ? -1 : maxVersionCountProp.intValue();
 		this.isVersionRollingEnabled = props.isVersionRollingEnabled();
-	}	
+	}
 
 	@Override
-	public int getMaxPolicyCountPerDomain() {
+	public int getMaxPolicyCountPerDomain()
+	{
 		return this.maxPolicyCountPerDomain;
 	}
 
 	@Override
-	public int getMaxVersionCountPerPolicy() {
+	public int getMaxVersionCountPerPolicy()
+	{
 		return this.maxVersionCountPerPolicy;
 	}
-	
+
 	@Override
-	public boolean isVersionRollingEnabled() {
+	public boolean isVersionRollingEnabled()
+	{
 		return this.isVersionRollingEnabled;
 	}
 

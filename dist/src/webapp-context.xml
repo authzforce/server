@@ -2,31 +2,40 @@
 <!-- Context used by Tomcat -->
 <Context path="/authzforce-ce" docBase="/opt/${productName}/webapp">
 
-	<!-- Override <context-param>s in web.xml -->
-	<Parameter name="logbackConfigLocation" description="Logging configuration file"
-		value="file:/opt/${productName}/conf/logback.xml" override="false" />
+   <!-- Override <context-param>s in web.xml -->
+   <Parameter name="logbackConfigLocation" description="Logging configuration file" value="file:/opt/${productName}/conf/logback.xml" override="false" />
 
-	<Parameter name="spring.profiles.active" description="application profiles: '+fastinfoset' to enable FastInfoset support, '-fastinfoset' to disable FastInfoset support"
-		value="-fastinfoset" override="false" />
+   <Parameter name="spring.profiles.active" description="application profiles: '+fastinfoset' to enable FastInfoset support, '-fastinfoset' to disable FastInfoset support" value="-fastinfoset"
+      override="false" />
 
-	<!-- Override <env-entry>s in web.xml -->
-	<Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productName}/conf"
-		type="java.lang.String" override="false"
-		description="Configuration directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
+   <!-- <env-entry>s in web.xml do not override entries below iff override=false. -->
+   <Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productName}/conf" type="java.lang.String" override="false"
+      description="Configuration directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
-	<Environment name="org.ow2.authzforce.data.dir" value="file:/opt/${productName}/data"
-		type="java.lang.String" override="false"
-		description="Data (e.g. data of domains created and managed by the API) directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
+   <Environment name="org.ow2.authzforce.data.dir" value="file:/opt/${productName}/data" type="java.lang.String" override="false"
+      description="Data (e.g. data of domains created and managed by the API) directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
-	<Environment name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased"
-		value="false" type="java.lang.Boolean" override="false"
-		description="UUID generator option for domain IDs, set to true if and only if Authzforce deployed in dev environment that is disconnected from the network, i.e. no 'real' Ethernet address to use, set this JNDI variable to 'true' to initialize the UUID (variant 1) generator with a random multicast address instead." />
+   <Environment name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased" value="false" type="java.lang.Boolean" override="false"
+      description="UUID generator option for domain IDs, set to true if and only if Authzforce deployed in dev environment that is disconnected from the network, i.e. no 'real' Ethernet address to use, set this JNDI variable to 'true' to initialize the UUID (variant 1) generator with a random multicast address instead." />
 
-	<Environment name="org.ow2.authzforce.domains.sync.interval"
-		value="0" type="java.lang.Integer" override="false"
-		description="Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature." />
-      
-    <Environment name="org.ow2.authzforce.domains.enablePdpOnly"
-      value="false" type="java.lang.Boolean" override="false"
+   <Environment name="org.ow2.authzforce.domains.sync.interval" value="0" type="java.lang.Integer" override="false"
+      description="Domains folder-to-memory synchronization interval (seconds); value 0 disables this feature." />
+
+   <Environment name="org.ow2.authzforce.domains.enablePdpOnly" value="false" type="java.lang.Boolean" override="false"
       description="Enable PDP only, i.e. disable all PAP (or other administration) features iff true" />
+
+   <Environment name="org.ow2.authzforce.domains.enableXacmlJsonProfile" value="false" type="java.lang.Boolean" override="false"
+      description="Enable support for JSON Profile of XACML 3.0 on domains' PDP endpoints iff true" />
+
+   <!-- <Environment name="org.ow2.authzforce.webapp.publishedEndpointUrl" value="http://localhost:8080" type="java.lang.Boolean" override="false" description="Base address specified in the auto-generated 
+      WADL. This parameter allows setting the public URL that may not be the same as the URL the service is deployed on. (For example, the service is behind a proxy of some sort)." /> -->
+
+   <!-- <Environment name="org.ow2.authzforce.webapp.jsonKeysWithArrays" type="java.lang.String" override="false" description="Comma-separated list of JSON keys with values to be always serialized to JSON 
+      arrays (even if single-valued). More info: http://cxf.apache.org/docs/jax-rs-data-bindings.html#JAX-RSDataBindings-DealingwithJettisonarrayserializationissues (serializeAsArray always true but no effect 
+      if this property undefined or has empty value). The example here works for AuthzForce Manager GUI" value="link,PolicySet,PolicySetIdReference,Policy,PolicyIdReference,Rule,VariableDefinition,AnyOf,AllOf,Match,ObligationExpressions,AdviceExpressions,Obligations,AssociatedAdvice" 
+      /> -->
+     
+     <Environment name="org.ow2.authzforce.webapp.noNamespaceInJsonOutput" value="false" type="java.lang.Boolean" override="false"
+      description="Whether to drop all XML namespaces (JSON key prefixes) from JSON output in XML-to-JSON translation. Enable this for AuthzForce Manager GUI." /> 
+
 </Context>

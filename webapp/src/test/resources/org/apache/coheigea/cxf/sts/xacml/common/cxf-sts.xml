@@ -21,11 +21,11 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-    <cxf:bus>
-        <cxf:features>
-            <cxf:logging/>
-        </cxf:features>
-    </cxf:bus>
+<!--     <cxf:bus> -->
+<!--         <cxf:features> -->
+<!--             <cxf:logging/> -->
+<!--         </cxf:features> -->
+<!--     </cxf:bus> -->
     <bean id="transportIssueDelegate" class="org.apache.cxf.sts.operation.TokenIssueOperation">
         <property name="tokenProviders" ref="transportTokenProviders"/>
         <property name="tokenValidators" ref="transportTokenValidators"/>

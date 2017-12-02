@@ -27,6 +27,7 @@
 	<jee:jndi-lookup id="jndi_enablePdpOnly"
 		jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean"
 		default-value="#{T(java.lang.Boolean).FALSE}" />
+	<jee:jndi-lookup id="jndi_enableXacmlJsonProfile" jndi-name="org.ow2.authzforce.domains.enableXacmlJsonProfile" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
 
 	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
 		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
@@ -34,11 +35,11 @@
 			value="#{jndi_configDir}/authzforce-ext.xsd" />
 	</bean>
 
-	<bean id="domainDAOClientFactoryBean"
+	<bean id="domainDaoClientFactoryBean"
 		class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
 
-	<bean id="domainsDAOBean"
-		class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO"
+	<bean id="domainsDaoBean"
+		class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao"
 		destroy-method="closeDomains">
 		<!-- Root directory of domain folders; a domain folder contains all configuration 
 			data of a specific domain, and is named after the domain ID encoded with 
@@ -50,14 +51,15 @@
 		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
 		<constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
 		<constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
+		<constructor-arg name="enableXacmlJsonProfile" value="#{jndi_enableXacmlJsonProfile}" />
 		<constructor-arg name="useRandomAddressBasedUUID"
 			value="#{jndi_useRandomAddressBasedUUID}" />
-		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
+		<constructor-arg name="domainDaoClientFactory" ref="domainDaoClientFactoryBean" />
 	</bean>
 
 	<bean id="domainsResourceBean"
 		class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
-		<constructor-arg name="domainsDAO" ref="domainsDAOBean" />
+		<constructor-arg name="domainsDAO" ref="domainsDaoBean" />
 		<constructor-arg name="authorizedResourceAttribute"
 			value="authorizedResource" />
 		<constructor-arg name="anyResourceId">

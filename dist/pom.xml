@@ -11,10 +11,6 @@
    <packaging>jar</packaging>
    <name>${project.groupId}:${project.artifactId}</name>
    <description>AuthZForce CE server distribution (zip and deb)</description>
-   <properties>
-      <productName>${project.parent.artifactId}</productName>
-      <productMaintainer>Thales Services SAS</productMaintainer>
-   </properties>
    <url>https://github.com/authzforce/server/dist</url>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
@@ -82,7 +78,6 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-resources-plugin</artifactId>
-            <version>3.0.1</version>
             <executions>
                <execution>
                   <phase>process-sources</phase>

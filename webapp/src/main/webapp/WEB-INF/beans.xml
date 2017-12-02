@@ -1,290 +1,275 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2012-2015 Thales Services SAS. This file is part of AuthZForce. 
-	AuthZForce is free software: you can redistribute it and/or modify it under 
-	the terms of the GNU General Public License as published by the Free Software 
-	Foundation, either version 3 of the License, or (at your option) any later 
-	version. AuthZForce is distributed in the hope that it will be useful, but 
-	WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
-	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for 
-	more details. You should have received a copy of the GNU General Public License 
-	along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:core="http://cxf.apache.org/core"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+<!-- Copyright (C) 2012-2015 Thales Services SAS. This file is part of AuthZForce. AuthZForce is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+   as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthZForce is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public 
+   License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
+   xmlns:jee="http://www.springframework.org/schema/jee" xmlns:core="http://cxf.apache.org/core" 
+   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
 						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
 						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 						http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
 
 
-	<import resource="classpath:META-INF/cxf/cxf.xml" />
-	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+   <import resource="classpath:META-INF/cxf/cxf.xml" />
+   <import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
 
-	<jee:jndi-lookup id="jndi_configDir" jndi-name="org.ow2.authzforce.config.dir"
-		expected-type="java.lang.String" default-value="classpath:server/conf" />
-	<!-- File: prefix matters. If not present, the path is loaded as classpath 
-		resource by Spring -->
-	<jee:jndi-lookup id="jndi_dataDir" jndi-name="org.ow2.authzforce.data.dir"
-		expected-type="java.lang.String" default-value="file:target/server.data" />
-	<!-- If no "real" Ethernet address to use (host disconnected from the network), 
-		use random multicast address. -->
-	<jee:jndi-lookup id="jndi_useRandomAddressBasedUUID"
-		jndi-name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased"
-		expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
-	<!-- 0 means no sync -->
-	<jee:jndi-lookup id="jndi_syncIntervalSec"
-		jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(0)}" />
-	<jee:jndi-lookup id="jndi_enablePdpOnly"
-		jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean"
-		default-value="#{T(java.lang.Boolean).FALSE}" />
-	<!-- XML security properties used to set the corresponding JAXRS server 
-		properties defined in the doc: http://cxf.apache.org/docs/security.html, 
-		for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since 
-		CXF 2.7.4). You should not try to set them via system properties (this does 
-		not work as expected). If you comment out this environment entry or specify 
-		a negative value, CXF default value is used. -->
-	<jee:jndi-lookup id="jndi_staxMaxChildElements"
-		jndi-name="org.apache.cxf.stax.maxChildElements" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(-1)}" />
-	<jee:jndi-lookup id="jndi_staxMaxElementDepth"
-		jndi-name="org.apache.cxf.stax.maxElementDepth" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(-1)}" />
-	<!-- WARNING: the properties below (maxAttributeSize/maxTextLength) are 
-		not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser 
-		cannot be cast to org.codehaus.stax2.XMLStreamReader2) because they require 
-		Woodstox parser (4.2+) which Sun's FastInfoset parser used here is not. See 
-		https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset 
-		does not provide any means to enforce any of those security requirements." 
-		NB: CXF doc is misleading as it makes believe you can use shortcut strings 
-		like '64K' or '128M' but you can't. For maxAttributeSize = 100 in JAXRS server 
-		configuration, exception raised only when chars.length > 181! WHY? Possible 
-		issue with woodstox library. FIXME: report this issue to CXF/Woodstox. -->
-	<jee:jndi-lookup id="jndi_staxMaxAttributeCount"
-		jndi-name="org.apache.cxf.stax.maxAttributeCount" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(-1)}" />
-	<jee:jndi-lookup id="jndi_staxMaxAttributeSize"
-		jndi-name="org.apache.cxf.stax.maxAttributeSize" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(-1)}" />
-	<jee:jndi-lookup id="jndi_staxMaxTextLength" jndi-name="org.apache.cxf.stax.maxTextLength"
-		expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <jee:jndi-lookup id="jndi_configDir" jndi-name="org.ow2.authzforce.config.dir" expected-type="java.lang.String" default-value="classpath:authzforce-ce-server/conf" />
+   <!-- File: prefix matters. If not present, the path is loaded as classpath resource by Spring -->
+   <jee:jndi-lookup id="jndi_dataDir" jndi-name="org.ow2.authzforce.data.dir" expected-type="java.lang.String" default-value="file:target/tomcat/authzforce-ce-server/data" />
+   <!-- If no "real" Ethernet address to use (host disconnected from the network), use random multicast address. -->
+   <jee:jndi-lookup id="jndi_useRandomAddressBasedUUID" jndi-name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).TRUE}" />
+   <!-- 0 means no sync -->
+   <jee:jndi-lookup id="jndi_syncIntervalSec" jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(0)}" />
+   <jee:jndi-lookup id="jndi_enablePdpOnly" jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
+   <jee:jndi-lookup id="jndi_enableXacmlJsonProfile" jndi-name="org.ow2.authzforce.domains.enableXacmlJsonProfile" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
+   <!-- XML security properties used to set the corresponding JAXRS server pproperties defined in the doc: http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate 
+      XML DoS attacks (since CXF 2.7.4). You should not try to set them via system properties (this does not work as expected). If you comment out this environment entry or specify a negative value, CXF default 
+      value is used. -->
+   <jee:jndi-lookup id="jndi_staxMaxChildElements" jndi-name="org.apache.cxf.stax.maxChildElements" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <jee:jndi-lookup id="jndi_staxMaxElementDepth" jndi-name="org.apache.cxf.stax.maxElementDepth" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <!-- WARNING: the properties below (maxAttributeSize/maxTextLength) are not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser cannot be cast 
+      to org.codehaus.stax2.XMLStreamReader2) because they require Woodstox parser (4.2+) which Sun's FastInfoset parser used here is not. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset 
+      does not provide any means to enforce any of those security requirements." NB: CXF doc is misleading as it makes believe you can use shortcut strings like '64K' or '128M' but you can't. For maxAttributeSize 
+      = 100 in JAXRS server configuration, exception raised only when chars.length > 181! WHY? Possible issue with woodstox library. FIXME: report this issue to CXF/Woodstox. -->
+   <jee:jndi-lookup id="jndi_staxMaxAttributeCount" jndi-name="org.apache.cxf.stax.maxAttributeCount" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <jee:jndi-lookup id="jndi_staxMaxAttributeSize" jndi-name="org.apache.cxf.stax.maxAttributeSize" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <jee:jndi-lookup id="jndi_staxMaxTextLength" jndi-name="org.apache.cxf.stax.maxTextLength" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(-1)}" />
+   <!-- jaxrs:server's publishedEndpointUrl value (empty string is equivalent to undefined/default behavior in which case Apache CXF framework computes the URL as usual) -->
+   <jee:jndi-lookup id="jndi_publishedEndpointUrl" jndi-name="org.ow2.authzforce.webapp.publishedEndpointUrl" expected-type="java.lang.String" default-value="" />
+   <!-- Comma-separated list of keys of JSON fields to deserialize to JAXB/XML attributes from JSON input -->
+   <jee:jndi-lookup id="jndi_jsonKeysToXmlAttributes" jndi-name="org.ow2.authzforce.webapp.jsonKeysToXmlAttributes" expected-type="java.lang.String" default-value="" />
+   <!-- True iff all JAXB/XML attributes must be serialized to normal JSON keys like elements for JSON output, i.e. without a prefix '@' -->
+   <jee:jndi-lookup id="jndi_xmlAttributesToJsonLikeElements" jndi-name="org.ow2.authzforce.webapp.xmlAttributesToJsonLikeElements" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
+   <!-- Comma-separated list of JSON keys with values to be always serialized to JSON arrays (even if single-valued). More info: http://cxf.apache.org/docs/jax-rs-data-bindings.html#JAX-RSDataBindings-DealingwithJettisonarrayserializationissues 
+      (serializeAsArray always true but no effect if this property undefined or has empty value) -->
+   <jee:jndi-lookup id="jndi_jsonKeysWithArrays" jndi-name="org.ow2.authzforce.webapp.jsonKeysWithArrays" expected-type="java.lang.String" default-value="" />
+   <!-- dropNamespaces from JSON output (when mapping from XML) -->
+   <jee:jndi-lookup id="jndi_noNamespaceInJsonOutput" jndi-name="org.ow2.authzforce.webapp.noNamespaceInJsonOutput" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
 
-	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
-		<constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
-		<constructor-arg name="extensionXsdLocation"
-			value="#{jndi_configDir}/authzforce-ext.xsd" />
-	</bean>
+   <bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
+      <constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+      <constructor-arg name="extensionXsdLocation" value="#{jndi_configDir}/authzforce-ext.xsd" />
+   </bean>
 
-	<bean id="domainDAOClientFactoryBean"
-		class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
+   <bean id="domainDaoClientFactoryBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
 
-	<bean id="domainsDAOBean"
-		class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO"
-		destroy-method="closeDomains">
-		<!-- Root directory of domain folders; a domain folder contains all configuration 
-			data of a specific domain, and is named after the domain ID encoded with 
-			base64url. -->
-		<constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
-		<!-- domain template directory for domain creation -->
-		<constructor-arg name="domainTmpl" value="#{jndi_configDir}/domain.tmpl" />
-		<!-- domains directory-to-memory synchronization interval in seconds -->
-		<constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
-		<constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
-		<constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
-		<constructor-arg name="useRandomAddressBasedUUID"
-			value="#{jndi_useRandomAddressBasedUUID}" />
-		<constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
-	</bean>
+   <bean id="domainsDaoBean" class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao" destroy-method="closeDomains">
+      <!-- Root directory of domain folders; a domain folder contains all configuration data of a specific domain, and is named after the domain ID encoded with base64url. -->
+      <constructor-arg name="domainsRoot" value="#{jndi_dataDir}/domains" />
+      <!-- domain template directory for domain creation -->
+      <constructor-arg name="domainTmpl" value="#{jndi_configDir}/domain.tmpl" />
+      <!-- domains directory-to-memory synchronization interval in seconds -->
+      <constructor-arg name="domainsSyncIntervalSec" value="#{jndi_syncIntervalSec}" />
+      <constructor-arg name="pdpModelHandler" ref="pdpModelHandler" />
+      <constructor-arg name="enablePdpOnly" value="#{jndi_enablePdpOnly}" />
+      <constructor-arg name="enableXacmlJsonProfile" value="#{jndi_enableXacmlJsonProfile}" />
+      <constructor-arg name="useRandomAddressBasedUUID" value="#{jndi_useRandomAddressBasedUUID}" />
+      <constructor-arg name="domainDaoClientFactory" ref="domainDaoClientFactoryBean" />
+   </bean>
 
-	<bean id="domainsResourceBean"
-		class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
-		<constructor-arg name="domainsDAO" ref="domainsDAOBean" />
-		<constructor-arg name="authorizedResourceAttribute"
-			value="authorizedResource" />
-		<constructor-arg name="anyResourceId">
-			<null />
-		</constructor-arg>
-	</bean>
+   <bean id="productMetadataResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.ProductMetadataResourceImpl" />
 
-	<!-- XML API support -->
-	<bean id="apiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
-		<property name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
-		<property name="schemaLocations">
-			<util:list>
-				<value>#{jndi_configDir}/authzforce-ext.xsd</value>
-				<value>classpath:/xsd/authz-rest-api.xsd</value>
-			</util:list>
-		</property>
-	</bean>
+   <bean id="domainsResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
+      <constructor-arg name="domainsDao" ref="domainsDaoBean" />
+      <constructor-arg name="authorizedResourceAttribute" value="authorizedResource" />
+      <constructor-arg name="anyResourceId">
+         <null />
+      </constructor-arg>
+   </bean>
 
-	<!-- JAX-RS service supporting XML (textual) and JSON -->
-	<core:bus>
-		<core:properties>
-		<!--  Since not using default JSON Provider, prevent it to be triggered (especially when using FastInfoset instead of JSON, else there is conflict) -->
-			<entry key="skip.default.json.provider.registration" value="true" />
-		</core:properties>
-	</core:bus>
+   <!-- XML API support -->
+   <bean id="apiSchemaHandler" class="org.apache.cxf.jaxrs.utils.schemas.SchemaHandler">
+      <property name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
+      <property name="schemaLocations">
+         <util:list>
+            <value>#{jndi_configDir}/authzforce-ext.xsd</value>
+            <value>classpath:/xsd/authz-rest-api.xsd</value>
+         </util:list>
+      </property>
+   </bean>
 
-	<beans profile="-fastinfoset">
-		<jaxrs:server id="tazService" address="/"
-			docLocation="classpath:/authz-api+json.wadl"
-			staticSubresourceResolution="true">
-			<jaxrs:serviceBeans>
-				<ref bean="domainsResourceBean" />
-			</jaxrs:serviceBeans>
-			<jaxrs:providers>
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.XmlAndJsonOnlyMediaTypeRequestFilter" />
-				<bean class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
-					<property name="singleJaxbContext" value="true" />
-					<property name="extraClass"
-						value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensionLoader).getExtensionJaxbClasses().toArray() }" />
-					<property name="schemaHandler" ref="apiSchemaHandler" />
-				</bean>
-				<!-- Fast Infoset replaced by JSON support: -->
-				<!-- org.apache.cxf.jaxrs.provider.json.JSONProvider does not support 
-					depthProperties (except innerElementCountThreshold) as of CXF 3.1.8 -->
-				<bean class="org.ow2.authzforce.webapp.JsonJaxrsProvider">
-					<!-- depthProperties not supported with Badgerfish convention as of 
-						CXF 3.1.8: http://cxf.547215.n5.nabble.com/No-JSON-depth-control-with-Badgerfish-td5776211.html -->
-					<property name="convention" value="mapped" />
-					<!-- Convert primitive types are converted to strings to fix issue with 
-						Jettison converting XACML Policy(Set) Version "1.0" to JSON number 1 by default. -->
-					<property name="convertTypesToStrings" value="true" />
-					<property name="namespaceSeparator" value=":" />
-					<property name="namespaceMap">
-						<bean
-							class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-							<property name="location"
-								value="#{jndi_configDir}/xmlns-to-json-key-prefix-map.properties" />
-						</bean>
-					</property>
-					<property name="singleJaxbContext" value="true" />
-					<property name="extraClass"
-						value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensionLoader).getExtensionJaxbClasses().toArray() }" />
-					<!-- FIXME: If using depthProperties, org.apache.cxf.stax.* properties 
-						are ignored by this JAXRS provider, so only innerElementLevelThreshold and 
-						innerElementLevelThreshold supported. Else error JettisonReader cannot be 
-						cast to org.codehaus.stax2.XmlStreamReader2 (the only impl to support org.apache.cxf.stax.* 
-						equivalent properties from Woodstox) -->
-					<property name="depthProperties">
-						<bean class="org.apache.cxf.staxutils.DocumentDepthProperties">
-							<!-- Do not set elementCountThreshold which is the max total number 
-								of elements (regardless of depth) in the payload, if already setting. -->
-							<property name="innerElementCountThreshold" value="#{jndi_staxMaxChildElements}" />
-							<property name="innerElementLevelThreshold" value="#{jndi_staxMaxElementDepth}" />
-						</bean>
-					</property>
-					<!-- maxStringLength = maxTextLength if maxAttributeSize unset (<=0), 
-						or maxAttributeSize if maxTextLength unset (<=0), or min(maxAttributeSize, 
-						maxTextLength) -->
-					<property name="maxStringLength"
-						value="#{jndi_staxMaxAttributeSize &lt;= 0 ? jndi_staxMaxTextLength: (jndi_staxMaxTextLength &lt;= 0 ? jndi_staxMaxAttributeSize: T(java.lang.Math).min(jndi_staxMaxAttributeSize,jndi_staxMaxTextLength) ) }" />
-				</bean>
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
-				<bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
-			</jaxrs:providers>
-			<jaxrs:properties>
-				<entry key="org.apache.cxf.propagate.exception" value="false" />
-				<!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, 
-					for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since 
-					CXF 2.7.4). You should not try to set them via system properties (this does 
-					not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
-				<entry key="org.apache.cxf.stax.maxChildElements"
-					value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
-				<entry key="org.apache.cxf.stax.maxElementDepth"
-					value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
-				<entry key="org.apache.cxf.stax.maxAttributeCount"
-					value="#{jndi_staxMaxAttributeCount &lt;= 0 ? 500: jndi_staxMaxAttributeCount}" />
-				<entry key="org.apache.cxf.stax.maxAttributeSize"
-					value="#{jndi_staxMaxAttributeSize &lt;= 0 ? 65536: jndi_staxMaxAttributeSize}" />
-				<entry key="org.apache.cxf.stax.maxTextLength"
-					value="#{jndi_staxMaxTextLength &lt;= 0 ? 134217728: jndi_staxMaxTextLength}" />
-			</jaxrs:properties>
-			<!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
-			<!-- <jaxrs:inInterceptors> -->
-			<!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
-			<!-- </jaxrs:inInterceptors> -->
-			<!-- <jaxrs:outInterceptors> -->
-			<!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
-			<!-- </jaxrs:outInterceptors> -->
-			<jaxrs:outFaultInterceptors>
-				<bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
-			</jaxrs:outFaultInterceptors>
-		</jaxrs:server>
-	</beans>
+   <!-- JAX-RS service supporting XML (textual) and JSON -->
+   <core:bus>
+      <core:properties>
+         <!-- Since not using default JSON Provider, prevent it to be triggered (especially when using FastInfoset instead of JSON, else there is conflict) -->
+         <entry key="skip.default.json.provider.registration" value="true" />
+      </core:properties>
+   </core:bus>
 
-	<!-- JAX-RS service supporting XML (textual) and Fast Infoset -->
-	<beans profile="+fastinfoset">
-		<util:list id="fiType">
-			<value>application/fastinfoset</value>
-		</util:list>
+   <beans profile="-fastinfoset">
+      <util:list id="defaultJsonMediaTypes">
+         <value>application/json</value>
+      </util:list>
+      <util:list id="xacmlJsonMediaTypes">
+         <!-- OASIS JSON Profile of XACML 3.0 -->
+         <value>application/xacml+json</value>
+      </util:list>
 
-		<jaxrs:server id="tazService" address="/"
-			docLocation="classpath:/authz-api+fi+json.wadl"
-			staticSubresourceResolution="true">
-			<jaxrs:serviceBeans>
-				<ref bean="domainsResourceBean" />
-			</jaxrs:serviceBeans>
-			<jaxrs:providers>
-				<bean id="jaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
-					<property name="singleJaxbContext" value="true" />
-					<property name="extraClass"
-						value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensionLoader).getExtensionJaxbClasses().toArray() }" />
-					<property name="schemaHandler" ref="apiSchemaHandler" />
-					<property name="produceMediaTypes" ref="fiType" />
-					<property name="consumeMediaTypes" ref="fiType" />
-				</bean>
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
-				<bean
-					class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
-			</jaxrs:providers>
-			<jaxrs:properties>
-				<entry key="org.apache.cxf.propagate.exception" value="false" />
-				<!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, 
-					for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since 
-					CXF 2.7.4). You should not try to set them via system properties (this does 
-					not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
-				<entry key="org.apache.cxf.stax.maxChildElements"
-					value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
-				<entry key="org.apache.cxf.stax.maxElementDepth"
-					value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
-				<!-- WARNING: the properties maxAttributeCount/maxAttributeSize/maxTextLength 
-					are not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser 
-					cannot be cast to org.codehaus.stax2.XMLStreamReader2) because they require 
-					Woodstox parser (4.2+) which Sun's FastInfoset parser used here is not. See 
-					https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset 
-					does not provide any means to enforce any of those security requirements." -->
-			</jaxrs:properties>
-			<!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
-			<jaxrs:inInterceptors>
-				<bean
-					class="org.ow2.authzforce.webapp.JAXRSSubResourceCompatibleFIStaxInInterceptor" />
-				<!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
-			</jaxrs:inInterceptors>
-			<jaxrs:outInterceptors>
-				<bean class="org.apache.cxf.interceptor.FIStaxOutInterceptor" />
-				<!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
-			</jaxrs:outInterceptors>
-			<jaxrs:outFaultInterceptors>
-				<bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
-			</jaxrs:outFaultInterceptors>
-		</jaxrs:server>
-	</beans>
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:authz-api+json.wadl" staticSubresourceResolution="true" publishedEndpointUrl="#{jndi_publishedEndpointUrl}">
+         <jaxrs:serviceBeans>
+            <ref bean="productMetadataResourceBean" />
+            <ref bean="domainsResourceBean" />
+         </jaxrs:serviceBeans>
+         <jaxrs:providers>
+            <bean class="org.ow2.authzforce.jaxrs.util.AcceptMediaTypeCheckingRequestFilter">
+               <constructor-arg>
+                  <util:list>
+                     <value>application/xml</value>
+                     <!-- IETF RFC 7061 -->
+                     <value>application/xacml+xml</value>
+                     <value>application/json</value>
+                     <!-- OASIS JSON Profile of XACML 3.0 -->
+                     <value>application/xacml+json</value>
+                  </util:list>
+               </constructor-arg>
+            </bean>
+            <bean class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+               <property name="singleJaxbContext" value="true" />
+               <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
+               <property name="schemaHandler" ref="apiSchemaHandler" />
+            </bean>
+            <!-- Fast Infoset replaced by JSON support: -->
+            <bean class="org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider">
+               <!-- Provider for XACML/JSON profile support (only to be used on /pdp resource) -->
+               <!-- Only innerElementCountThreshold, innerElementLevelThreshold and maxTextLength/maxAttributeSize are supported. If one of them is negative or zero, all these properties are ignored -->
+               <constructor-arg name="maxJsonStringSize"
+                  value="#{jndi_staxMaxAttributeSize &lt;= 0 ? jndi_staxMaxTextLength: (jndi_staxMaxTextLength &lt;= 0 ? jndi_staxMaxAttributeSize: T(java.lang.Math).min(jndi_staxMaxAttributeSize,jndi_staxMaxTextLength) ) }" />
+               <constructor-arg name="maxNumOfImmediateChildren" value="#{jndi_staxMaxChildElements}" />
+               <constructor-arg name="maxDepth" value="#{jndi_staxMaxElementDepth}" />
+               <property name="produceMediaTypes" ref="xacmlJsonMediaTypes" />
+               <property name="consumeMediaTypes" ref="xacmlJsonMediaTypes" />
+            </bean>
+            <!-- org.apache.cxf.jaxrs.provider.json.JSONProvider does not support depthProperties (except innerElementCountThreshold) as of CXF 3.1.8 so we use our own JSONProvider -->
+            <bean class="org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json.JSONProvider">
+               <!-- JSON Provider for "application/json" (already in class annotations) mime type (JSON -> XML using mapped convention) -->
+               <property name="produceMediaTypes" ref="defaultJsonMediaTypes" />
+               <property name="consumeMediaTypes" ref="defaultJsonMediaTypes" />
+               <!-- We are not using Badgerfish because depthProperties not supported with Badgerfish convention as of CXF 3.1.8: http://cxf.547215.n5.nabble.com/No-JSON-depth-control-with-Badgerfish-td5776211.html -->
+               <property name="convention" value="mapped" />
+               <!-- Primitive types are converted to strings to fix issue with Jettison converting XACML Policy(Set) Version "1.0" to JSON number 1 by default. -->
+               <property name="convertTypesToStrings" value="true" />
+               <property name="attributesToElements" value="#{jndi_xmlAttributesToJsonLikeElements}" />
+               <property name="elementsToAttributes" value="#{ '${jndi_jsonKeysToXmlAttributes}'.split('\s*,\s*')}" />
+               <!-- serializeAsArray has effect iff arrayKeys non-empty, in which case it force serialization of every collection to a JSON array even if single-valued. It does not apply to deserializing 
+                  from array -->
+               <property name="serializeAsArray" value="true" />
+               <property name="arrayKeys" value="#{ '${jndi_jsonKeysWithArrays}'.split('\s*,\s*')}" />
+               <property name="readXsiType" value="true" />
+               <property name="ignoreNamespaces" value="#{jndi_noNamespaceInJsonOutput}" />
+               <property name="namespaceSeparator" value=":" />
+               <!-- It is tempting to use out/inTransformElements property instead of namespaceMap to allow further customization. However, it makes configuration redundant, more complex and has unexpected 
+                  results in tests. -->
+               <property name="namespaceMap">
+                  <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+                     <property name="location" value="#{jndi_configDir}/xmlns-to-json-key-prefix-map.properties" />
+                  </bean>
+               </property>
+               <property name="inTransformElements">
+               <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+               <property name="location" value="#{jndi_configDir}/json-to-xml-map.properties" />
+               </bean>
+               </property>
+               <!-- <property name="outTransformElements"> -->
+               <!-- <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean"> -->
+               <!-- <property name="location" value="#{jndi_configDir}/xml-to-json-map.properties" /> -->
+               <!-- </bean> -->
+               <!-- </property> -->
+               <property name="schemaHandler" ref="apiSchemaHandler" />
+               <property name="singleJaxbContext" value="true" />
+               <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
+               <!-- depthProperties not supported with Badgerfish convention as of CXF 3.1.8: http://cxf.547215.n5.nabble.com/No-JSON-depth-control-with-Badgerfish-td5776211.html -->
+               <!-- FIXME: If using depthProperties, org.apache.cxf.stax.* properties are ignored by this JAXRS provider, so only innerElementCountThreshold and innerElementLevelThreshold supported. Else 
+                  error JettisonReader cannot be cast to org.codehaus.stax2.XmlStreamReader2 (the only impl to support org.apache.cxf.stax.* equivalent properties from Woodstox) -->
+               <property name="depthProperties">
+                  <bean class="org.apache.cxf.staxutils.DocumentDepthProperties">
+                     <!-- Do not set elementCountThreshold which is the max total number of elements (regardless of depth) in the payload, if already setting. -->
+                     <property name="innerElementCountThreshold" value="#{jndi_staxMaxChildElements}" />
+                     <property name="innerElementLevelThreshold" value="#{jndi_staxMaxElementDepth}" />
+                  </bean>
+               </property>
+               <!-- maxStringLength = maxTextLength if maxAttributeSize unset (<=0), or maxAttributeSize if maxTextLength unset (<=0), or min(maxAttributeSize, maxTextLength) -->
+               <property name="maxStringLength"
+                  value="#{jndi_staxMaxAttributeSize &lt;= 0 ? jndi_staxMaxTextLength: (jndi_staxMaxTextLength &lt;= 0 ? jndi_staxMaxAttributeSize: T(java.lang.Math).min(jndi_staxMaxAttributeSize,jndi_staxMaxTextLength) ) }" />
+            </bean>
+            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.ClientErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.UnsupportedOperationExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.ServerErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.DefaultExceptionMapper" />
+         </jaxrs:providers>
+         <jaxrs:properties>
+            <entry key="org.apache.cxf.propagate.exception" value="false" />
+            <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
+               not try to set them via system properties (this does not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
+            <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
+            <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
+            <entry key="org.apache.cxf.stax.maxAttributeCount" value="#{jndi_staxMaxAttributeCount &lt;= 0 ? 500: jndi_staxMaxAttributeCount}" />
+            <entry key="org.apache.cxf.stax.maxAttributeSize" value="#{jndi_staxMaxAttributeSize &lt;= 0 ? 65536: jndi_staxMaxAttributeSize}" />
+            <entry key="org.apache.cxf.stax.maxTextLength" value="#{jndi_staxMaxTextLength &lt;= 0 ? 134217728: jndi_staxMaxTextLength}" />
+         </jaxrs:properties>
+         <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
+         <!-- <jaxrs:inInterceptors> -->
+         <!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
+         <!-- </jaxrs:inInterceptors> -->
+         <!-- <jaxrs:outInterceptors> -->
+         <!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
+         <!-- </jaxrs:outInterceptors> -->
+         <jaxrs:outFaultInterceptors>
+            <bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
+         </jaxrs:outFaultInterceptors>
+      </jaxrs:server>
+   </beans>
+
+   <!-- JAX-RS service supporting XML (textual) and Fast Infoset -->
+   <beans profile="+fastinfoset">
+      <util:list id="fiType">
+         <value>application/fastinfoset</value>
+      </util:list>
+
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:authz-api+fi.wadl" staticSubresourceResolution="true" publishedEndpointUrl="#{jndi_publishedEndpointUrl}">
+         <jaxrs:serviceBeans>
+            <ref bean="productMetadataResourceBean" />
+            <ref bean="domainsResourceBean" />
+         </jaxrs:serviceBeans>
+         <jaxrs:providers>
+            <bean id="jaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+               <property name="singleJaxbContext" value="true" />
+               <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
+               <property name="schemaHandler" ref="apiSchemaHandler" />
+               <property name="produceMediaTypes" ref="fiType" />
+               <property name="consumeMediaTypes" ref="fiType" />
+            </bean>
+            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.ClientErrorExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.UnsupportedOperationExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.ServerErrorExceptionMapper" />
+         </jaxrs:providers>
+         <jaxrs:properties>
+            <entry key="org.apache.cxf.propagate.exception" value="false" />
+            <!-- For more info on the properties below, see http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate XML DoS attacks (since CXF 2.7.4). You should 
+               not try to set them via system properties (this does not work as expected). Default values are same as in CXF documentation (cf. StaxUtils class for the code). -->
+            <entry key="org.apache.cxf.stax.maxChildElements" value="#{jndi_staxMaxChildElements &lt;= 0 ? 50000: jndi_staxMaxChildElements}" />
+            <entry key="org.apache.cxf.stax.maxElementDepth" value="#{jndi_staxMaxElementDepth &lt;= 0 ? 100: jndi_staxMaxElementDepth}" />
+            <!-- WARNING: the properties maxAttributeCount/maxAttributeSize/maxTextLength are not compatible with FastInfoset (you will get: ClassCastException: com.sun.xml.fastinfoset.stax.StAXDocumentParser 
+               cannot be cast to org.codehaus.stax2.XMLStreamReader2) because they require Woodstox parser (4.2+) which Sun's FastInfoset parser used here is not. See https://issues.apache.org/jira/browse/CXF-6848: Daniel 
+               Kulp: "FastInfoset does not provide any means to enforce any of those security requirements." -->
+         </jaxrs:properties>
+         <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
+         <jaxrs:inInterceptors>
+            <bean class="org.ow2.authzforce.webapp.org.apache.cxf.interceptor.JAXRSSubResourceCompatibleFIStaxInInterceptor" />
+            <!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
+         </jaxrs:inInterceptors>
+         <jaxrs:outInterceptors>
+            <bean class="org.apache.cxf.interceptor.FIStaxOutInterceptor" />
+            <!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
+         </jaxrs:outInterceptors>
+         <jaxrs:outFaultInterceptors>
+            <bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
+         </jaxrs:outFaultInterceptors>
+      </jaxrs:server>
+   </beans>
 
 </beans>
 

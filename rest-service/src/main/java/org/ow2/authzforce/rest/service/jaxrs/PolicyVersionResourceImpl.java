@@ -25,8 +25,8 @@ import javax.ws.rs.NotFoundException;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 
-import org.ow2.authzforce.core.pap.api.dao.DomainDAO;
-import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDAOClient;
+import org.ow2.authzforce.core.pap.api.dao.DomainDao;
+import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDaoClient;
 import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 
@@ -34,7 +34,7 @@ import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
  * Policy Version resource implementation. Each policy version managed by {@link PolicyResourceImpl} is an instance of this class.
  *
  */
-public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, PolicyVersionResource
+public class PolicyVersionResourceImpl implements PolicyVersionDaoClient, PolicyVersionResource
 {
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 
@@ -46,11 +46,11 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 	 * Policy version resource Factory
 	 *
 	 */
-	public static final PolicyVersionDAOClient.Factory<PolicyVersionResourceImpl> FACTORY = new PolicyVersionDAOClient.Factory<PolicyVersionResourceImpl>()
+	public static final PolicyVersionDaoClient.Factory<PolicyVersionResourceImpl> FACTORY = new PolicyVersionDaoClient.Factory<PolicyVersionResourceImpl>()
 	{
 
 		@Override
-		public PolicyVersionResourceImpl getInstance(final String policyId, final PolicyVersion versionId, final DomainDAO<?, ?> domainDAO)
+		public PolicyVersionResourceImpl getInstance(final String policyId, final PolicyVersion versionId, final DomainDao<?, ?> domainDAO)
 		{
 			if (versionId == null)
 			{
@@ -68,11 +68,11 @@ public class PolicyVersionResourceImpl implements PolicyVersionDAOClient, Policy
 	};
 
 	private final PolicyVersion versionId;
-	private final DomainDAO<?, ?> domainDAO;
+	private final DomainDao<?, ?> domainDAO;
 
 	private final String policyId;
 
-	private PolicyVersionResourceImpl(final String policyId, final PolicyVersion versionId, final DomainDAO<?, ?> domainDAO)
+	private PolicyVersionResourceImpl(final String policyId, final PolicyVersion versionId, final DomainDao<?, ?> domainDAO)
 	{
 		assert versionId != null && domainDAO != null;
 		this.policyId = policyId;

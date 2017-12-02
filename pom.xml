@@ -4,7 +4,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-parent</artifactId>
-      <version>5.1.0</version>
+      <version>7.0.0</version>
    </parent>
    <artifactId>authzforce-ce-server</artifactId>
    <!-- FIWARE Versioning + Version must be equal or higher than 'authzforce-ce-rest-api-model' dependency in 'rest-service' module -->
@@ -15,10 +15,12 @@
    <url>${project.url}</url>
    <properties>
       <git.url.base>https://github.com/authzforce/server</git.url.base>
-      <authzforce-ce-core.version>8.0.0</authzforce-ce-core.version>
-      <authzforce-ce-core-pap-api.version>6.4.0</authzforce-ce-core-pap-api.version>
+      <authzforce-ce-core.version>10.0.0</authzforce-ce-core.version>
+      <authzforce-ce-core-pap-api.version>9.0.0</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
-      <authzforce-ce-pap-dao-flat-file.version>8.1.0</authzforce-ce-pap-dao-flat-file.version>
+      <authzforce-ce-pap-dao-flat-file.version>9.0.0</authzforce-ce-pap-dao-flat-file.version>
+      <productName>AuthzForce CE Server</productName>
+      <productMaintainer>Thales Services SAS</productMaintainer>
    </properties>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
