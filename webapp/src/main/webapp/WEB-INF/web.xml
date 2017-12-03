@@ -47,6 +47,18 @@
       <env-entry-value></env-entry-value>
    </env-entry>
    <env-entry>
+      <description>Comma-separated list of keys of JSON fields to be deserialized from JSON input as JAXB/XML attributes</description>
+      <env-entry-name>org.ow2.authzforce.webapp.jsonKeysToXmlAttributes</env-entry-name>
+      <env-entry-type>java.lang.String</env-entry-type>
+      <env-entry-value></env-entry-value>
+   </env-entry>
+   <env-entry>
+      <description>All JAXB/XML attributes must be serialized to normal JSON keys like elements for JSON output, i.e. without a prefix '@', iff this is true</description>
+      <env-entry-name>org.ow2.authzforce.webapp.xmlAttributesToJsonLikeElements</env-entry-name>
+      <env-entry-type>java.lang.Boolean</env-entry-type>
+      <env-entry-value>false</env-entry-value>
+   </env-entry>
+   <env-entry>
       <description>Comma-separated list of JSON keys with values to be always serialized to JSON arrays (even if single-valued). More info: http://cxf.apache.org/docs/jax-rs-data-bindings.html#JAX-RSDataBindings-DealingwithJettisonarrayserializationissues 
       (serializeAsArray always true but no effect if this property undefined or has empty value)</description>
       <env-entry-name>org.ow2.authzforce.webapp.jsonKeysWithArrays</env-entry-name>
@@ -54,7 +66,7 @@
       <env-entry-value></env-entry-value>
    </env-entry>
    <env-entry>
-      <description>Drop XML namespaces (JSON key prefix) from JSON output in XML-to-JSON translation</description>
+      <description>XML namespaces (JSON key prefix) are dropped from JSON output in XML-to-JSON translation iff this is true</description>
       <env-entry-name>org.ow2.authzforce.webapp.noNamespaceInJsonOutput</env-entry-name>
       <env-entry-type>java.lang.Boolean</env-entry-type>
       <env-entry-value>false</env-entry-value>
