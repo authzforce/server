@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Context used by Tomcat -->
-<Context path="/authzforce-ce" docBase="/opt/${productName}/webapp">
+<Context path="/authzforce-ce" docBase="/opt/${productId}/webapp">
 
    <!-- Override <context-param>s in web.xml -->
-   <Parameter name="logbackConfigLocation" description="Logging configuration file" value="file:/opt/${productName}/conf/logback.xml" override="false" />
+   <Parameter name="logbackConfigLocation" description="Logging configuration file" value="file:/opt/${productId}/conf/logback.xml" override="false" />
 
    <Parameter name="spring.profiles.active" description="application profiles: '+fastinfoset' to enable FastInfoset support, '-fastinfoset' to disable FastInfoset support" value="-fastinfoset"
       override="false" />
 
    <!-- <env-entry>s in web.xml do not override entries below iff override=false. -->
-   <Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productName}/conf" type="java.lang.String" override="false"
+   <Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productId}/conf" type="java.lang.String" override="false"
       description="Configuration directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
-   <Environment name="org.ow2.authzforce.data.dir" value="file:/opt/${productName}/data" type="java.lang.String" override="false"
+   <Environment name="org.ow2.authzforce.data.dir" value="file:/opt/${productId}/data" type="java.lang.String" override="false"
       description="Data (e.g. data of domains created and managed by the API) directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
    <Environment name="org.ow2.authzforce.uuid.gen.randomMulticastAddressBased" value="false" type="java.lang.Boolean" override="false"

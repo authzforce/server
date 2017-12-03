@@ -1,4 +1,4 @@
-Package: [[productName]]
+Package: [[productId]]
 Version: [[version]]
 Section: web
 Priority: optional

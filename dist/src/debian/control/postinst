@@ -7,12 +7,12 @@ set -e
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
-db_get [[productName]]/keepSamples
+db_get [[productId]]/keepSamples
 if [ "$RET" = false ]; then
-	rm -rf /opt/[[productName]]/data/domains/*
+	rm -rf /opt/[[productId]]/data/domains/*
 fi
 
-db_get [[productName]]/restartTomcat
+db_get [[productId]]/restartTomcat
 if [ "$RET" = true ]; then
         export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=http -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
         sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat8

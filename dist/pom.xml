@@ -27,9 +27,9 @@
       </dependency>
    </dependencies>
    <build>
-      <finalName>${productName}-${project.version}</finalName>
+      <finalName>${productId}-${project.version}</finalName>
       <resources>
-         <!-- Replace variable 'productName' and 'project.version' in some source files. The result goes to ${project.build.directory}. -->
+         <!-- Replace variable 'productId' and 'project.version' in some source files. The result goes to ${project.build.directory}. -->
          <resource>
             <directory>src</directory>
             <filtering>true</filtering>
@@ -141,9 +141,9 @@
                   <configuration>
                      <verbose>true</verbose>
                      <snapshotExpand>true</snapshotExpand>
-                     <deb>${project.build.directory}/${productName}_${project.version}-0ubuntu1_all.deb</deb>
+                     <deb>${project.build.directory}/${productId}_${project.version}-0ubuntu1_all.deb</deb>
                      <changesIn>${project.build.outputDirectory}/debian/changes.jdeb.txt</changesIn>
-                     <changesOut>${project.build.directory}/${productName}_${project.version}_all.changes</changesOut>
+                     <changesOut>${project.build.directory}/${productId}_${project.version}_all.changes</changesOut>
                      <!-- expand "SNAPSHOT" to what is in the "USER" env variable. Expanded to timestamp by default. -->
                      <!-- <snapshotEnv>USER</snapshotEnv> -->
                      <!-- In control files, you can use any variable defined by initializeVariableResolver(...) method in https://github.com/tcurdt/jdeb/blob/master/src/main/java/org/vafer/jdeb/maven/DebMojo.java 
@@ -153,12 +153,12 @@
                         <data>
                            <!-- lintian will complain changelog-not-compressed-with-max-compression . Fix to come: https://github.com/tcurdt/jdeb/issues/157 -->
                            <src>${project.build.outputDirectory}/debian/changelog</src>
-                           <dst>/usr/share/doc/${productName}/changelog</dst>
+                           <dst>/usr/share/doc/${productId}/changelog</dst>
                            <type>file</type>
                         </data>
                         <data>
                            <src>${project.basedir}/src/debian/copyright</src>
-                           <dst>/usr/share/doc/${productName}/copyright</dst>
+                           <dst>/usr/share/doc/${productId}/copyright</dst>
                            <type>file</type>
                         </data>
                         <data>
@@ -169,13 +169,13 @@
                            <mapper>
                               <type>perm</type>
                               <!-- Starting '.' necessary to get absolute paths, otherwise lintian complains "relative-conffile" -->
-                              <prefix>./opt/${productName}/conf</prefix>
+                              <prefix>./opt/${productId}/conf</prefix>
                               <user>root</user>
                               <group>tomcat8</group>
                            </mapper>
                         </data>
                         <data>
-                           <!-- Webapp-specific context for Tomcat, after replacing 'productName' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
+                           <!-- Webapp-specific context for Tomcat, after replacing 'productId' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
                            <src>${project.build.outputDirectory}/webapp-context.xml</src>
                            <dst>/etc/tomcat8/Catalina/localhost/authzforce-ce.xml</dst>
                            <type>file</type>
@@ -189,7 +189,7 @@
                            <missingSrc>fail</missingSrc>
                            <mapper>
                               <type>perm</type>
-                              <prefix>./opt/${productName}/webapp</prefix>
+                              <prefix>./opt/${productId}/webapp</prefix>
                               <user>root</user>
                               <group>tomcat8</group>
                               <!-- filemode/dirmode set to 000 by default. Issue: https://github.com/tcurdt/jdeb/issues/55 -->
@@ -204,7 +204,7 @@
                            <type>directory</type>
                            <mapper>
                               <type>perm</type>
-                              <prefix>./opt/${productName}/data/domains</prefix>
+                              <prefix>./opt/${productId}/data/domains</prefix>
                               <user>tomcat8</user>
                               <group>tomcat8</group>
                            </mapper>

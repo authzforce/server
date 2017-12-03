@@ -19,6 +19,7 @@
       <authzforce-ce-core-pap-api.version>9.0.0</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
       <authzforce-ce-pap-dao-flat-file.version>9.0.0</authzforce-ce-pap-dao-flat-file.version>
+      <productId>authzforce-ce-server</productId>
       <productName>AuthzForce CE Server</productName>
       <productMaintainer>Thales Services SAS</productMaintainer>
    </properties>

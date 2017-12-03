@@ -7,8 +7,8 @@ set -e
 . /usr/share/debconf/confmodule
  
 # Ask questions
-db_input high [[productName]]/keepSamples || true
-db_input high [[productName]]/restartTomcat || true
+db_input high [[productId]]/keepSamples || true
+db_input high [[productId]]/restartTomcat || true
  
 # Show interface
 db_go || true

@@ -1,11 +1,11 @@
-Template: [[productName]]/keepSamples
+Template: [[productId]]/keepSamples
 Type: boolean
 Default: false
 Description: Do you want to keep the test domain created by default?
  The installation creates a test domain by default to get started testing the API quickly. If this is a production system, you may not need this
  (answer: No). If you answer No, you can always create domains later with the API.
 
-Template: [[productName]]/restartTomcat
+Template: [[productId]]/restartTomcat
 Type: boolean
 Default: true
 Description: Do you want to apply recommended Tomcat settings for AuthZForce (and restart Tomcat to apply changes)?
