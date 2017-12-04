@@ -30,7 +30,7 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-         <version>5.6.0</version>
+         <version>5.7.0</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
@@ -39,7 +39,7 @@
       <dependency>
          <groupId>org.ow2.authzforce</groupId>
          <artifactId>authzforce-ce-jaxrs-utils</artifactId>
-         <version>1.0.0</version>
+         <version>1.1.0</version>
       </dependency>
    </dependencies>
    <build>

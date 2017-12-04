@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Context used by Tomcat -->
 <Context path="/authzforce-ce" docBase="/opt/${productId}/webapp">
+   <JarScanner scanClassPath="false">
+      <JarScanFilter defaultPluggabilityScan="false" defaultTldScan="false" />
+   </JarScanner>
 
    <!-- Override <context-param>s in web.xml -->
    <Parameter name="logbackConfigLocation" description="Logging configuration file" value="file:/opt/${productId}/conf/logback.xml" override="false" />
@@ -34,8 +37,8 @@
       arrays (even if single-valued). More info: http://cxf.apache.org/docs/jax-rs-data-bindings.html#JAX-RSDataBindings-DealingwithJettisonarrayserializationissues (serializeAsArray always true but no effect 
       if this property undefined or has empty value). The example here works for AuthzForce Manager GUI" value="link,PolicySet,PolicySetIdReference,Policy,PolicyIdReference,Rule,VariableDefinition,AnyOf,AllOf,Match,ObligationExpressions,AdviceExpressions,Obligations,AssociatedAdvice" 
       /> -->
-     
-     <Environment name="org.ow2.authzforce.webapp.noNamespaceInJsonOutput" value="false" type="java.lang.Boolean" override="false"
-      description="Whether to drop all XML namespaces (JSON key prefixes) from JSON output in XML-to-JSON translation. Enable this for AuthzForce Manager GUI." /> 
+
+   <Environment name="org.ow2.authzforce.webapp.noNamespaceInJsonOutput" value="false" type="java.lang.Boolean" override="false"
+      description="Whether to drop all XML namespaces (JSON key prefixes) from JSON output in XML-to-JSON translation. Enable this for AuthzForce Manager GUI." />
 
 </Context>

@@ -4,7 +4,7 @@
    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public 
    License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
-   xmlns:jee="http://www.springframework.org/schema/jee" xmlns:core="http://cxf.apache.org/core" 
+   xmlns:jee="http://www.springframework.org/schema/jee" xmlns:core="http://cxf.apache.org/core"
    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
 						http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
@@ -167,9 +167,9 @@
                   </bean>
                </property>
                <property name="inTransformElements">
-               <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-               <property name="location" value="#{jndi_configDir}/json-to-xml-map.properties" />
-               </bean>
+                  <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+                     <property name="location" value="#{jndi_configDir}/json-to-xml-map.properties" />
+                  </bean>
                </property>
                <!-- <property name="outTransformElements"> -->
                <!-- <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean"> -->

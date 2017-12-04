@@ -103,7 +103,6 @@ The sources for the manuals are located in [fiware repository](http://github.com
 <pre><code>
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 </code></pre>
-1. Update the `AUTHZFORCE_SERVER_VERSION` ENV variable to the new version in [Dockerfile](dist/src/docker/Dockerfile).
 1. Update the [changelog](CHANGELOG.md) with the new version according to keepachangelog.com.
 1. Commit 
 1. Perform the software release (example using a HTTP proxy):

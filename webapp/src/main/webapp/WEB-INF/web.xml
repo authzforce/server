@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- See https://wiki.apache.org/tomcat/HowTo/FasterStartUp for details about metadata-complete attribute and absolute-ordering element. -->
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-   version="3.0">
+   version="3.0" metadata-complete="true">
    <display-name>Thales AuthzForce Web Application</display-name>
+   <absolute-ordering />
    <env-entry>
       <description>Configuration directory path that may contain ${...} placeholders, to be resolved as system properties: e.g. ${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class). You may use Tomcat property 'catalina.base' or 'com.sun.aas.instanceRoot' for Glassfish.</description>
       <env-entry-name>org.ow2.authzforce.config.dir</env-entry-name>

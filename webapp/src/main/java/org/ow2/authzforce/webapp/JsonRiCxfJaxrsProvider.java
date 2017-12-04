@@ -26,6 +26,7 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
@@ -41,16 +42,17 @@ import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.ow2.authzforce.jaxrs.util.JaxbErrorMessage;
 import org.ow2.authzforce.xacml.json.model.LimitsCheckingJSONObject;
 
 /**
  * JAX-RS entity provider for {@link JSONObject} input/output with configurable Consume/Produce media types and optional buffering
  * <p>
- * TODO: this is copy-paste from org.ow2.authzforce.core.pdp.xacml.json.jaxrs.JsonRiJaxrsProvider class (authzforce-ce-jaxrs-pdp-xacml-json project), except this one extends CXF-specific
- * {@link AbstractConfigurableProvider} to allow configuration of Consume/Produce media types and use of this info at runtime. See how we can reuse in one way or the other.
+ * TODO: this is copy-paste from org.ow2.authzforce.core.pdp.xacml.json.jaxrs.JsonRiJaxrsProvider class (authzforce-ce-jaxrs-pdp-xacml-json project), except this one handles {@link JaxbErrorMessage},
+ * and extends CXF-specific {@link AbstractConfigurableProvider} to allow configuration of Consume/Produce media types and use of this info at runtime. See how we can reuse in one way or the other.
  */
 @Provider
-public final class JsonRiCxfJaxrsProvider extends AbstractConfigurableProvider implements MessageBodyReader<JSONObject>, MessageBodyWriter<JSONObject>
+public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<JSONObject>, MessageBodyWriter<T>
 {
 	private interface JSONObjectFactory
 	{
@@ -78,15 +80,15 @@ public final class JsonRiCxfJaxrsProvider extends AbstractConfigurableProvider i
 
 	/**
 	 * Constructs JSON provider using hardened {@link JSONTokener} that checks limits on JSON structures, such as arrays and strings, in order to mitigate content-level attacks. Downside: it is slower
-	 * at parsing than for {@link JsonRiCxfJaxrsProvider#JsonRiJaxrsProvider()}.
+	 * at parsing than for {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 * 
 	 * @param maxJsonStringSize
-	 *            allowed maximum size of JSON keys and string values. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiJaxrsProvider()}.
+	 *            allowed maximum size of JSON keys and string values. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 * @param maxNumOfImmediateChildren
 	 *            allowed maximum number of keys (therefore key-value pairs) in JSON object, or items in JSON array. If negative or zero, limits are ignored and this is equivalent to
-	 *            {@link JsonRiCxfJaxrsProvider#JsonRiJaxrsProvider()}.
+	 *            {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 * @param maxDepth
-	 *            allowed maximum depth of JSON object. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiJaxrsProvider()}.
+	 *            allowed maximum depth of JSON object. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 */
 	@ConstructorProperties({ "maxJsonStringSize", "maxNumOfImmediateChildren", "maxDepth" })
 	public JsonRiCxfJaxrsProvider(final int maxJsonStringSize, final int maxNumOfImmediateChildren, final int maxDepth)
@@ -112,22 +114,37 @@ public final class JsonRiCxfJaxrsProvider extends AbstractConfigurableProvider i
 	@Override
 	public boolean isWriteable(final Class<?> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType)
 	{
-		return JSONObject.class.isAssignableFrom(type);
+		return JSONObject.class.isAssignableFrom(type) || type == JaxbErrorMessage.class;
 	}
 
 	@Override
-	public long getSize(final JSONObject o, final Class<?> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType)
+	public long getSize(final T o, final Class<?> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType)
 	{
 		return -1;
 	}
 
 	@Override
-	public void writeTo(final JSONObject o, final Class<?> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType, final MultivaluedMap<String, Object> httpHeaders,
+	public void writeTo(final T o, final Class<?> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType, final MultivaluedMap<String, Object> httpHeaders,
 			final OutputStream entityStream) throws IOException, WebApplicationException
 	{
-		final OutputStreamWriter writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8);
-		o.write(writer);
-		writer.close();
+		final JSONObject json;
+		if (o instanceof JSONObject)
+		{
+			json = (JSONObject) o;
+		}
+		else if (o instanceof JaxbErrorMessage)
+		{
+			final JaxbErrorMessage errMsg = (JaxbErrorMessage) o;
+			json = new JSONObject(Collections.singletonMap("error", errMsg.getMessage()));
+		}
+		else
+		{
+			throw new RuntimeException("Unexpected input object class to MessageBodyWriter '" + this.getClass() + "': " + o.getClass());
+		}
+		try (final OutputStreamWriter writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8))
+		{
+			json.write(writer);
+		}
 	}
 
 	@Override

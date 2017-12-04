@@ -245,6 +245,11 @@ public class RootResourcesTest extends RestServiceTest
 			createdDomainIds.add(domainId);
 			return;
 		}
+		catch (final Exception e)
+		{
+			fail("Unexpected exception:", e);
+			return;
+		}
 
 		assertFalse(enablePdpOnly, "addDomain method allowed although enablePdpOnly=true");
 

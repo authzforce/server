@@ -6,7 +6,7 @@
    <!-- Base URL of the remote AuthZForce webapp to be tested (up to the context root), if not testing locally. If and only if specified and not the empty string, the server is assumed to be remote; no 
       server started locally (embedded). -->
    <parameter name="remote.base.url" value="" />
-   <!-- <parameter name="remote.base.url" value="http://localhost:8080/authzforce-ce" /> -->
+<!--    <parameter name="remote.base.url" value="http://192.168.0.36:8080/authzforce-ce" /> -->
    <!-- True iff the filesystem local to the server is a "legacy" filesystem, meaning here that millisecond or higher resolution of file timestamps is not supported. This is the case of 'ext3'; whereas 
       'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the 
       last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results. -->
