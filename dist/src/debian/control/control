@@ -5,7 +5,7 @@ Priority: optional
 Architecture: all
 Depends: debconf (>= 0.2.26), openjdk-8-jre | oracle-java8-installer, tomcat8
 Maintainer: [[productMaintainer]] 
-Description: AuthForce CE Server.
+Description: AuthzForce CE Server.
  Reference Implementation of FIWARE Authorization PDP Generic Enabler
 # Distribution will be removed by jdeb from the final debian control file but used as 'distribution' in the .changes file
 # Do not specify 'distribution' in the CHANGES.txt (on the contrary to current jdeb doc with ant) as it is ignored, only the Distribution specified here is used for the .changes file.
