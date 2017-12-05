@@ -4,6 +4,53 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## Unreleased
+### Changed
+- Parent project version: 5.1.0 -> 7.1.0:
+- Dependency versions:
+	- Guava: 21.0 -> 22.0
+	- Spring: 4.3.6 -> 4.3.12
+	- JAX-RS API (javax.ws.rs-api): 2.0.1 -> 2.1
+	- CXF: 3.1.10 -> 3.2.1
+	- AuthzForce Flat-file-based PAP DAO (authzforce-ce-pap-dao-flat-file): 8.1.0 -> 9.1.0:
+		- AuthzForce Core (authzforce-ce-core): 7.1.0 -> 10.1.0
+			- authzforce-ce-core-pdp-api: 9.1.0 -> 12.1.0
+			- (new) authzforce-ce-xacml-json-model: 1.1.0, depends on:
+				- org.everit.json.schema: 1.6.1
+			- Domains' `pdp.xml` schema: 5.0.0 -> 6.0.0
+				- `badRequestStatusDetailLevel` attribute replaced with `clientRequestErrorVerbosityLevel`
+				- `requestFilter` (resp. `resultFilter`) attribute replaced with `requestPreproc` (resp. `resultPostproc`) element
+		- AuthzForce Core PAP API (authzforce-ce-core-pap-api): 6.4.0 -> 9.1.0 
+	- AuthzForce Server REST API Model (authzforce-ce-rest-api-model): 5.4.0 -> 5.7.0
+- REST API resource `/pap/pdp.properties`: PDP feature identifiers named *...:request-filter:...* replaced with *...:request-preproc:...*, and *...:result-filter:...* with *...:result-postproc:...*.
+
+### Added
+- REST API improvements:
+	- `[OW2-28]`: configurable base address in WADL via property `org.ow2.authzforce.webapp.publishedEndpointUrl` (JNDI environment entry), to make sure links in the WADL match the public endpoint address if the server is reached via a reverse-proxy
+	- `[OW2-29]`: added XML-schema-based validation for JSON input (content-type `application/json`)
+	- `[OW2-30]`: new `/version` resource on REST API, supporting GET method only and providing product metadata (name, version, release date, server uptime, REST API description URL) as a result.
+	- `[OW2-32]`: improved error message when client attempt to POST a xacml Policy (instead of PolicySet) on `.../policies` resource
+	- Support for [XACML JSON Profile](http://docs.oasis-open.org/xacml/xacml-json-http/v1.0/xacml-json-http-v1.0.html) with following security features:
+		- JSON schema [Draft v6](https://tools.ietf.org/html/draft-wright-json-schema-01) validation, using new dependency: `org.everit.json.schema` (1.6.1);
+		- DoS mitigation: JSON parser variant checking max JSON string size, max number of JSON keys/array items and max JSON object depth.
+	- New supported content types: 
+		- `application/xacml+json` for [XACML JSON Profile](http://docs.oasis-open.org/xacml/xacml-json-http/v1.0/xacml-json-http-v1.0.html) compliance, 
+		- `application/xacml+xml` for [RFC 7061](https://tools.ietf.org/html/rfc7061) compliance.
+	- Possibility to define different PDP input/output processing chains, i.e. `requestPreproc` (ex-requestFilter)/`resultPostproc` (ex-resultFilter) pairs, for different input/output (XACML request/response) formats, e.g. XACML/XML or XACML/JSON
+	- New configuration properties (JNDI environment entries): 
+		- `org.ow2.authzforce.domains.enableXacmlJsonProfile`: enable XACML JSON Profile support;
+		- `org.ow2.authzforce.webapp.jsonKeysWithArrays`: JSON keys with values to be serialized always to arrays;
+		- `org.ow2.authzforce.webapp.noNamespaceInJsonOutput`: drop namespaces in JSON output,
+		- `org.ow2.authzforce.webapp.jsonKeysToXmlAttributes`: keys of JSON objects to be deserialized as XML attributes,
+		- `org.ow2.authzforce.webapp.xmlAttributesToJsonLikeElements`: convert XML attributes like elements to JSON output (no `@` prefix).
+	- New configuration file for configuring CXF/JAX-RS JSON Provider's `inTransformElements` [property](http://cxf.apache.org/docs/jax-rs-data-bindings.html#JAX-RSDataBindings-CustomizingJAXBXMLandJSONinputandoutput): `json-to-xml-map.properties`.
+	- Uniqueness check on domains' `externalId` property (not two domains may have the same), before allowing to create new domain or changing a domain's externalId
+- Faster webapp deployment (e.g. in Tomcat): added instructions to skip JAR scanning for annotations, TLDs, etc.
+- Dependency for AuthzForce JAX-RS utility classes: `authzforce-ce-jaxrs-utils` (1.1.0)
+- Dockerfile auto-generated with right software version by Maven build
+- Domains' `pdp.xml` schema now allows administrators to define a `maxIntegerValue` attribute which specifies the max expected integer value to be handled by the PDP engine (during policy evaluation). Based on this value, AuthzForce uses a more optimal (in terms of CPU and memory usage) Java representation of integers (the smaller the better).
+
+
 ## 7.1.0
 ### Changed
 - Project URL: https://tuleap.ow2.org/projects/authzforce -> https://authzforce.ow2.org
