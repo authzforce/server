@@ -29,6 +29,13 @@
       <tag>HEAD</tag>
       <url>${git.url.base}</url>
    </scm>
+   <repositories>
+      <repository>
+         <!-- Required by owasp dependency-check plugin for find info (POM) about dependency org.everit.json.schema in child modules -->
+         <id>jitpack.io</id>
+         <url>https://jitpack.io</url>
+      </repository>
+   </repositories>
    <dependencyManagement>
       <dependencies>
          <dependency>
