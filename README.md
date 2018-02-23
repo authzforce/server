@@ -101,16 +101,20 @@ This project is licensed under the terms of GPL v3 except Java classes in packag
 
 
 ## Support
-Use the *Issues* tab on the Github repository page.
+
+You should use [AuthzForce users' mailing list](https://mail.ow2.org/wws/info/authzforce-users) as first contact for any communication about AuthzForce: question, feature request, notification, potential issue (unconfirmed), etc.
+
+If you are experiencing any bug with this project and you indeed confirm this is not an issue with your environment (contact the users mailing list first if you are unsure), please report it on the [OW2 Issue Tracker](https://jira.ow2.org/browse/AUTHZFORCE/).
 Please include as much information as possible; the more we know, the better the chance of a quicker resolution:
 
 * Software version
-* Platform (OS and JDK)
-* Stack traces generally really help! If in doubt include the whole thing; often exceptions get wrapped in other exceptions and the exception right near the bottom explains the actual error, not the first few lines at the top. It's very easy for us to skim-read past unnecessary parts of a stack trace.
+* Platform (OS and JRE)
+* Stack traces generally really help! If in doubt, include the whole thing; often exceptions get wrapped in other exceptions and the exception right near the bottom explains the actual error, not the first few lines at the top. It's very easy for us to skim-read past unnecessary parts of a stack trace.
 * Log output can be useful too; sometimes enabling DEBUG logging can help;
 * Your code & configuration files are often useful.
 
-If you wish to contact the developers for other reasons, use [Authzforce contact mailing list](http://scr.im/azteam).
+## Security - Vulnerability reporting
+If you want to report a vulnerability, you must do so on the [OW2 Issue Tracker](https://jira.ow2.org/browse/AUTHZFORCE/) with *Security Level* set to **Private**. Then, if the AuthzForce team can confirm it, they will change it to **Public** and set a fix version.
 
 ## Contributing
 ### Documentation
