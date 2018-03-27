@@ -15,8 +15,7 @@
             file name: javax.ws.rs-api-2.1.jar,
             false positive reported: https://github.com/jeremylong/DependencyCheck/issues/1077
             ]]></notes>
-        <cpe>cpe:/a:restful_project:restful:2.1</cpe>
-        <cpe>cpe:/a:restful_web_services_project:restful_web_services:7.x-2.1::~~~drupal~~</cpe>
+        <cpe>javax.ws.rs:javax.ws.rs-api:2.1</cpe>
         <cve>CVE-2015-4345</cve>
     </suppress>
 </suppressions>
