@@ -40,11 +40,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
-
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,17 +62,22 @@ import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
 import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.ow2.authzforce.xacml.Xacml3JaxbHelper;
-import org.ow2.authzforce.xacml.json.model.Xacml3JsonUtils;
+import org.ow2.authzforce.xacml.json.model.XacmlJsonUtils;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.w3._2005.atom.Link;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+
 class DomainAPIHelper
 {
 	private static final UnsupportedOperationException UNSUPPORTED_READ_WRITE_PDP_CONF_FILE_OPERATION_EXCEPTION = new UnsupportedOperationException(
-			"Operation not supported with undefined pdpModelHandler");
+	        "Operation not supported with undefined pdpModelHandler");
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainAPIHelper.class);
 
@@ -111,9 +111,9 @@ class DomainAPIHelper
 	static void matchPolicySets(final PolicySet actual, final PolicySet expected, final String testedMethodId)
 	{
 		assertEquals(actual.getPolicySetId(), expected.getPolicySetId(),
-				String.format("Actual PolicySetId (='%s') from %s() != expected PolicySetId (='%s')", actual.getPolicySetId(), testedMethodId, expected.getPolicySetId()));
+		        String.format("Actual PolicySetId (='%s') from %s() != expected PolicySetId (='%s')", actual.getPolicySetId(), testedMethodId, expected.getPolicySetId()));
 		assertEquals(actual.getVersion(), expected.getVersion(),
-				String.format("Actual PolicySet Version (='%s') from %s() != expected PolicySet Version (='%s')", actual.getVersion(), testedMethodId, expected.getVersion()));
+		        String.format("Actual PolicySet Version (='%s') from %s() != expected PolicySet Version (='%s')", actual.getVersion(), testedMethodId, expected.getVersion()));
 	}
 
 	/**
@@ -179,7 +179,7 @@ class DomainAPIHelper
 
 	protected void resetPdpAndPrp() throws JAXBException
 	{
-		resetPdpAndPrp(Collections.<Feature> emptyList());
+		resetPdpAndPrp(Collections.<Feature>emptyList());
 	}
 
 	protected <T> JAXBElement<T> unmarshalXacml(final File file, final Class<T> clazz) throws JAXBException
@@ -209,7 +209,7 @@ class DomainAPIHelper
 		// test sync with properties file
 		final DomainProperties props = domain.getDomainPropertiesResource().getDomainProperties();
 		final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(props.getDescription(), newExternalId, null, null,
-				false);
+		        false);
 		/*
 		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution) as explained above; otherwise the change remains unseen
 		 */
@@ -222,7 +222,7 @@ class DomainAPIHelper
 		if (LOGGER.isDebugEnabled())
 		{
 			LOGGER.debug("Updated externalId in file '{}' - lastModifiedTime = {}", domainPropertiesFile,
-					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(domainPropertiesFile.lastModified())));
+			        RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(domainPropertiesFile.lastModified())));
 		}
 	}
 
@@ -302,8 +302,8 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws InterruptedException
 	 */
-	IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy) throws JAXBException,
-			InterruptedException
+	IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy)
+	        throws JAXBException, InterruptedException
 	{
 		resetPdpAndPrp();
 
@@ -322,8 +322,8 @@ class DomainAPIHelper
 
 		// update policy version on disk (we add ".1" to old version to have later version)
 		final PolicySet newPolicy = new PolicySet(oldPolicyToUpdate.getDescription(), oldPolicyToUpdate.getPolicyIssuer(), oldPolicyToUpdate.getPolicySetDefaults(), oldPolicyToUpdate.getTarget(),
-				oldPolicyToUpdate.getPolicySetsAndPoliciesAndPolicySetIdReferences(), oldPolicyToUpdate.getObligationExpressions(), oldPolicyToUpdate.getAdviceExpressions(),
-				oldPolicyToUpdate.getPolicySetId(), oldPolicyToUpdate.getVersion() + ".1", oldPolicyToUpdate.getPolicyCombiningAlgId(), oldPolicyToUpdate.getMaxDelegationDepth());
+		        oldPolicyToUpdate.getPolicySetsAndPoliciesAndPolicySetIdReferences(), oldPolicyToUpdate.getObligationExpressions(), oldPolicyToUpdate.getAdviceExpressions(),
+		        oldPolicyToUpdate.getPolicySetId(), oldPolicyToUpdate.getVersion() + ".1", oldPolicyToUpdate.getPolicyCombiningAlgId(), oldPolicyToUpdate.getMaxDelegationDepth());
 		final Marshaller marshaller = RestServiceTest.JAXB_CTX.createMarshaller();
 		final File policyDir = new File(domainPoliciesDirName, FlatFileDAOUtils.base64UrlEncode(oldPolicyToUpdate.getPolicySetId()));
 		final File policyVersionFile = new File(policyDir, newPolicy.getVersion() + ".xml");
@@ -340,7 +340,7 @@ class DomainAPIHelper
 		if (LOGGER.isDebugEnabled())
 		{
 			LOGGER.debug("Updated directory of ref-policy '{}' with file '{}' - lastModifiedTime = {}", newPolicy.getPolicySetId(), policyVersionFile,
-					RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(policyVersionFile.lastModified())));
+			        RestServiceTest.UTC_DATE_WITH_MILLIS_FORMATTER.format(new Date(policyVersionFile.lastModified())));
 		}
 
 		return new IdReferenceType(newPolicy.getPolicySetId(), newPolicy.getVersion(), null, null);
@@ -440,8 +440,8 @@ class DomainAPIHelper
 	{
 		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
 		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
-		prpPropsRes.updateOtherPrpProperties(new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps
-				.isVersionRollingEnabled()));
+		prpPropsRes.updateOtherPrpProperties(
+		        new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps.isVersionRollingEnabled()));
 		return prpPropsRes.getOtherPrpProperties().getMaxPolicyCount().intValue();
 	}
 
@@ -449,16 +449,16 @@ class DomainAPIHelper
 	{
 		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
 		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
-		return prpPropsRes.updateOtherPrpProperties(new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps
-				.isVersionRollingEnabled()));
+		return prpPropsRes.updateOtherPrpProperties(
+		        new PrpProperties(maxPolicyCount > 0 ? BigInteger.valueOf(maxPolicyCount) : null, oldPrpProps.getMaxVersionCountPerPolicy(), oldPrpProps.isVersionRollingEnabled()));
 	}
 
 	public int updateAndGetMaxPolicyVersionCount(final int maxPolicyVersionCount)
 	{
 		final PrpPropertiesResource prpPropsRes = domain.getPapResource().getPrpPropertiesResource();
 		final PrpProperties oldPrpProps = prpPropsRes.getOtherPrpProperties();
-		prpPropsRes.updateOtherPrpProperties(new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, oldPrpProps
-				.isVersionRollingEnabled()));
+		prpPropsRes.updateOtherPrpProperties(
+		        new PrpProperties(oldPrpProps.getMaxPolicyCount(), maxPolicyVersionCount > 0 ? BigInteger.valueOf(maxPolicyVersionCount) : null, oldPrpProps.isVersionRollingEnabled()));
 		return prpPropsRes.getOtherPrpProperties().getMaxVersionCountPerPolicy().intValue();
 	}
 
@@ -488,8 +488,8 @@ class DomainAPIHelper
 	private static void assertNormalizedXacmlJsonResponseEquals(final JSONObject expectedResponse, final JSONObject actualResponseFromPDP)
 	{
 		// normalize responses for comparison
-		final JSONObject normalizedActualResponse = Xacml3JsonUtils.canonicalizeResponse(actualResponseFromPDP);
-		final JSONObject normalizedExpectedResponse = Xacml3JsonUtils.canonicalizeResponse(expectedResponse);
+		final JSONObject normalizedActualResponse = XacmlJsonUtils.canonicalizeResponse(actualResponseFromPDP);
+		final JSONObject normalizedExpectedResponse = XacmlJsonUtils.canonicalizeResponse(expectedResponse);
 		Assert.assertTrue(normalizedActualResponse.similar(normalizedExpectedResponse), "Actual and expected XACML/JSON responses don't match (Status elements removed/ignored for comparison)");
 	}
 
@@ -512,7 +512,7 @@ class DomainAPIHelper
 		{
 			// replace old with new attribute providers
 			// reset attribute providers
-			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> emptyList()));
+			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider>emptyList()));
 
 			/*
 			 * This requires Attribute Provider extension to be deployed/configured in advance on the PDP. If we are testing a remote PDP, this may not be done, in which case we would get error 400
@@ -524,7 +524,7 @@ class DomainAPIHelper
 			}
 
 			final JAXBElement<AbstractAttributeProvider> jaxbElt = unmarshalRestApiEntity(attributeProviderFile, AbstractAttributeProvider.class);
-			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider> singletonList(jaxbElt.getValue())));
+			domain.getPapResource().getAttributeProvidersResource().updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider>singletonList(jaxbElt.getValue())));
 		}
 
 		final File rootPolicyFile = new File(testDirectory, RestServiceTest.TEST_POLICY_FILENAME);
@@ -573,53 +573,49 @@ class DomainAPIHelper
 			final Response actualResponse = domain.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
 			// final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
 
-				assertNormalizedXacmlJaxbResponseEquals(expectedResponse.getValue(), actualResponse);
-			});
+			assertNormalizedXacmlJaxbResponseEquals(expectedResponse.getValue(), actualResponse);
+		});
 	}
 
-	public void requestXacmlJsonPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final WebClient httpClient) throws JAXBException, JSONException,
-			IOException
+	public void requestXacmlJsonPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final WebClient httpClient)
+	        throws JAXBException, JSONException, IOException
 	{
-		requestPDP(
-				testDirectory,
-				pdpFeaturesToEnable,
-				isPdpRemote,
-				() -> {
-					final File xacmlReqFile = new File(testDirectory, "request.json");
-					final JSONObject xacmlReq;
-					try (final InputStream inputStream = new FileInputStream(xacmlReqFile))
-					{
+		requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, () -> {
+			final File xacmlReqFile = new File(testDirectory, "request.json");
+			final JSONObject xacmlReq;
+			try (final InputStream inputStream = new FileInputStream(xacmlReqFile))
+			{
 
-						xacmlReq = new JSONObject(new JSONTokener(inputStream));
-						if (!xacmlReq.has("Request"))
-						{
-							throw new IllegalArgumentException("Invalid XACML JSON Request file: " + xacmlReqFile + ". Expected root key: \"Request\"");
-						}
+				xacmlReq = new JSONObject(new JSONTokener(inputStream));
+				if (!xacmlReq.has("Request"))
+				{
+					throw new IllegalArgumentException("Invalid XACML JSON Request file: " + xacmlReqFile + ". Expected root key: \"Request\"");
+				}
 
-						Xacml3JsonUtils.REQUEST_SCHEMA.validate(xacmlReq);
-					}
+				XacmlJsonUtils.REQUEST_SCHEMA.validate(xacmlReq);
+			}
 
-					final File xacmlRespFile = new File(testDirectory, "response.json");
-					final JSONObject expectedResponse;
-					try (InputStream inputStream = new FileInputStream(xacmlRespFile))
-					{
+			final File xacmlRespFile = new File(testDirectory, "response.json");
+			final JSONObject expectedResponse;
+			try (InputStream inputStream = new FileInputStream(xacmlRespFile))
+			{
 
-						expectedResponse = new JSONObject(new JSONTokener(inputStream));
-						if (!expectedResponse.has("Response"))
-						{
-							throw new IllegalArgumentException("Invalid XACML JSON Response file: " + expectedResponse + ". Expected root key: \"Response\"");
-						}
+				expectedResponse = new JSONObject(new JSONTokener(inputStream));
+				if (!expectedResponse.has("Response"))
+				{
+					throw new IllegalArgumentException("Invalid XACML JSON Response file: " + expectedResponse + ". Expected root key: \"Response\"");
+				}
 
-						Xacml3JsonUtils.RESPONSE_SCHEMA.validate(expectedResponse);
-					}
+				XacmlJsonUtils.RESPONSE_SCHEMA.validate(expectedResponse);
+			}
 
-					final JSONObject actualResponse = httpClient.reset().path("domains").path(domainId).path("pdp").type("application/xacml+json").accept("application/xacml+json")
-							.post(xacmlReq, JSONObject.class);
+			final JSONObject actualResponse = httpClient.reset().path("domains").path(domainId).path("pdp").type("application/xacml+json").accept("application/xacml+json").post(xacmlReq,
+			        JSONObject.class);
 
-					// final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
+			// final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
 
-					assertNormalizedXacmlJsonResponseEquals(expectedResponse, actualResponse);
-				});
+			assertNormalizedXacmlJsonResponseEquals(expectedResponse, actualResponse);
+		});
 	}
 
 	public File getPropertiesFile()
