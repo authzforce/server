@@ -2,14 +2,16 @@
 
 [![FIWARE Security](https://nexus.lab.fiware.org/static/badges/chapters/security.svg)](https://www.fiware.org/developers/catalogue/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.io/en/latest/?badge=latest)
 [![Docker badge](https://img.shields.io/docker/pulls/authzforce/server.svg)](https://hub.docker.com/r/authzforce/server/)
 [![](https://img.shields.io/badge/tag-authzforce-orange.svg?logo=stackoverflow)](http://stackoverflow.com/questions/tagged/authzforce)
 [![Support badge]( https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
+<br/>
+[![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/authzforce/server.svg?branch=develop)](https://travis-ci.org/authzforce/server)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
 ![Status](https://nexus.lab.fiware.org/static/badges/statuses/authzforce.svg)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
+
 
 *This project is part of [FIWARE](https://www.fiware.org). More info on the [FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).*
 
