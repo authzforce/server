@@ -12,18 +12,14 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&utm_medium=referral&utm_content=authzforce/server&utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
 
-_This project is part of [FIWARE](https://www.fiware.org). More info on the
-[FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce)._
-
 AuthzForce Server provides a multi-tenant RESTful API to Policy Administration
 Points (PAP) and Policy Decision Points (PDP) supporting Attribute-Based Access
 Control (ABAC), as defined in the
 [OASIS XACML 3.0 standard](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html).
 
-AuthzForce Server is also the Reference Implementation (GEri) of
-[FIWARE](https://www.fiware.org) _Authorization PDP_ Generic Enabler (GE). More
-info on the
-[FIWARE catalogue](http://catalogue.fiware.org/enablers/authorization-pdp-authzforce).
+This project is part of [FIWARE](https://www.fiware.org/). For more information
+check the FIWARE Catalogue entry for
+[Security](https://github.com/Fiware/catalogue/tree/master/security).
 
 **Go to the [releases](https://github.com/authzforce/server/releases) page for
 specific release info: downloads (Linux packages), Docker image,
