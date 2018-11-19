@@ -125,15 +125,12 @@ More information in the previous section.
     PAP/PDP, in particular its own policy repository.
 -   Conformance with
     [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html)
--   Supported data formats, aka content types: _ `application/xml`: XML based on
-    API schema; _ `application/fastinfoset`:
-    [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx)
-    based on API's XML schema; _ `application/json`: JSON based on API's XML
-    schema with a generic XML-to-JSON mapping convention _
-    `application/xacml+xml`: XACML content only, as defined by
-    [RFC 7061](https://tools.ietf.org/html/rfc7061) \* `application/xacml+json`:
-    JSON format for XACML Request/Response on PDP only, as defined by
-    [XACML v3.0 - JSON Profile Version 1.0](http://docs.oasis-open.org/xacml/xacml-json-http/v1.0/xacml-json-http-v1.0.html)
+-   Supported data formats, aka content types:
+    - `application/xml`: XML based on API schema; 
+    - `application/fastinfoset`: [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) based on API's XML schema; 
+    - `application/json`: JSON based on API's XMLschema with a generic XML-to-JSON mapping convention 
+    - `application/xacml+xml`: XACML content only, as defined by [RFC 7061](https://tools.ietf.org/html/rfc7061) 
+    - `application/xacml+json`: JSON format for XACML Request/Response on PDP only, as defined by [XACML v3.0 - JSON Profile Version 1.0](http://docs.oasis-open.org/xacml/xacml-json-http/v1.0/xacml-json-http-v1.0.html)
 -   Defined in standard
     [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources)
     so that you can automatically generate client code.
