@@ -1,7 +1,7 @@
 # AuthzForce Server (Community Edition)
 
 [![FIWARE Security](https://nexus.lab.fiware.org/static/badges/chapters/security.svg)](https://www.fiware.org/developers/catalogue/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL v3](https://img.shields.io/github/license/authzforce/server.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Docker badge](https://img.shields.io/docker/pulls/authzforce/server.svg)](https://hub.docker.com/r/authzforce/server/)
 [![](https://img.shields.io/badge/tag-authzforce-orange.svg?logo=stackoverflow)](http://stackoverflow.com/questions/tagged/authzforce)
 [![Support badge](https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
@@ -29,6 +29,10 @@ specific release info: downloads (Linux packages), Docker image,
 _If you are interested in using an embedded XACML-compliant PDP in your Java
 applications, AuthzForce also provides a PDP engine as a Java library in
 [Authzforce core project](http://github.com/authzforce/core)._
+
+|  :books: [Documentation](https://authzforce-ce-fiware.rtfd.io/) | :mortar_board: [Academy](https://fiware-academy.readthedocs.io/en/latest/security/authzforce) | :whale: [Docker Hub](https://hub.docker.com/r/authzforce/server/) |
+|---|---|---|
+
 
 ## Features
 
