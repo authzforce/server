@@ -36,6 +36,20 @@ applications, AuthzForce also provides a PDP engine as a Java library in
 |---|---|---|
 
 
+## Contents
+
+-   [Features](#features)
+-   [Limitations](#limitations)
+-   [Install](#install)
+-   [Documentation](#documentation)
+-   [Usage](#usage)
+-   [Support](#support)
+-   [Security](#security)
+-   [Contributing](#contributing)
+-   [Testing](#testing)
+-   [Quality Assurance](#quality-assurance)
+-   [License](#license)
+
 ## Features
 
 ### PDP (Policy Decision Point)
@@ -161,7 +175,7 @@ are not supported:
 
 If you are interested in those, you can ask for [support](#Support).
 
-## Distribution (downloads)
+## Install
 
 Every release is distributed as follows:
 
@@ -177,7 +191,9 @@ For download links, please go to the specific
 For links to the documentation of a release, please go to the specific
 [release page](https://github.com/authzforce/server/releases).
 
-## Examples of usage and PEP code with a web service authorization module
+## Usage
+
+This section gives examples of usage and PEP code with a web service authorization module.
 
 For an example of using an AuthzForce Server's RESTful PDP API in a real-life
 use case, please refer to the JUnit test class
