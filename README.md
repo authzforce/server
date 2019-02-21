@@ -44,7 +44,7 @@ applications, AuthzForce also provides a PDP engine as a Java library in
 -   [Documentation](#documentation)
 -   [Usage](#usage)
 -   [Support](#support)
--   [Security](#security)
+-   [Security](#security---vulnerability-reporting)
 -   [Contributing](#contributing)
 -   [Testing](#testing)
 -   [Quality Assurance](#quality-assurance)
@@ -288,6 +288,14 @@ The sources for the manuals are located in
 11.  Create a release on Github with a description based on the
     [release description template](release.description.tmpl.md), replacing M/m/P
     with the new major/minor/patch versions.
+    
+# Testing
+
+To run tests, install Maven and type
+
+```console
+mvn test
+```
 
 ## Quality Assurance
 
