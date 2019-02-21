@@ -26,6 +26,8 @@ specific release info: downloads (Linux packages), Docker image,
 [release notes](CHANGELOG.md), and
 [documentation](http://readthedocs.org/projects/authzforce-ce-fiware/versions/).**
 
+The roadmap of this FIWARE GE is described [here](ROADMAP.md).
+
 _If you are interested in using an embedded XACML-compliant PDP in your Java
 applications, AuthzForce also provides a PDP engine as a Java library in
 [Authzforce core project](http://github.com/authzforce/core)._
