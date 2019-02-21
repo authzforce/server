@@ -177,14 +177,16 @@ If you are interested in those, you can ask for [support](#Support).
 
 ## Install
 
-Every release is distributed as follows:
+Every release is packaged in various types of distribution and the installation depends on the distribution type:
 
--   Ubuntu/Debian package (recommended option): `.deb`;
--   Other Linux distributions: `.tar.gz`;
--   Docker image.
+-   Ubuntu/Debian package (recommended option): `.deb`. Use your usual Ubuntu/Debian APT to install the package;
+-   Other Linux distributions: `.tar.gz` for any Linux distribution. More info in the [documentation](#documentation);
+-   Docker image, installed/deployed with the usual docker container commands.
 
 For download links, please go to the specific
 [release page](https://github.com/authzforce/server/releases).
+
+Once you downloaded the distribution of your preference, check the [documentation](#documentation) for more information.
 
 ## Documentation
 
@@ -291,7 +293,7 @@ The sources for the manuals are located in
     
 # Testing
 
-To run tests, install Maven and type
+To run unit tests, install Maven and type
 
 ```console
 mvn test
