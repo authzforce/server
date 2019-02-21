@@ -28,7 +28,7 @@ The following list of features are planned to be addressed in the medium term,
 typically within the subsequent release(s) generated in the next **9 months**
 after next planned release:
 
-*N/A*
+- GeoXACML support
 
 ## Long term
 
