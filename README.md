@@ -32,8 +32,8 @@ _If you are interested in using an embedded XACML-compliant PDP in your Java
 applications, AuthzForce also provides a PDP engine as a Java library in
 [Authzforce core project](http://github.com/authzforce/core)._
 
-|  :books: [Documentation](https://authzforce-ce-fiware.rtfd.io/) | :mortar_board: [Academy](https://fiware-academy.readthedocs.io/en/latest/security/authzforce) | :whale: [Docker Hub](https://hub.docker.com/r/authzforce/server/) |
-|---|---|---|
+|  :books: [Documentation](https://authzforce-ce-fiware.rtfd.io/) | :mortar_board: [Academy](https://fiware-academy.readthedocs.io/en/latest/security/authzforce) | :whale: [Docker Hub](https://hub.docker.com/r/authzforce/server/) |  :dart: [Roadmap](https://github.com/authzforce/server/blob/develop/ROADMAP.md)
+|---|---|---|---|
 
 
 ## Contents
