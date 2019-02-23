@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>8.1.0-SNAPSHOT</version>
+      <version>8.1.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-upgrader</artifactId>
