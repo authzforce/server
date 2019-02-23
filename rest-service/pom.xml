@@ -67,27 +67,6 @@
                </execution>
             </executions>
          </plugin>
-         <!-- <plugin> -->
-         <!-- Compute timestamp to be used in org.ow2.authzforce.server.product.properties. We cannot use Maven property 'maven.build.timestamp.format' because already used to compute 'currentYear' property 
-            inherited from authzforce-ce-parent, with a different format, so we use a plugin. -->
-         <!-- <groupId>org.codehaus.mojo</groupId> -->
-         <!-- <artifactId>buildnumber-maven-plugin</artifactId> -->
-         <!-- <version>1.3</version> -->
-         <!-- <executions> -->
-         <!-- <execution> -->
-         <!-- <id>set-current-date-property</id> -->
-         <!-- <phase>initialize</phase> -->
-         <!-- <goals> -->
-         <!-- <goal>create-timestamp</goal> -->
-         <!-- </goals> -->
-         <!-- <configuration> -->
-         <!-- <timezone>UTC</timezone> -->
-         <!-- <timestampPropertyName>build.date</timestampPropertyName> -->
-         <!-- <timestampFormat>yyyy-MM-dd</timestampFormat> -->
-         <!-- </configuration> -->
-         <!-- </execution> -->
-         <!-- </executions> -->
-         <!-- </plugin> -->
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-resources-plugin</artifactId>
