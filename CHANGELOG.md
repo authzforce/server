@@ -4,6 +4,35 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 8.1.0
+### Added
+- [GH-29] Systematic input policy validation on API - HTTP POST `/domains/{domain-id}/pap/policies` - even if the policy is not currently in use by the PDP (it is potentially used later on after changing PDP configuration), in order to improve safety and troubleshooting. Policies are validated by attempting to load a temporary PDP configuration with the input policy as root policy.
+- PDP extensions such as Attribute and Policy Providers can accept placeholders for system properties and environment variables in their string configuration parameters (as part of PDP configuration) and perform placeholder replacements with their factory method's input `EnvironmentProperties`. In particular, `policyLocation` elements in PDP's Policy Providers configuration now supports (not only `PARENT_DIR` property but also) system properties and environment variables (enclosed between `${...}`) with default value (separated from the property name by '!') if property/variable undefined. 
+
+### Changed
+- Parent project version: authzforce-ce-parent: 7.5.1
+- Dependency versions:
+	- authzforce-ce-pap-dao-flat-file: 11.0.0
+	- authzforce-ce-core-pap-api: 10.0.0
+	- authzforce-ce-core: 13.3.1
+	- authzforce-ce-core-pdp-api: 15.3.0
+	- authzforce-ce-jaxrs-utils: 1.3.1 
+	- authzforce-ce-xacml-json-model: 2.1.1
+	- json: 20171018
+	- guava: 24.1.1-jre
+	- slf4j-api: 1.7.2
+	- Spring: 4.3.20
+	- logback-classic: 1.2.3
+	- logback-ext-spring: 0.1.5
+	- Apache CXF: 3.2.55
+	- Saxon-HE: 9.8.0-12
+	- javax.mail-api (replaces mailapi): 1.6.0
+	- jaxb2-basics: 1.11.1
+
+### Fixed
+- [GH-26] CVEs reported by OWASP dependency-check, esp. on Spring v4.3.14, and 4.3.18, upgraded to 4.3.20
+
+
 ## 8.0.1
 ### Fixed
 - Typo in Debian package's Description field.
