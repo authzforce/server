@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2018 Thales Services SAS.
+ * Copyright (C) 2012-2019 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -31,12 +31,6 @@ import java.util.Iterator;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-
-import org.apache.cxf.interceptor.LoggingInInterceptor;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
-import org.apache.cxf.jaxrs.client.WebClient;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.slf4j.Logger;
@@ -50,6 +44,8 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+
 /**
  * Tests specific to the special 'superadmin' domain for managing and enforcing the AuthzForce REST API access policy (controls access to all the REST API itself including all domains). For example,
  * the admin policy may have a rule/policy such that only the Domain_Admin of domain X (contextualized role) is allowed to do all actions on path '/domains/X' or '/domains/X/*' except DELETE
@@ -59,18 +55,7 @@ public class AdminDomainTest extends RestServiceTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdminDomainTest.class);
 
-	private static final FileFilter DIRECTORY_FILTER = new FileFilter()
-	{
-
-		@Override
-		public boolean accept(final File pathname)
-		{
-			return pathname.isDirectory();
-		}
-
-	};
-
-	private WebClient httpHeadClient;
+	private static final FileFilter DIRECTORY_FILTER = pathname -> pathname.isDirectory();
 
 	private DomainAPIHelper testDomainHelper = null;
 
@@ -93,7 +78,7 @@ public class AdminDomainTest extends RestServiceTest
 	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
-			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
+	        @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
 		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
@@ -130,16 +115,6 @@ public class AdminDomainTest extends RestServiceTest
 		testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving (admin) domain ID=%s", testDomainId));
 		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
-
-		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
-		final String appBaseUrl = apiProxyClientConf.getEndpoint().getEndpointInfo().getAddress();
-		httpHeadClient = WebClient.create(appBaseUrl, true);
-		if (LOGGER.isDebugEnabled())
-		{
-			final ClientConfiguration builderConf = WebClient.getConfig(httpHeadClient);
-			builderConf.getInInterceptors().add(new LoggingInInterceptor());
-			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
-		}
 
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}

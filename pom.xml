@@ -4,24 +4,24 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-parent</artifactId>
-      <version>7.3.0</version>
+      <version>7.5.1</version>
    </parent>
    <artifactId>authzforce-ce-server</artifactId>
    <!-- FIWARE Versioning + Version must be equal or higher than 'authzforce-ce-rest-api-model' dependency in 'rest-service' module -->
-   <version>8.0.2-SNAPSHOT</version>
+   <version>8.1.0-SNAPSHOT</version>
    <packaging>pom</packaging>
    <name>${project.groupId}:${project.artifactId}</name>
    <description>AuthzForce CE Server</description>
    <url>${project.url}</url>
    <properties>
       <git.url.base>https://github.com/authzforce/server</git.url.base>
-      <authzforce-ce-core.version>13.2.0</authzforce-ce-core.version>
-      <authzforce-ce-core-pap-api.version>9.2.0</authzforce-ce-core-pap-api.version>
+      <authzforce-ce-core.version>13.3.1</authzforce-ce-core.version>
+      <authzforce-ce-core-pap-api.version>10.0.0</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
-      <authzforce-ce-pap-dao-flat-file.version>10.0.0</authzforce-ce-pap-dao-flat-file.version>
+      <authzforce-ce-pap-dao-flat-file.version>11.0.0</authzforce-ce-pap-dao-flat-file.version>
       <productId>authzforce-ce-server</productId>
       <productName>AuthzForce CE Server</productName>
-      <productMaintainer>Thales Services SAS</productMaintainer>
+      <productMaintainer>THALES</productMaintainer>
    </properties>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
@@ -40,17 +40,17 @@
       <dependencies>
          <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>${artifactId.prefix}-core-pdp-testutils</artifactId>
+            <artifactId>authzforce-ce-core-pdp-testutils</artifactId>
             <version>${authzforce-ce-core.version}</version>
          </dependency>
          <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>${artifactId.prefix}-core-pap-api</artifactId>
+            <artifactId>authzforce-ce-core-pap-api</artifactId>
             <version>${authzforce-ce-core-pap-api.version}</version>
          </dependency>
          <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>${artifactId.prefix}-pap-dao-flat-file</artifactId>
+            <artifactId>authzforce-ce-pap-dao-flat-file</artifactId>
             <version>${authzforce-ce-pap-dao-flat-file.version}</version>
          </dependency>
          <dependency>

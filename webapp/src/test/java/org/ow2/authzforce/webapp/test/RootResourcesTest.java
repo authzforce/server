@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2018 Thales Services SAS.
+ * Copyright (C) 2012-2019 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -47,12 +47,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBException;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
-
-import org.apache.cxf.interceptor.LoggingInInterceptor;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
+import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -70,6 +65,9 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
+
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 
 /**
  * Tests on REST API's root resources: /?_wadl, /version, /domains
@@ -98,10 +96,10 @@ public class RootResourcesTest extends RestServiceTest
 	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean useJSON,
-			@Optional("true") final Boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
+	        @Optional("true") final Boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
 		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), enableDoSMitigation, domainSyncIntervalSec,
-				enablePdpOnly);
+		        enablePdpOnly);
 	}
 
 	/**
@@ -126,18 +124,13 @@ public class RootResourcesTest extends RestServiceTest
 	public void getWADL(@Optional final String remoteAppBaseUrlParam)
 	{
 		final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
-				: remoteAppBaseUrlParam;
-		final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).queryParam("_wadl", "");
+		        : remoteAppBaseUrlParam;
+		final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).queryParam("_wadl", "");
 		final Invocation.Builder builder = target.request();
-		// if (LOGGER.isDebugEnabled())
-		// {
-		final ClientConfiguration builderConf = WebClient.getConfig(builder);
-		builderConf.getInInterceptors().add(new LoggingInInterceptor());
-		builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
-		// }
-
-		final javax.ws.rs.core.Response response = builder.get();
-		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
+		try (final javax.ws.rs.core.Response response = builder.get())
+		{
+			assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
+		}
 	}
 
 	@Test
@@ -164,16 +157,9 @@ public class RootResourcesTest extends RestServiceTest
 	{
 		// try to use application/fastinfoset
 		final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
-				: remoteAppBaseUrlParam;
-		final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
+		        : remoteAppBaseUrlParam;
+		final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).path("domains");
 		final Invocation.Builder builder = target.request();
-		// if (LOGGER.isDebugEnabled())
-		// {
-		final ClientConfiguration builderConf = WebClient.getConfig(builder);
-		builderConf.getInInterceptors().add(new LoggingInInterceptor());
-		builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
-		// }
-
 		final javax.ws.rs.core.Response response = builder.get();
 		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
 		assertEquals(response.getMediaType(), MediaType.APPLICATION_XML_TYPE);
@@ -193,21 +179,16 @@ public class RootResourcesTest extends RestServiceTest
 		{
 			// try to use application/fastinfoset
 			final String remoteAppBaseUrl = remoteAppBaseUrlParam == null || remoteAppBaseUrlParam.isEmpty() ? WebClient.getConfig(domainsAPIProxyClient).getEndpoint().getEndpointInfo().getAddress()
-					: remoteAppBaseUrlParam;
-			final WebTarget target = ClientBuilder.newClient().target(remoteAppBaseUrl).path("domains");
+			        : remoteAppBaseUrlParam;
+			final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).path("domains");
 			final Invocation.Builder builder = target.request().accept("application/fastinfoset");
-			// if (LOGGER.isDebugEnabled())
-			// {
-			final ClientConfiguration builderConf = WebClient.getConfig(builder);
-			builderConf.getInInterceptors().add(new LoggingInInterceptor());
-			builderConf.getOutInterceptors().add(new LoggingOutInterceptor());
-			// }
-
-			final javax.ws.rs.core.Response response = builder.get();
-			/**
-			 * CXF should return code 500 with Payload: "No message body writer has been found for class org.ow2.authzforce.rest.api.xmlns.Resources, ContentType: application/fastinfoset"
-			 */
-			assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE.getStatusCode());
+			try (final javax.ws.rs.core.Response response = builder.get())
+			{
+				/**
+				 * CXF should return code 500 with Payload: "No message body writer has been found for class org.ow2.authzforce.rest.api.xmlns.Resources, ContentType: application/fastinfoset"
+				 */
+				assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE.getStatusCode());
+			}
 		}
 	}
 
@@ -238,7 +219,7 @@ public class RootResourcesTest extends RestServiceTest
 			final File domainDir = new File(DOMAINS_DIR, domainId);
 			Files.move(SAMPLE_DOMAIN_COPY_DIR, domainDir.toPath());
 			final org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties newProps = new org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties(domainProperties.getDescription(), externalId,
-					null, null, false);
+			        null, null, false);
 			final File domainPropertiesFile = new File(domainDir, RestServiceTest.DOMAIN_PROPERTIES_FILENAME);
 			RestServiceTest.JAXB_CTX.createMarshaller().marshal(newProps, domainPropertiesFile);
 			LOGGER.debug("Added domain ID={} directlry on filesystem (enablePdpOnly=true)", domainId);
@@ -396,8 +377,8 @@ public class RootResourcesTest extends RestServiceTest
 		assertNotNull(testDomainResource, String.format("Error retrieving domain ID=%s", testDomainId));
 		final Link pdpLink = DomainAPIHelper.getMatchingLink("/pdp", testDomainResource.getChildResources().getLinks());
 		assertNotNull(pdpLink, "Missing link to PDP in response to getDomain(" + testDomainId + ")");
-		assertEquals(pdpLink.getRel(), Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP, "PDP link relation in response to getDomain(" + testDomainId
-				+ ") does not comply with REST profile of XACML 3.0");
+		assertEquals(pdpLink.getRel(), Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP,
+		        "PDP link relation in response to getDomain(" + testDomainId + ") does not comply with REST profile of XACML 3.0");
 	}
 
 	@Parameters({ "enablePdpOnly" })
@@ -503,8 +484,8 @@ public class RootResourcesTest extends RestServiceTest
 		}
 
 		// Tests for deleted domain
-		assertFalse(newDomainIds.contains(deletedDomainId), "Sync from disk getDomains() failed: domain ID " + deletedDomainId
-				+ " still returned by REST API although domain directory deleted on disk");
+		assertFalse(newDomainIds.contains(deletedDomainId),
+		        "Sync from disk getDomains() failed: domain ID " + deletedDomainId + " still returned by REST API although domain directory deleted on disk");
 		try
 		{
 			domainsAPIProxyClient.getDomainResource(deletedDomainId).getDomain();
@@ -523,8 +504,8 @@ public class RootResourcesTest extends RestServiceTest
 		createdDomainIds.remove(deletedDomainId);
 
 		// Test for domain created on disk
-		assertTrue(newDomainIds.contains(SAMPLE_DOMAIN_ID), "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID
-				+ " not returned by REST API although domain directory created on disk");
+		assertTrue(newDomainIds.contains(SAMPLE_DOMAIN_ID),
+		        "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID + " not returned by REST API although domain directory created on disk");
 		final Domain testDomainResource = domainsAPIProxyClient.getDomainResource(SAMPLE_DOMAIN_ID).getDomain();
 		assertNotNull(testDomainResource, "Manual sync with getDomains() failed: domain ID " + SAMPLE_DOMAIN_ID + " failed although domain directory created on disk");
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
@@ -541,8 +522,8 @@ public class RootResourcesTest extends RestServiceTest
 		// we are looking for
 		assertEquals(domainLinks.size(), 1);
 		final String matchedDomainId = domainLinks.get(0).getHref();
-		assertEquals(matchedDomainId, SAMPLE_DOMAIN_ID, "Manual sync with getDomains() failed: getDomains(externalId = " + externalId + ") returned wrong domainId: " + matchedDomainId
-				+ " instead of " + SAMPLE_DOMAIN_ID);
+		assertEquals(matchedDomainId, SAMPLE_DOMAIN_ID,
+		        "Manual sync with getDomains() failed: getDomains(externalId = " + externalId + ") returned wrong domainId: " + matchedDomainId + " instead of " + SAMPLE_DOMAIN_ID);
 
 	}
 

@@ -31,7 +31,7 @@
    </bean>
 
    <util:list id="extraJaxbClasses" value-type="java.lang.Class">
-      <value>org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProvider</value>
+      <value>org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProviderDescriptor</value>
    </util:list>
 
    <bean id="clientJaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">

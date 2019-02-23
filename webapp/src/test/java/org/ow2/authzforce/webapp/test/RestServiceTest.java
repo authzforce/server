@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2018 Thales Services SAS.
+ * Copyright (C) 2012-2019 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,20 +44,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Policy;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
-
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.LifecycleState;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.cxf.ext.logging.LoggingFeature;
+import org.apache.cxf.feature.Feature;
 import org.apache.cxf.interceptor.FIStaxInInterceptor;
 import org.apache.cxf.interceptor.FIStaxOutInterceptor;
 import org.apache.cxf.interceptor.Interceptor;
-import org.apache.cxf.interceptor.LoggingInInterceptor;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -65,7 +62,7 @@ import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
 import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
 import org.apache.tomcat.util.descriptor.web.NamingResources;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
-import org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProvider;
+import org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProviderDescriptor;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.pap.dao.flatfile.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
@@ -78,6 +75,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Policy;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/client.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
@@ -161,7 +162,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	{
 		try
 		{
-			JAXB_CTX = JAXBContext.newInstance(Resources.class, DomainProperties.class, TestAttributeProvider.class);
+			JAXB_CTX = JAXBContext.newInstance(Resources.class, DomainProperties.class, TestAttributeProviderDescriptor.class);
 		}
 		catch (final JAXBException e)
 		{
@@ -256,7 +257,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	}
 
 	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
-			final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
+	        final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -353,7 +354,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	}
 
 	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
-			throws Exception
+	        throws Exception
 	{
 		/*
 		 * If embedded server not started and remoteAppBaseUrl null/empty (i.e. server/app to be started locally (embedded))
@@ -401,12 +402,13 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			serverBaseAddress = remoteAppBaseUrl;
 		}
 
+		final List<Feature> features = LOGGER.isDebugEnabled() ? Collections.singletonList(new LoggingFeature()) : Collections.emptyList();
 		final MediaType clientFixedContentMediaType;
 		switch (clientType)
 		{
 			case XML:
-				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider));
-				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJaxbProvider));
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJaxbProvider), features, null);
+				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJaxbProvider), features, null);
 
 				/*
 				 * WARNING: XmlMediaTypeHeaderSetter forces Accept header to be "application/xml" only; else if Accept "application/fastinfoset" sent as well, the server returns fastinfoset which
@@ -420,8 +422,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				 * Use FASTINFOSET-aware client if FastInfoset enabled. More info on testing FastInfoSet with CXF: https://github.
 				 * com/apache/cxf/blob/a0f0667ad6ef136ed32707d361732617bc152c2e/systests/jaxrs/src/test/java/org/apache /cxf/systest/jaxrs/JAXRSSoapBookTest.java.
 				 */
-				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI));
-				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJaxbProviderFI));
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResourceFastInfoset.class, Collections.singletonList(clientJaxbProviderFI), features, null);
+				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJaxbProviderFI), features, null);
 				/*
 				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/fastinfoset"; if not (with CXF 3.1.0), the first mediatype declared in WADL, i.e. Consume annotation of
 				 * the service class ("application/xml") is set as Content-type, which causes exception on server-side such as: com.ctc.wstx.exc.WstxIOException: Invalid UTF-8 middle byte 0x0 (at char
@@ -432,8 +434,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 				break;
 
 			case JSON:
-				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJsonJaxbProvider));
-				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJsonJaxbProvider));
+				domainsAPIProxyClient = JAXRSClientFactory.create(serverBaseAddress, DomainsResource.class, Collections.singletonList(clientJsonJaxbProvider), features, null);
+				prodMetadataResClient = JAXRSClientFactory.create(serverBaseAddress, ProductMetadataResource.class, Collections.singletonList(clientJsonJaxbProvider), features, null);
 				/*
 				 * WARNING: MediaTypeHeaderSetter forces Content-type header to be "application/json"
 				 */
@@ -453,13 +455,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			/**
 			 * Request/response logging (for debugging).
 			 */
-			// if (LOGGER.isDebugEnabled()) {
-				clientConf.getInInterceptors().add(new LoggingInInterceptor());
-				clientConf.getOutInterceptors().add(new LoggingOutInterceptor());
-				clientConf.getHttpConduit().getClient().setConnectionTimeout(0);
-				clientConf.getHttpConduit().getClient().setReceiveTimeout(0);
-				// }
-			});
+			clientConf.getHttpConduit().getClient().setConnectionTimeout(0);
+			clientConf.getHttpConduit().getClient().setReceiveTimeout(0);
+		});
 
 		// Unmarshaller
 		final Schema apiSchema = this.clientApiSchemaHandler.getSchema();

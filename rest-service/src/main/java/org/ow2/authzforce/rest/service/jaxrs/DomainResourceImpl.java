@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2018 Thales Services SAS.
+ * Copyright (C) 2012-2019 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -38,10 +38,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
-
 import org.json.JSONObject;
 import org.ow2.authzforce.core.pap.api.dao.DomainDao;
 import org.ow2.authzforce.core.pap.api.dao.DomainDaoClient;
@@ -52,7 +48,6 @@ import org.ow2.authzforce.core.pap.api.dao.ReadableDomainProperties;
 import org.ow2.authzforce.core.pap.api.dao.ReadablePdpProperties;
 import org.ow2.authzforce.core.pap.api.dao.TooManyPoliciesException;
 import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
-import org.ow2.authzforce.core.pdp.api.io.PdpEngineInoutAdapter;
 import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -79,6 +74,10 @@ import org.w3._2005.atom.Relation;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+
 /**
  * Domain Resource implementation. Each domain managed by {@link DomainsResourceImpl} is an instance of this class.
  * 
@@ -86,16 +85,14 @@ import com.google.common.net.UrlEscapers;
  *            Domain DAO implementation class
  *
  */
-public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>> implements DomainDaoClient<DAO>, DomainResource, DomainPropertiesResource, PapResource,
-		PdpResource, PoliciesResource, AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
+public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>>
+        implements DomainDaoClient<DAO>, DomainResource, DomainPropertiesResource, PapResource, PdpResource, PoliciesResource, AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
 {
 	/**
 	 * Escapes strings so they can be safely included in URL path segments
 	 */
 	public static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
 
-	private static final InternalServerErrorException NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION = new InternalServerErrorException(
-			"PDP is in erroneous state. Please contact the domain or system administrator.");
 	private static final ClientErrorException ADD_POLICY_CONFLICT_EXCEPTION = new ClientErrorException("PolicySet already exists with same PolicySetId and Version", Status.CONFLICT);
 	private static final NotFoundException NOT_FOUND_EXCEPTION = new NotFoundException();
 	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
@@ -131,14 +128,14 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 	 * 
 	 *
 	 */
-	public static class Factory<DOMAIN_DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>> implements
-			DomainDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
+	public static class Factory<DOMAIN_DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>>
+	        implements DomainDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl, DOMAIN_DAO, DomainResourceImpl<DOMAIN_DAO>>
 	{
 		private static final IllegalArgumentException ILLEGAL_DOMAIN_ID_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain ID for domain resource undefined");
 		private static final IllegalArgumentException ILLEGAL_DOMAIN_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Domain DAO for domain resource undefined");
 
 		@Override
-		public DomainResourceImpl<DOMAIN_DAO> getInstance(final String domainId, final DOMAIN_DAO domainDAO)
+		public DomainResourceImpl<DOMAIN_DAO> getInstance(final String domainId, final Builder<DOMAIN_DAO> domainDAO) throws IOException
 		{
 			if (domainId == null)
 			{
@@ -164,11 +161,11 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 	private final String domainId;
 	private final DAO domainDAO;
 
-	private DomainResourceImpl(final String domainId, final DAO domainDAO)
+	private DomainResourceImpl(final String domainId, final Builder<DAO> domainDaoBuilder) throws IOException
 	{
-		assert domainDAO != null;
+		assert domainDaoBuilder != null;
 		this.domainId = domainId;
-		this.domainDAO = domainDAO;
+		this.domainDAO = domainDaoBuilder.build();
 	}
 
 	@Override
@@ -296,25 +293,13 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 	@Override
 	public Response requestPolicyDecision(final Request request)
 	{
-		final PdpEngineInoutAdapter<Request, Response> pdp = domainDAO.getXacmlJaxbPdp();
-		if (pdp == null)
-		{
-			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
-		}
-
-		return pdp.evaluate(request);
+		return domainDAO.evaluatePolicyDecision(request);
 	}
 
 	@Override
 	public JSONObject requestPolicyDecisionXacmlJson(final JSONObject request)
 	{
-		final PdpEngineInoutAdapter<JSONObject, JSONObject> pdp = domainDAO.getXacmlJsonPdp();
-		if (pdp == null)
-		{
-			throw NULL_PDP_INTERNAL_SERVER_ERROR_EXCEPTION;
-		}
-
-		return pdp.evaluate(request);
+		return domainDAO.evaluatePolicyDecision(request);
 	}
 
 	@Override
@@ -626,7 +611,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			features.add(new Feature(pdpFeature.getId(), pdpFeature.getType(), pdpFeature.isEnabled()));
 		}
 		return new PdpProperties(features, props.getRootPolicyRefExpression(), new ApplicablePolicies(props.getApplicableRootPolicyRef(), props.getApplicableRefPolicyRefs()),
-				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
+		        XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 
 	@Override
@@ -662,7 +647,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			allFeatures.add(new Feature(pdpFeature.getId(), pdpFeature.getType(), pdpFeature.isEnabled()));
 		}
 		return new PdpProperties(allFeatures, allProps.getRootPolicyRefExpression(), new ApplicablePolicies(allProps.getApplicableRootPolicyRef(), allProps.getApplicableRefPolicyRefs()),
-				XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
+		        XML_DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
 	}
 
 	@Override

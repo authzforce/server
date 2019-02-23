@@ -40,14 +40,15 @@ applications, AuthzForce also provides a PDP engine as a Java library in
 
 -   [Features](#features)
 -   [Limitations](#limitations)
+-   [Quality Assurance](#quality-assurance)
 -   [Install](#install)
 -   [Documentation](#documentation)
+-   [Training Courses](#training-courses)
 -   [Usage](#usage)
--   [Support](#support)
--   [Security](#security---vulnerability-reporting)
--   [Contributing](#contributing)
 -   [Testing](#testing)
--   [Quality Assurance](#quality-assurance)
+-   [Support](#support)
+-   [Security](#security-vulnerability-reporting)
+-   [Contributing](#contributing)
 -   [License](#license)
 
 ## Features
@@ -173,7 +174,26 @@ are not supported:
     `urn:oasis:names:tc:xacml:3.0:function:access-permitted`;
 -   [Algorithms planned for future deprecation](http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047257).
 
-If you are interested in those, you can ask for [support](#Support).
+If you are interested in those, you can ask for [support](#support).
+
+## Quality Assurance
+
+This project is part of [FIWARE](https://fiware.org/) and has been rated as
+follows:
+
+-   **Version Tested:**
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Version&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.version&colorB=blue)
+-   **Documentation:**
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Completeness&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.docCompleteness&colorB=blue)
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Usability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.docSoundness&colorB=blue)
+-   **Responsiveness:**
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Time%20to%20Respond&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.timeToCharge&colorB=blue)
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Time%20to%20Fix&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.timeToFix&colorB=blue)
+-   **FIWARE Testing:**
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Tests%20Passed&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.failureRate&colorB=blue)
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Scalability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.scalability&colorB=blue)
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Performance&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.performance&colorB=blue)
+    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Stability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.stability&colorB=blue)
 
 ## Install
 
@@ -192,6 +212,17 @@ Once you downloaded the distribution of your preference, check the [documentatio
 
 For links to the documentation of a release, please go to the specific
 [release page](https://github.com/authzforce/server/releases).
+
+## Training Courses
+### Academy Courses
+- [AuthzForce](https://fiware-academy.readthedocs.io/en/latest/security/authzforce/)
+
+### Tutorials
+
+The following tutorials on **AuthzForce Server** are available:
+
+- 405. [Identity Management - XACML Rule-based Permissions](https://fiware-tutorials.readthedocs.io/en/latest/xacml-access-rules/).
+- 406. [Identity Management - Administrating XACML Rules](https://fiware-tutorials.readthedocs.io/en/latest/administrating-xacml/);
 
 ## Usage
 
@@ -217,6 +248,15 @@ PDP provided by AuthzForce Server, then enforces the PDP's decision, i.e.
 forwards the request to the web service implementation if the decision is
 Permit, else rejects it. For more information, see the Javadoc of
 [RESTfulPdpBasedAuthzInterceptorTest](webapp/src/test/java/org/ow2/authzforce/webapp/test/pep/cxf/RESTfulPdpBasedAuthzInterceptorTest.java).
+
+    
+## Testing
+
+To run unit tests, install Maven and type
+
+```console
+mvn test
+```
 
 ## Support
 
@@ -290,35 +330,6 @@ The sources for the manuals are located in
 11.  Create a release on Github with a description based on the
     [release description template](release.description.tmpl.md), replacing M/m/P
     with the new major/minor/patch versions.
-    
-# Testing
-
-To run unit tests, install Maven and type
-
-```console
-mvn test
-```
-
-## Quality Assurance
-
-This project is part of [FIWARE](https://fiware.org/) and has been rated as
-follows:
-
--   **Version Tested:**
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Version&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.version&colorB=blue)
--   **Documentation:**
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Completeness&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.docCompleteness&colorB=blue)
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Usability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.docSoundness&colorB=blue)
--   **Responsiveness:**
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Time%20to%20Respond&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.timeToCharge&colorB=blue)
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Time%20to%20Fix&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.timeToFix&colorB=blue)
--   **FIWARE Testing:**
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Tests%20Passed&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.failureRate&colorB=blue)
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Scalability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.scalability&colorB=blue)
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Performance&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.performance&colorB=blue)
-    ![ ](https://img.shields.io/badge/dynamic/json.svg?label=Stability&url=https://fiware.github.io/catalogue/json/authzforce.json&query=$.stability&colorB=blue)
-
----
 
 ## License
 
