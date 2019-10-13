@@ -59,9 +59,9 @@
       <constructor-arg name="extensionXsdLocation" value="${jndi_configDir}/authzforce-ext.xsd" />
    </bean>
 
-   <bean id="domainDAOClientFactoryBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
+   <bean id="domainDaoClientFactoryBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainResourceImpl$Factory" />
 
-   <bean id="domainsDAOBean" class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDAO" destroy-method="closeDomains">
+   <bean id="domainsDaoBean" class="org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao" destroy-method="closeDomains">
       <!-- Root directory of domain folders; a domain folder contains all configuration data of a specific domain, and is named after the domain ID encoded with base64url. -->
       <constructor-arg name="domainsRoot" value="${jndi_dataDir}/domains" />
       <!-- domain template directory for domain creation -->
@@ -72,11 +72,11 @@
       <constructor-arg name="enablePdpOnly" value="${jndi_enablePdpOnly}" />
       <constructor-arg name="enableXacmlJsonProfile" value="${jndi_enableXacmlJsonProfile}" />
       <constructor-arg name="useRandomAddressBasedUUID" value="#{T(java.lang.Boolean).valueOf(${jndi_useRandomAddressBasedUUID})}" />
-      <constructor-arg name="domainDAOClientFactory" ref="domainDAOClientFactoryBean" />
+      <constructor-arg name="domainDaoClientFactory" ref="domainDaoClientFactoryBean" />
    </bean>
 
    <bean id="domainsResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
-      <constructor-arg name="domainsDAO" ref="domainsDAOBean" />
+      <constructor-arg name="domainsDao" ref="domainsDaoBean" />
       <constructor-arg name="authorizedResourceAttribute" value="authorizedResource" />
       <constructor-arg name="anyResourceId">
          <null />
@@ -110,11 +110,11 @@
             <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
             <property name="schemaHandler" ref="apiSchemaHandler" />
          </bean>
-         <bean class="org.ow2.authzforce.rest.service.jaxrs.BadRequestExceptionMapper" />
-         <bean class="org.ow2.authzforce.rest.service.jaxrs.ClientErrorExceptionMapper" />
-         <bean class="org.ow2.authzforce.rest.service.jaxrs.UnsupportedOperationExceptionMapper" />
-         <bean class="org.ow2.authzforce.rest.service.jaxrs.ServerErrorExceptionMapper" />
-         <bean class="org.ow2.authzforce.rest.service.jaxrs.DefaultExceptionMapper" />
+         <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper" />
+         <bean class="org.ow2.authzforce.jaxrs.util.ClientErrorExceptionMapper" />
+         <bean class="org.ow2.authzforce.jaxrs.util.UnsupportedOperationExceptionMapper" />
+         <bean class="org.ow2.authzforce.jaxrs.util.ServerErrorExceptionMapper" />
+         <bean class="org.ow2.authzforce.jaxrs.util.DefaultExceptionMapper" />
       </jaxrs:providers>
       <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
       <!-- <jaxrs:inInterceptors> -->
