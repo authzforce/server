@@ -268,7 +268,7 @@ request, notification, potential issue (unconfirmed), etc.
 If you are experiencing any bug with this project and you indeed confirm this is
 not an issue with your environment (contact the users mailing list first if you
 are unsure), please report it on the
-[OW2 Issue Tracker](https://jira.ow2.org/browse/AUTHZFORCE/). Please include as
+[OW2 Issue Tracker](https://gitlab.ow2.org/authzforce/server/issues). Please include as
 much information as possible; the more we know, the better the chance of a
 quicker resolution:
 
