@@ -37,7 +37,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class XacmlToJsonConversion
+public class JettisonBasedXacmlToJsonConversion
 {
 
 	public static void main(final String[] args) throws XMLStreamException, FactoryConfigurationError, SAXException, IOException
