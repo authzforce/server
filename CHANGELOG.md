@@ -4,6 +4,33 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 9.0.0
+*See the [Upgrader tool](upgrader/src) for upgrading from 8.x versions.*
+
+### Added
+- **Tomcat 9** support. 
+- New application configuration variable `org.ow2.authzforce.webapp.badReqErrVerbosity`: configures the verbosity of HTTP 400 (Bad Request) responses to help clients troubleshoot their API requests. To be set in the webapp-specific Tomcat Context element, typically `/etc/tomcat9/Catalina/localhost/authzforce-ce.xml`.
+- PDP API (/pdp): support for **Multiple Decision Profile with XACML/JSON Profile** (JSON input)
+
+### Changed
+- **Tomcat requirement: 9.x**. Although AuthzForce Server may still run on Tomcat 8 with a few tweaks, **Tomcat 8 is not officially supported anymore**.
+- Domains' PDP configuration format changed, i.e. XML namespaces / types / elements changed  (the [Upgrader tool](upgrader/src) helps migrate configurations from older 8.x versions)
+- Upgraded parent project (authzforce-ce-parent): 7.6.1: upgraded dependencies:
+	- slf4j-api: 1.7.30 (fix CVE)
+	- Apache CXF: 3.3.6
+  	- Spring: 5.1.14
+- Upgraded dependencies: 
+	- authzforce-ce-core-pdp-engine: 16.0.0
+	- authzforce-ce-core-pap-api: 10.1.0
+	- authzforce-ce-jaxrs-utils: 1.6.0
+	- authzforce-ce-pap-dao-flat-file: 12.0.0
+
+### Fixed
+- #46 : bad PolicySets pushed to the /pap/policies endpoint are still saved on server side even if a HTTP 400 Bad Request is returned.
+- Issues with XACML/JSON responses (XACML JSON Profile)
+- CVE on slf4j
+
+
 ## 8.1.0
 ### Added
 - [GH-29] Systematic input policy validation on API - HTTP POST `/domains/{domain-id}/pap/policies` - even if the policy is not currently in use by the PDP (it is potentially used later on after changing PDP configuration), in order to improve safety and troubleshooting. Policies are validated by attempting to load a temporary PDP configuration with the input policy as root policy.
