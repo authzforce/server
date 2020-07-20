@@ -18,9 +18,9 @@ any time.
 ## Short term
 
 The following list of features are planned to be addressed in the short term,
-and incorporated in the next release of the product planned for **2019**:
+and incorporated in the next release of the product planned for **2020**:
 
-- [Systematic policy validation on PAP API](https://github.com/authzforce/server/issues/29).
+- #50 .
 
 ## Medium term
 

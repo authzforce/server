@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,7 +18,12 @@
  */
 package org.ow2.authzforce.webapp.test.pep.cxf;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.net.URL;
+import java.net.URLClassLoader;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
@@ -61,18 +66,30 @@ public class RESTfulPdpBasedAuthzInterceptorTest extends AbstractBusClientServer
 	@org.junit.BeforeClass
 	public static void startServers() throws Exception
 	{
+		/*
+		 * Show classpath
+		 */
+		final ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+		final URL[] urls = ((URLClassLoader) cl).getURLs();
+
+		for (final URL url : urls)
+		{
+			System.out.println(url.getFile());
+		}
+
 		assertTrue("DoubleIt WS Server failed to launch",
-		// run the server in the same process
-		// set this to false to fork
-				launchServer(Server.class, true));
+		        // run the server in the same process
+		        // set this to false to fork
+		        launchServer(Server.class, true));
 		assertTrue("STS Server failed to launch",
-		// run the server in the same process
-		// set this to false to fork
-				launchServer(STSServer.class, true));
+		        // run the server in the same process
+		        // set this to false to fork
+		        launchServer(STSServer.class, true));
 		assertTrue("PDP Server failed to launch",
-		// run the server in the same process
-		// set this to false to fork
-				launchServer(PdpServer.class, true));
+		        // run the server in the same process
+		        // set this to false to fork
+		        launchServer(PdpServer.class, true));
 	}
 
 	private DoubleItPortType doubleItWsPort = null;

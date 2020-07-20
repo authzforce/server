@@ -3,14 +3,14 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>8.1.0</version>
+      <version>9.0.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-dist</artifactId>
    <!-- If using 'pom' packaging, jdeb refuses to execute. -->
    <packaging>jar</packaging>
    <name>${project.groupId}:${project.artifactId}</name>
-   <description>AuthZForce CE server distribution (zip and deb)</description>
+   <description>AuthzForce CE server distribution (zip and deb)</description>
    <url>https://github.com/authzforce/server/dist</url>
    <scm>
       <connection>scm:git:${git.url.base}.git</connection>
@@ -198,13 +198,13 @@
                               <!-- Starting '.' necessary to get absolute paths, otherwise lintian complains "relative-conffile" -->
                               <prefix>./opt/${productId}/conf</prefix>
                               <user>root</user>
-                              <group>tomcat8</group>
+                              <group>tomcat</group>
                            </mapper>
                         </data>
                         <data>
                            <!-- Webapp-specific context for Tomcat, after replacing 'productId' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
                            <src>${project.build.outputDirectory}/webapp-context.xml</src>
-                           <dst>/etc/tomcat8/Catalina/localhost/authzforce-ce.xml</dst>
+                           <dst>/etc/tomcat9/Catalina/localhost/authzforce-ce.xml</dst>
                            <type>file</type>
                            <conffile>true</conffile>
                         </data>
@@ -218,12 +218,19 @@
                               <type>perm</type>
                               <prefix>./opt/${productId}/webapp</prefix>
                               <user>root</user>
-                              <group>tomcat8</group>
+                              <group>tomcat</group>
                               <!-- filemode/dirmode set to 000 by default. Issue: https://github.com/tcurdt/jdeb/issues/55 -->
                               <filemode>644</filemode>
                               <dirmode>755</dirmode>
                               <strip>2</strip>
                            </mapper>
+                        </data>
+                        <data>
+                           <!-- Systemd config override to allow writing to other non-official Tomcat directories. More info: https://salsa.debian.org/java-team/tomcat9/blob/master/debian/README.Debian -->
+                           <src>${project.basedir}/src/debian/systemd-tomcat9-override.conf</src>
+                            <dst>/etc/systemd/system/tomcat9.service.d/override.conf</dst>
+                           <type>file</type>
+                           <conffile>true</conffile>
                         </data>
                         <data>
                            <!-- Configuration directory -->
@@ -232,8 +239,8 @@
                            <mapper>
                               <type>perm</type>
                               <prefix>./opt/${productId}/data/domains</prefix>
-                              <user>tomcat8</user>
-                              <group>tomcat8</group>
+                              <user>tomcat</user>
+                              <group>tomcat</group>
                            </mapper>
                         </data>
                      </dataSet>

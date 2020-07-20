@@ -32,8 +32,8 @@ _If you are interested in using an embedded XACML-compliant PDP in your Java
 applications, AuthzForce also provides a PDP engine as a Java library in
 [Authzforce core project](http://github.com/authzforce/core)._
 
-|  :books: [Documentation](https://authzforce-ce-fiware.rtfd.io/) | :mortar_board: [Academy](https://fiware-academy.readthedocs.io/en/latest/security/authzforce) | :whale: [Docker Hub](https://hub.docker.com/r/authzforce/server/) |
-|---|---|---|
+|  :books: [Documentation](https://authzforce-ce-fiware.rtfd.io/) | :mortar_board: [Academy](https://fiware-academy.readthedocs.io/en/latest/security/authzforce) | :whale: [Docker Hub](https://hub.docker.com/r/authzforce/server/) |  :dart: [Roadmap](https://github.com/authzforce/server/blob/develop/ROADMAP.md)
+|---|---|---|---|
 
 
 ## Contents
@@ -160,7 +160,7 @@ More information in the previous section.
 
 -   Integration with file synchronization tools (e.g.
     [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g.
-    NFS and CIFS) to build clusters of AuthZForce Servers.
+    NFS and CIFS) to build clusters of AuthzForce Servers.
 
 ## Limitations
 
@@ -268,7 +268,7 @@ request, notification, potential issue (unconfirmed), etc.
 If you are experiencing any bug with this project and you indeed confirm this is
 not an issue with your environment (contact the users mailing list first if you
 are unsure), please report it on the
-[OW2 Issue Tracker](https://jira.ow2.org/browse/AUTHZFORCE/). Please include as
+[OW2 Issue Tracker](https://gitlab.ow2.org/authzforce/server/issues). Please include as
 much information as possible; the more we know, the better the chance of a
 quicker resolution:
 
@@ -299,20 +299,26 @@ The sources for the manuals are located in
 ### Releasing
 
 1.  From the develop branch, prepare a release (example using a HTTP proxy):
+
 ```console
-    $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
+$ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 ```
+
 2.  Update the [changelog](CHANGELOG.md) with the new version according to
     keepachangelog.com.
 3.  Commit
 4.  Perform the software release (example using a HTTP proxy):
-```console
+
+    ```console
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
-```
-        If, after deployment, the command does not succeed because of some issue with the branches. Fix the issue, then re-run the same command but with 'noDeploy' option set to true to avoid re-deployment:
-```console
+    ```
+
+    If, after deployment, the command does not succeed because of some issue with the branches. Fix the issue, then re-run the     same command but with 'noDeploy' option set to true to avoid re-deployment:
+
+    ```console
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 -DnoDeploy=true jgitflow:release-finish
-```
+    ```
+    
     More info on jgitflow: http://jgitflow.bitbucket.org/
 5.  Connect and log in to the OSS Nexus Repository Manager:
     https://oss.sonatype.org/
@@ -339,3 +345,20 @@ and `org.ow2.authzforce.webapp.org.codehaus.jettison.mapped` which are under
 Apache License.
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_large)
+
+### Are there any legal issues with GPL 3.0? Is it safe for me to use?
+
+There is absolutely no problem in using a product licensed under GPL 3.0. Issues with GPL 
+(or AGPL) licenses are mostly related with the fact that different people assign different 
+interpretations on the meaning of the term “derivate work” used in these licenses. Due to this,
+some people believe that there is a risk in just _using_ software under GPL or AGPL licenses
+(even without _modifying_ it).
+
+For the avoidance of doubt, the owners of this software licensed under an GPL 3.0 license  
+wish to make a clarifying public statement as follows:
+
+> Please note that software derived as a result of modifying the source code of this
+> software in order to fix a bug or incorporate enhancements is considered a derivative 
+> work of the product. Software that merely uses or aggregates (i.e. links to) an otherwise 
+> unmodified version of existing software is not considered a derivative work, and therefore
+> it does not need to be released as under the same license, or even released as open source.

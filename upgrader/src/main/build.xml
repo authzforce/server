@@ -1,21 +1,21 @@
 <!--
 
-    Copyright (C) 2012-2016 Thales Services SAS.
+    Copyright (C) 2012-2020 Thales.
 
-    This file is part of AuthZForce CE.
+    This file is part of AuthzForce CE.
 
-    AuthZForce CE is free software: you can redistribute it and/or modify
+    AuthzForce CE is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    AuthZForce CE is distributed in the hope that it will be useful,
+    AuthzForce CE is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with AuthZForce CE.  If not, see <http://www.gnu.org/licenses/>.
+    along with AuthzForce CE.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
 <!-- On Ubuntu, do this first: $ sudo apt-get install ivy ant-contrib-->
@@ -30,14 +30,14 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 
-	<property name="old.version" value="" description="Old Authzforce version: 6.x, 7.x" />
-	<condition property="old.version.pattern" value="6.x,7.x">
-		<matches pattern="(6|7)\..*" string="${old.version}" />
+	<property name="old.version" value="" description="Old Authzforce version: 8.x" />
+	<condition property="old.version.pattern" value="8.x">
+		<matches pattern="(8)\..*" string="${old.version}" />
 	</condition>
-	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 6.x, 7.x" unless="old.version.pattern" />
+	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 8.x" unless="old.version.pattern" />
 	<property name="xslt.dir" location="xslt/${old.version.pattern}" />
 
-	<property name="old.install.dir" value="" description="Old Authzforce (6.x,7.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
+	<property name="old.install.dir" value="" description="Old Authzforce (8.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
 	<fail message="Invalid old.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>
@@ -48,7 +48,7 @@
 		</condition>
 	</fail>
 
-	<property name="new.install.dir" value="" description="Current Authzforce (8.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
+	<property name="new.install.dir" value="" description="Current Authzforce (9.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
 	<fail message="Invalid new.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>

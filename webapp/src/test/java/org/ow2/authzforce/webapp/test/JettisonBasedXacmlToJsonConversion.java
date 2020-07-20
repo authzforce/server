@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -37,7 +37,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class XacmlToJsonConversion
+public class JettisonBasedXacmlToJsonConversion
 {
 
 	public static void main(final String[] args) throws XMLStreamException, FactoryConfigurationError, SAXException, IOException

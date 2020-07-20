@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -61,6 +61,8 @@ import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
 import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
 import org.apache.tomcat.util.descriptor.web.NamingResources;
+import org.apache.tomcat.util.scan.StandardJarScanFilter;
+import org.apache.tomcat.util.scan.StandardJarScanner;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.pdp.testutil.ext.xmlns.TestAttributeProviderDescriptor;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
@@ -256,6 +258,21 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		return env;
 	}
 
+	/**
+	 * 
+	 * @param port
+	 *            server port, actual port number is randomly generated if null
+	 * @param enableFastInfoset
+	 * @param enableDoSMitigation
+	 * @param domainSyncIntervalSec
+	 * @param enablePdpOnly
+	 * @param addSampleDomain
+	 * @return
+	 * @throws ServletException
+	 * @throws IllegalArgumentException
+	 * @throws IOException
+	 * @throws LifecycleException
+	 */
 	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
 	        final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
 	{
@@ -295,10 +312,23 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		/*
 		 * Increment server port after getting current value, to prepare for next server tests and avoid conflict with this one
 		 */
-		embeddedServer.setPort(port < 0 ? EMBEDDED_SERVER_PORT.incrementAndGet() : port);
+		embeddedServer.getConnector().setPort(port < 0 ? EMBEDDED_SERVER_PORT.incrementAndGet() : port);
 		// enable JNDI
 		embeddedServer.enableNaming();
 		final Context webappCtx = embeddedServer.addWebapp(EMBEDDED_APP_CONTEXT_PATH, new File("src/main/webapp").getAbsolutePath());
+
+		/*
+		 * Disable Tomcat JAR scanner
+		 */
+		final StandardJarScanner jarScanner = (StandardJarScanner) webappCtx.getJarScanner();
+		jarScanner.setScanClassPath(false);
+		final StandardJarScanFilter jarScanFilter = (StandardJarScanFilter) jarScanner.getJarScanFilter();
+		jarScanFilter.setDefaultPluggabilityScan(false);
+		jarScanFilter.setDefaultTldScan(false);
+
+		/*
+		 * Remove default lifecycle listeners
+		 */
 		for (final LifecycleListener listener : webappCtx.findLifecycleListeners())
 		{
 			if (listener instanceof Tomcat.DefaultWebXmlListener)
@@ -329,6 +359,8 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.jsonKeysToXmlAttributes", String.class, ""));
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.xmlAttributesToJsonLikeElements", Boolean.class, Boolean.FALSE.toString()));
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.jsonKeysWithArrays", String.class, ""));
+
+		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.badReqErrVerbosity", Integer.class, "10"));
 
 		if (enableDoSMitigation)
 		{

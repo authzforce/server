@@ -7,5 +7,5 @@
 	<system systemId="authzforce-ext.xsd" uri="classpath:authzforce-ext.xsd"/>
 	
 	<!-- PDP Extensions -->
-	<uri name="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/3.6" uri="classpath:org.ow2.authzforce.pap.dao.flatfile.pdp-ext.xsd"/>
+	<uri name="http://authzforce.github.io/pap-dao-flat-file/xmlns/pdp-ext/4" uri="classpath:org.ow2.authzforce.pap.dao.flatfile.pdp-ext.xsd"/>
 </catalog>

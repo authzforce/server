@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2012-2015 Thales Services SAS. This file is part of AuthZForce. AuthZForce is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-   as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthZForce is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+<!-- Copyright (C) 2012-2015 Thales Services SAS. This file is part of AuthzForce. AuthzForce is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+   as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. AuthzForce is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public 
-   License along with AuthZForce. If not, see <http://www.gnu.org/licenses/>. -->
+   License along with AuthzForce. If not, see <http://www.gnu.org/licenses/>. -->
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util"
    xmlns:jee="http://www.springframework.org/schema/jee" xmlns:core="http://cxf.apache.org/core"
    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -47,6 +47,8 @@
    <jee:jndi-lookup id="jndi_jsonKeysWithArrays" jndi-name="org.ow2.authzforce.webapp.jsonKeysWithArrays" expected-type="java.lang.String" default-value="" />
    <!-- dropNamespaces from JSON output (when mapping from XML) -->
    <jee:jndi-lookup id="jndi_noNamespaceInJsonOutput" jndi-name="org.ow2.authzforce.webapp.noNamespaceInJsonOutput" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
+   <!-- 400 BadRequest error message verbosity -->
+   <jee:jndi-lookup id="jndi_badReqErrVerbosity" jndi-name="org.ow2.authzforce.webapp.badReqErrVerbosity" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(10)}" />
 
    <bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">
       <constructor-arg name="catalogLocation" value="#{jndi_configDir}/catalog.xml" />
@@ -112,6 +114,9 @@
             <ref bean="productMetadataResourceBean" />
             <ref bean="domainsResourceBean" />
          </jaxrs:serviceBeans>
+         <jaxrs:features>
+			<core:logging />
+		</jaxrs:features>
          <jaxrs:providers>
             <bean class="org.ow2.authzforce.jaxrs.util.AcceptMediaTypeCheckingRequestFilter">
                <constructor-arg>
@@ -193,7 +198,9 @@
                <property name="maxStringLength"
                   value="#{jndi_staxMaxAttributeSize &lt;= 0 ? jndi_staxMaxTextLength: (jndi_staxMaxTextLength &lt;= 0 ? jndi_staxMaxAttributeSize: T(java.lang.Math).min(jndi_staxMaxAttributeSize,jndi_staxMaxTextLength) ) }" />
             </bean>
-            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper">
+            	<constructor-arg name="verbosityLevel" value="#{jndi_badReqErrVerbosity}" />
+            </bean>
             <bean class="org.ow2.authzforce.jaxrs.util.ClientErrorExceptionMapper" />
             <bean class="org.ow2.authzforce.jaxrs.util.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.jaxrs.util.ServerErrorExceptionMapper" />
@@ -209,13 +216,6 @@
             <entry key="org.apache.cxf.stax.maxAttributeSize" value="#{jndi_staxMaxAttributeSize &lt;= 0 ? 65536: jndi_staxMaxAttributeSize}" />
             <entry key="org.apache.cxf.stax.maxTextLength" value="#{jndi_staxMaxTextLength &lt;= 0 ? 134217728: jndi_staxMaxTextLength}" />
          </jaxrs:properties>
-         <!-- USE Logging{In,Out}Interceptor FOR DEBUGGING ONLY -->
-         <!-- <jaxrs:inInterceptors> -->
-         <!-- <bean class="org.apache.cxf.interceptor.LoggingInInterceptor" /> -->
-         <!-- </jaxrs:inInterceptors> -->
-         <!-- <jaxrs:outInterceptors> -->
-         <!-- <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" /> -->
-         <!-- </jaxrs:outInterceptors> -->
          <jaxrs:outFaultInterceptors>
             <bean class="org.ow2.authzforce.webapp.ErrorHandlerInterceptor" />
          </jaxrs:outFaultInterceptors>
@@ -241,7 +241,9 @@
                <property name="produceMediaTypes" ref="fiType" />
                <property name="consumeMediaTypes" ref="fiType" />
             </bean>
-            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper" />
+            <bean class="org.ow2.authzforce.jaxrs.util.BadRequestExceptionMapper">
+            	<constructor-arg name="verbosityLevel" value="#{jndi_badReqErrVerbosity}" />
+            </bean>
             <bean class="org.ow2.authzforce.jaxrs.util.ClientErrorExceptionMapper" />
             <bean class="org.ow2.authzforce.jaxrs.util.UnsupportedOperationExceptionMapper" />
             <bean class="org.ow2.authzforce.jaxrs.util.ServerErrorExceptionMapper" />
