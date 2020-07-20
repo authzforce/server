@@ -160,7 +160,7 @@ More information in the previous section.
 
 -   Integration with file synchronization tools (e.g.
     [csync2](http://oss.linbit.com/csync2/)) or distributed filesystems (e.g.
-    NFS and CIFS) to build clusters of AuthZForce Servers.
+    NFS and CIFS) to build clusters of AuthzForce Servers.
 
 ## Limitations
 

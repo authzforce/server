@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -94,7 +94,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 				errMsg = INTERNAL_SERVER_ERROR_MSG;
 			}
 
-			final JaxbErrorMessage errorEntity = new JaxbErrorMessage(errMsg);
+			final JaxbErrorMessage errorEntity = new JaxbErrorMessage(errMsg, null);
 			response.setStatus(respStatus);
 			try (final ServletOutputStream out = response.getOutputStream())
 			{

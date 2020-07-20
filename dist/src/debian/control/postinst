@@ -14,21 +14,21 @@ fi
 
 db_get [[productId]]/restartTomcat
 if [ "$RET" = true ]; then
-        export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=http -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
-        sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat8
-        systemctl restart tomcat8
+        export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
+        sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat9
+        systemctl restart tomcat9
 fi
 
-echo "If you answered 'No' to the second question, you need to set the JAVA_OPTS in '/etc/default/tomcat8' by yourself before restarting Tomcat:" 
-echo "    JAVA_OPTS=\"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=http -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server\""
+echo "If you answered 'No' to the second question, you need to set the JAVA_OPTS in '/etc/default/tomcat9' by yourself before restarting Tomcat:" 
+echo "    JAVA_OPTS=\"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server\""
 echo
-echo "If Tomcat fails to restart, check for any Tomcat high-level error in Tomcat log directory: /var/log/tomcat8"
-echo "Then fix it, in particular check the settings in Tomcat init script /etc/default/tomcat8 and restart Tomcat as follows:"
-echo "    $ systemctl restart tomcat8"
+echo "If Tomcat fails to restart, check for any Tomcat high-level error in Tomcat log directory: /var/log/tomcat9"
+echo "Then fix it, in particular check the settings in Tomcat init script /etc/default/tomcat9 and restart Tomcat as follows:"
+echo "    $ systemctl restart tomcat9"
 echo
-echo "If Tomcat is started but AuthZForce webapp deployment fails, check for any webapp-specific error in file: /var/log/tomcat8/authzforce-ce/error.log"
+echo "If Tomcat is started but AuthzForce webapp deployment fails, check for any webapp-specific error in file: /var/log/tomcat9/authzforce-ce/error.log"
 echo
-echo "If Tomcat takes too long to start, especially to load the AuthZForce webapp, it is very likely caused by lack of entropy on your host for secure random number generation. Having enough entropy is critical for security reasons, especially in production. If and only if you are using this AuthzForce instance for testing only, you may speed up Tomcat startup by adding this JVM argument to the JAVA_OPTS variable in Tomcat service configuration file '/etc/default/tomcat8': '-Djava.security.egd=file:/dev/./urandom'"
+echo "If Tomcat takes too long to start, especially to load the AuthzForce webapp, it is very likely caused by lack of entropy on your host for secure random number generation. Having enough entropy is critical for security reasons, especially in production. If and only if you are using this AuthzForce instance for testing only, you may speed up Tomcat startup by adding this JVM argument to the JAVA_OPTS variable in Tomcat service configuration file '/etc/default/tomcat9': '-Djava.security.egd=file:/dev/./urandom'"
 echo
 echo "When the webapp is up and running, you should get a HTTP response with status code 200 to this HTTP request with curl tool, after replacing 8080 with the port Tomcat is listening to if different:"
 printf "$ curl --verbose --show-error --write-out '%b\\%bn' --request GET http://localhost:8080/authzforce-ce/domains\n"

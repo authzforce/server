@@ -73,6 +73,12 @@
       <env-entry-type>java.lang.Boolean</env-entry-type>
       <env-entry-value>false</env-entry-value>
    </env-entry>
+   <env-entry>
+      <description>HTTP 400 Bad Request error message verbosity</description>
+      <env-entry-name>org.ow2.authzforce.webapp.badReqErrVerbosity</env-entry-name>
+      <env-entry-type>java.lang.Integer</env-entry-type>
+      <env-entry-value>1</env-entry-value>
+   </env-entry>
    <!-- <env-entry> -->
    <!-- <description>Optional maximum number of child elements for a given parent element in incoming XML. More info on "Controlling Large Request Payloads" -->
    <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->

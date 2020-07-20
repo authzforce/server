@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -17,6 +17,10 @@
  * along with AuthzForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.webapp.test.pep.cxf;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.net.URL;
 import java.net.URLClassLoader;

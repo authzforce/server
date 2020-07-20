@@ -3,7 +3,7 @@ Version: [[version]]
 Section: web
 Priority: optional
 Architecture: all
-Depends: debconf (>= 0.2.26), openjdk-8-jre | oracle-java8-installer, tomcat8
+Depends: debconf (>= 0.2.26), openjdk-8-jre | oracle-java8-installer, tomcat9
 Maintainer: [[productMaintainer]] 
 Description: AuthzForce CE Server.
  Reference Implementation of FIWARE Authorization PDP Generic Enabler

@@ -1,6 +1,6 @@
 {inceptionYear=${project.inceptionYear}}
 {currentYear=${currentYear}}
-# AuthZForce Upgrader
+# AuthzForce Upgrader
 
 If you intend to install a new version of Authzforce on the same server as the old version, first create a backup of the folder `/opt/authzforce-ce-server`, and proceed with the instructions below, using the backup folder as `old.install.dir`.
 
@@ -12,7 +12,7 @@ To upgrade AuhZForce data from an older version to ${project.version}, proceed a
     $ sudo apt-get install ivy ant-contrib
     ```
     
-1. If you have custom AuthZForce PDP attribute providers, for each one, you have to adapt them to the new PDP AttributeProvider's Java interface, deploy and enable them on the new AuthZForce Server. Please refer to the [online User and Programmer Guide](http://readthedocs.org/projects/authzforce-ce-fiware/versions/) for more information on this process (select the latest version with the 3 first dot-separated numbers -- MAJOR.MINOR.PATCH -- matching your AuthZForce Server version). Then you have to add a new `xsl:when` element in the following form in the XSL template named `attribute-finders-upgrade` in XSL stylesheet `xslt/M.m.x/domain-pdp-upgrade.xsl` (path relative to the current working directory) -- replace `M.m` with the MAJOR.MINOR version of your old Authzforce version to be upgraded -- where you defined the transformation rules to upgrade the attribute provider configuration to the new model (the `TestAttributeProvider` below is just an example and may be ignored):
+1. If you have custom AuthzForce PDP attribute providers, for each one, you have to adapt them to the new PDP AttributeProvider's Java interface, deploy and enable them on the new AuthzForce Server. Please refer to the [online User and Programmer Guide](http://readthedocs.org/projects/authzforce-ce-fiware/versions/) for more information on this process (select the latest version with the 3 first dot-separated numbers -- MAJOR.MINOR.PATCH -- matching your AuthzForce Server version). Then you have to add a new `xsl:when` element in the following form in the XSL template named `attribute-finders-upgrade` in XSL stylesheet `xslt/M.m.x/domain-pdp-upgrade.xsl` (path relative to the current working directory) -- replace `M.m` with the MAJOR.MINOR version of your old Authzforce version to be upgraded -- where you defined the transformation rules to upgrade the attribute provider configuration to the new model (the `TestAttributeProvider` below is just an example and may be ignored):
 
     ```xml
     <xsl:when test="$typeLocalName = 'TestAttributeFinder'">
@@ -34,16 +34,16 @@ To upgrade AuhZForce data from an older version to ${project.version}, proceed a
     *WARNING 3: if you don't use `sudo`, make sure you are executing the command as a user with read-write permissions on `new.install.dir`.*
     
     ```shell
-    $ sudo ant -Dold.version=6.0.0 \
-      -Dold.install.dir=/path/to/old/opt/authzforce-ce-server-6.0.0 \
+    $ sudo ant -Dold.version=8.0.0 \
+      -Dold.install.dir=/path/to/old/opt/authzforce-ce-server-8.0.0 \
       -Dnew.install.dir=/path/to/new/opt/authzforce-ce-server \
     ```
     
 1. Set the permissions properly on the new data:  
   
     ```shell
-    $ sudo chown -RH tomcat8 /path/to/new/opt/authzforce-ce-server
-    $ sudo chgrp -RH tomcat8 /path/to/new/opt/authzforce-ce-server
+    $ sudo chown -RH tomcat /path/to/new/opt/authzforce-ce-server
+    $ sudo chgrp -RH tomcat /path/to/new/opt/authzforce-ce-server
     ```
 
 1. Restart Tomcat on the new AuthzForce server to load the new data.

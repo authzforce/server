@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -1060,20 +1060,90 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef();
 
 		// Then attempt to put bad root policy set (invalid function ID)
-		final JAXBElement<PolicySet> rootPolicy = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "policyWithBadFunctionId.xml"), PolicySet.class);
+		final JAXBElement<PolicySet> rootPolicyJaxbElt = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "policyWithBadFunctionId.xml"), PolicySet.class);
+		final PolicySet rootPolicy = rootPolicyJaxbElt.getValue();
 		try
 		{
-			testDomainHelper.setRootPolicy(rootPolicy.getValue(), true);
+			testDomainHelper.setRootPolicy(rootPolicy, true);
 			fail("Invalid Root PolicySet (with invalid function ID) accepted");
 		}
 		catch (final BadRequestException e)
 		{
-			// Bad request as expected
+			/*
+			 * Bad request as expected.
+			 * 
+			 */
+			if (LOGGER.isDebugEnabled())
+			{
+				try (final javax.ws.rs.core.Response resp = e.getResponse())
+				{
+					LOGGER.debug("BadRequestException for test method setRootPolicyWithBadFunctionId() as expected with payload: {}", resp.readEntity(String.class));
+				}
+			}
 		}
 
 		// make sure the rootPolicyRef is unchanged
 		assertEquals(rootPolicyRef, testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getApplicablePolicies().getRootPolicyRef(),
 		        "rootPolicyRef changed although root policy update rejected");
+
+		/*
+		 * Make sure the policy was not saved/persisted anyway (see https://github.com/authzforce/server/issues/45 )
+		 */
+		try
+		{
+			testDomainHelper.getPolicy(rootPolicy.getPolicySetId(), rootPolicy.getVersion());
+			fail("Invalid Root PolicySet (with invalid function Id) was saved and still there on server side, although HTTP 400 BadRequest returned when trying to push it");
+		}
+		catch (final NotFoundException e)
+		{
+			/*
+			 * Policy does not exist on server side as expected.
+			 */
+		}
+
+	}
+
+	@Test(dependsOnMethods = { "setRootPolicyWithBadFunctionId" })
+	public void addPolicyWithBadCombiningAlgId() throws JAXBException
+	{
+		// Then attempt to put bad root policy set (invalid function ID)
+		final JAXBElement<PolicySet> badPolicyJaxbElt = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "policyWithBadCombiningAlgId.xml"), PolicySet.class);
+		final PolicySet badPolicy = badPolicyJaxbElt.getValue();
+		try
+		{
+			testDomain.getPapResource().getPoliciesResource().addPolicy(badPolicy);
+			fail("Invalid PolicySet (with invalid CombiningAlgId) accepted");
+		}
+		catch (final BadRequestException e)
+		{
+			/*
+			 * Bad request as expected.
+			 * 
+			 */
+			if (LOGGER.isDebugEnabled())
+			{
+				try (final javax.ws.rs.core.Response resp = e.getResponse())
+				{
+					LOGGER.debug("BadRequestException for test method addPolicyWithBadCombiningAlgId() as expected with payload: {}", resp.readEntity(String.class));
+				}
+			}
+
+		}
+
+		/*
+		 * Make sure the policy was not saved/persisted anyway (see https://github.com/authzforce/server/issues/45 )
+		 */
+		try
+		{
+			testDomainHelper.getPolicy(badPolicy.getPolicySetId(), badPolicy.getVersion());
+			fail("Invalid PolicySet (with invalid CombiningAlgId) was saved and still there on server side, although HTTP 400 BadRequest returned when trying to push it");
+		}
+		catch (final NotFoundException e)
+		{
+			/*
+			 * Policy does not exist on server side as expected.
+			 */
+		}
 	}
 
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" })

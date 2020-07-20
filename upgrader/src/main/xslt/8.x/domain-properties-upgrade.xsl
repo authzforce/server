@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Domain properties upgrade XSL Sheet: 4.2.0 -> 5.x. To be used with Saxon XSLT processor. -->
+<!-- Domain properties upgrade XSL Sheet. Parent folder name indicates the versions of AuthzForce Server from which you can upgrade.-->
+<!--  To be used with Saxon XSLT processor. -->
 <!-- Author: Cyril DANGERVILLE -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6">
    <xsl:output encoding="UTF-8" indent="yes" method="xml" />

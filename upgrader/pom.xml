@@ -167,21 +167,21 @@
             </dependencies>
             <executions>
                <execution>
-                  <id>upgrade-from-6.x,7.x</id>
+                  <id>upgrade-from-8.x</id>
                   <phase>generate-test-resources</phase>
                   <goals>
                      <goal>run</goal>
                   </goals>
                   <configuration>
                      <target>
-                        <copy todir="${project.basedir}/target/server/from-6.x,7.x/conf">
-                           <fileset dir="${project.basedir}/src/test/server/6.x,7.x/conf" />
+                        <copy todir="${project.basedir}/target/server/from-8.x/conf">
+                           <fileset dir="${project.basedir}/src/test/server/9.x/conf" />
                         </copy>
                         <taskdef resource="net/sf/antcontrib/antlib.xml" />
                         <ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
-                           <property name="old.version" value="6.0.0" />
-                           <property name="old.install.dir" value="${project.basedir}/src/test/server/6.x,7.x" />
-                           <property name="new.install.dir" value="${project.basedir}/target/server/from-6.x,7.x" />
+                           <property name="old.version" value="8.0.0" />
+                           <property name="old.install.dir" value="${project.basedir}/src/test/server/8.x" />
+                           <property name="new.install.dir" value="${project.basedir}/target/server/from-8.x" />
                            <!-- <property name="ignore.domain.name" value="true" /> -->
                            <!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
                            <!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->
@@ -212,7 +212,7 @@
                   </property>
                </properties>
                <!-- If run with Java 8, the JVM will reject 'http' schemaLocation of xml.xsd in XACML schema, unless you set this property -->
-                <argLine>-Djavax.xml.accessExternalSchema=http</argLine>
+                <argLine>-Djavax.xml.accessExternalSchema=all</argLine>
             </configuration>
          </plugin>
          <plugin>

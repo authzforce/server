@@ -3,7 +3,7 @@
 <suite name="AuthzForce.Server.REST.API.XML.PdpOnly" verbose="3">
    <!-- If you uncomment the <parameter>s below left here as a reminder, it overrides any JVM argument with same name passed on the command-line (e.g. -Dremote.base.url for parameter 'remote.base.url'). 
       So leave it commented out with you want to pass the parameter on the command-line. -->
-   <!-- Base URL of the remote AuthZForce webapp to be tested (up to the context root), if not testing locally. If and only if specified and not the empty string, the server is assumed to be remote; no 
+   <!-- Base URL of the remote AuthzForce webapp to be tested (up to the context root), if not testing locally. If and only if specified and not the empty string, the server is assumed to be remote; no 
       server started locally (embedded). -->
    <parameter name="remote.base.url" value="" />
    <!-- <parameter name="remote.base.url" value="http://localhost:8080/authzforce-ce" /> -->
@@ -11,9 +11,9 @@
       'ext4' supports nanosecond resolution. Resolution lower than the millisecond has a negative impact on Authzforce file synchronization features, insofar as a file change in less than a second after the 
       last sync will go undetected (the file's mtime timestamp is not modified in this case). If this parameter is set to true, the unit tests will make sure this does not happen to avoid false results. -->
    <parameter name="legacy.fs" value="true" />
-   <!-- If testing a remote AuthZForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
+   <!-- If testing a remote AuthzForce server, change enableFastInfoset according to whether Fast Infoset support enabled on the remote server. -->
    <parameter name="enableFastInfoset" value="false" />
-   <!-- If testing a remote AuthZForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
+   <!-- If testing a remote AuthzForce server, change enableDoSMitigation according to whether DoS mitigation is enabled on the remote server. -->
    <parameter name="enableDoSMitigation" value="true" />
    <!-- Force client to send/accept JSON only (implies enableFastInfoset=false since either XML/JSON or XML/FastInfoset is enabled on the server), else use XML -->
    <parameter name="useJSON" value="false" />

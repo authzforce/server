@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
@@ -9,11 +10,11 @@
 	<artifactId>authzforce-ce-server-webapp</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<packaging>war</packaging>
-	<description>Web application packaging for AuthZForce (PAP/PDP) REST service</description>
+	<description>Web application packaging for AuthzForce (PAP/PDP) REST service</description>
 	<url>https://github.com/authzforce/server/webapp</url>
 	<properties>
 		<!-- Tomcat version on Ubuntu 18.04 LTS (official target OS) -->
-		<tomcat.version>8.5.55</tomcat.version>
+		<tomcat.version>9.0.16</tomcat.version>
 	</properties>
 	<scm>
 		<connection>scm:git:${git.url.base}.git</connection>
@@ -37,6 +38,11 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<!-- spring-context dependency is not included by the others! -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -57,22 +63,6 @@
 			<groupId>fr.xebia.extras</groupId>
 			<artifactId>xebia-logfilter-extras</artifactId>
 			<version>1.0.1</version>
-		</dependency>
-		<dependency>
-			<!-- Optional cxf-core dependency, needed here for FastInfoSet -->
-			<groupId>com.sun.xml.fastinfoset</groupId>
-			<artifactId>FastInfoset</artifactId>
-			<version>1.2.13</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jsr173</artifactId>
-					<groupId>javax.xml</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jsr173_api</artifactId>
-					<groupId>javax.xml.bind</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<!-- JSON Support -->
 		<dependency>
@@ -121,18 +111,12 @@
 			<version>${tomcat.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-logging-juli</artifactId>
-			<version>8.5.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.slf4j</groupId> -->
+		<!-- <artifactId>jul-to-slf4j</artifactId> -->
+		<!-- <version>${slf4j.version}</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-client</artifactId>
@@ -331,7 +315,7 @@
 					</suiteXmlFiles>
 					<skipAfterFailureCount>1</skipAfterFailureCount>
 					<!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->
-					<redirectTestOutputToFile>false</redirectTestOutputToFile>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
 					<systemPropertyVariables>
 						<javax.xml.accessExternalSchema>all</javax.xml.accessExternalSchema>
 					</systemPropertyVariables>

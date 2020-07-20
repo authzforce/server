@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012-2019 THALES.
+ * Copyright (C) 2012-2020 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -47,7 +48,7 @@ import org.json.JSONTokener;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.pdp.testutil.TestUtils;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
-import org.ow2.authzforce.core.xmlns.pdp.StaticRefBasedRootPolicyProvider;
+import org.ow2.authzforce.core.xmlns.pdp.TopLevelPolicyElementRef;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.PdpPropertiesResource;
@@ -95,7 +96,7 @@ class DomainAPIHelper
 
 	private final Unmarshaller xacmlUnmarshaller;
 
-	DomainAPIHelper(final String domainId, final DomainResource domain, final Unmarshaller apiXmlUnmarshaller, final PdpModelHandler pdpModelHandler) throws JAXBException
+	protected DomainAPIHelper(final String domainId, final DomainResource domain, final Unmarshaller apiXmlUnmarshaller, final PdpModelHandler pdpModelHandler) throws JAXBException
 	{
 		this.domainId = domainId;
 		this.domain = domain;
@@ -108,7 +109,7 @@ class DomainAPIHelper
 		this.pdpModelHandler = pdpModelHandler;
 	}
 
-	static void matchPolicySets(final PolicySet actual, final PolicySet expected, final String testedMethodId)
+	protected static void matchPolicySets(final PolicySet actual, final PolicySet expected, final String testedMethodId)
 	{
 		assertEquals(actual.getPolicySetId(), expected.getPolicySetId(),
 		        String.format("Actual PolicySetId (='%s') from %s() != expected PolicySetId (='%s')", actual.getPolicySetId(), testedMethodId, expected.getPolicySetId()));
@@ -126,7 +127,7 @@ class DomainAPIHelper
 	 * @return matching link, null if none
 	 * 
 	 */
-	static Link getMatchingLink(final String hrefToBeMatched, final List<Link> links)
+	protected static Link getMatchingLink(final String hrefToBeMatched, final List<Link> links)
 	{
 		for (final Link link : links)
 		{
@@ -192,7 +193,7 @@ class DomainAPIHelper
 		return restApiEntityUnmarshaller.unmarshal(new StreamSource(file), clazz);
 	}
 
-	void modifyDomainPropertiesFile(final String newExternalId, final boolean isFilesystemLegacy) throws InterruptedException, JAXBException
+	protected void modifyDomainPropertiesFile(final String newExternalId, final boolean isFilesystemLegacy) throws InterruptedException, JAXBException
 	{
 		/*
 		 * If filesystem is legacy, it means here that file timestamp (mtime in particular) resolution is 1 sec, i.e. milliseconds are rounded to zero always. Therefore, in this unit test, with such a
@@ -233,7 +234,7 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws InterruptedException
 	 */
-	IdReferenceType modifyRootPolicyRefInPdpConfFile(final boolean isFilesystemLegacy) throws JAXBException, InterruptedException
+	protected IdReferenceType modifyRootPolicyRefInPdpConfFile(final boolean isFilesystemLegacy) throws JAXBException, InterruptedException
 	{
 		if (pdpModelHandler == null)
 		{
@@ -244,13 +245,12 @@ class DomainAPIHelper
 
 		final JAXBElement<PolicySet> jaxbPolicy = unmarshalXacml(new File(RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, RestServiceTest.TEST_POLICY_FILENAME), PolicySet.class);
 		final PolicySet policy = jaxbPolicy.getValue();
-		final IdReferenceType newRootPolicyRef = new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
 		testAddAndGetPolicy(policy);
 
 		// change root policyref in PDP conf file
 		final Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
-		final StaticRefBasedRootPolicyProvider staticRefBasedRootPolicyProvider = (StaticRefBasedRootPolicyProvider) pdpConf.getRootPolicyProvider();
-		staticRefBasedRootPolicyProvider.setPolicyRef(newRootPolicyRef);
+		final TopLevelPolicyElementRef newRootPolicyRef = new TopLevelPolicyElementRef(policy.getPolicySetId(), policy.getVersion(), true);
+		pdpConf.setRootPolicyRef(newRootPolicyRef);
 		/*
 		 * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution), to make sure the lastModifiedTime will be actually changed after
 		 * updating
@@ -261,10 +261,10 @@ class DomainAPIHelper
 		}
 
 		pdpModelHandler.marshal(pdpConf, domainPDPConfFile);
-		return newRootPolicyRef;
+		return new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
 	}
 
-	void modifyMaxPolicyRefDepthInPdpConfFile(final boolean isFilesystemLegacy, final int maxPolicyRefDepth) throws JAXBException, InterruptedException
+	protected void modifyMaxPolicyRefDepthInPdpConfFile(final boolean isFilesystemLegacy, final int maxPolicyRefDepth) throws JAXBException, InterruptedException
 	{
 		if (pdpModelHandler == null)
 		{
@@ -289,7 +289,7 @@ class DomainAPIHelper
 	}
 
 	/**
-	 * Updates either the root policy or another policy referenced from root
+	 * Updates either the root policy or another policy referenced from root in the backend policy repository (i.e. filesystem)
 	 * 
 	 * @param oldRootPolicyFile
 	 *            root policy to be updated if {@code updateRoot}
@@ -302,7 +302,7 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws InterruptedException
 	 */
-	IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy)
+	protected IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy)
 	        throws JAXBException, InterruptedException
 	{
 		resetPdpAndPrp();
@@ -347,6 +347,25 @@ class DomainAPIHelper
 	}
 
 	/**
+	 * 
+	 * @param policyId
+	 * @return the policy matching {@code policyId} and {@code version}
+	 * @throws NotFoundException
+	 *             if no such policy exists
+	 */
+	protected PolicySet getPolicy(final String policyId, final String version) throws NotFoundException
+	{
+		final PolicyResource policyRes = domain.getPapResource().getPoliciesResource().getPolicyResource(policyId);
+		if (policyRes == null)
+		{
+			return null;
+		}
+
+		final PolicySet policySet = policyRes.getPolicyVersionResource(version).getPolicyVersion();
+		return policySet;
+	}
+
+	/**
 	 * Adds a given PolicySet and returns allocated resource ID. It also checks 2 things: 1) The response's PolicySet matches the input PolicySet (simply checking PolicySet IDs and versions) 2) The
 	 * reponse to a getPolicySet() also matches the input PolicySet, to make sure the new PolicySet was actually committed succesfully and no error occurred in the process. 3) Response to
 	 * getPolicyResources() with same PolicySetId and Version matches.
@@ -356,7 +375,7 @@ class DomainAPIHelper
 	 * @throws ClientErrorException
 	 *             with status code 409 when policy conflicts with existing one (same policy id and version)
 	 */
-	String testAddAndGetPolicy(final PolicySet policySet) throws ClientErrorException
+	protected String testAddAndGetPolicy(final PolicySet policySet) throws ClientErrorException
 	{
 		// put new policyset
 		final Link link = domain.getPapResource().getPoliciesResource().addPolicy(policySet);
@@ -393,7 +412,7 @@ class DomainAPIHelper
 		return newRootPolicyRef;
 	}
 
-	IdReferenceType setRootPolicy(final PolicySet policySet, final boolean ignoreVersion)
+	protected IdReferenceType setRootPolicy(final PolicySet policySet, final boolean ignoreVersion)
 	{
 		try
 		{
@@ -565,7 +584,7 @@ class DomainAPIHelper
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote) throws JAXBException, IOException
+	protected void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote) throws JAXBException, IOException
 	{
 		requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, () -> {
 			final JAXBElement<Request> xacmlReq = unmarshalXacml(new File(testDirectory, RestServiceTest.REQUEST_FILENAME), Request.class);
