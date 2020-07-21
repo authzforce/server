@@ -12,11 +12,16 @@ if [ "$RET" = false ]; then
 	rm -rf /opt/[[productId]]/data/domains/*
 fi
 
+# We have changed Tomcat systemd config file during the install, so systemctl daemon-reload must be called
+systemctl daemon-reload
+
 db_get [[productId]]/restartTomcat
 if [ "$RET" = true ]; then
         export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
         sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat9
-        systemctl restart tomcat9
+        systemctl stop tomcat9
+        rm -rf /var/log/tomcat9/*
+        systemctl start tomcat9
 fi
 
 echo "If you answered 'No' to the second question, you need to set the JAVA_OPTS in '/etc/default/tomcat9' by yourself before restarting Tomcat:" 
