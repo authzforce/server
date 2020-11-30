@@ -1,0 +1,26 @@
+name: CI
+'on':
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+jobs:
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Use Java 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: 'Unit Tests with Java 8'
+        run: |
+          mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+          mvn test -B
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
