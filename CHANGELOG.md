@@ -27,7 +27,6 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
   - org.everit.json.schema: 1.12.1	
   - SLF4J API: 1.7.30
 
-
 ### Added
 - GH-61: JSON Object support in XACML/JSON Requests/Responses (as defined by JSON Profile of XACML), allowing custom XACML datatypes with JSON object structures.
 - Support for validation of XACML/JSON requests (JSON Profile) with custom JSON schema stored in configuration directory, using new webapp environment property (e.g. specified in Tomcat webapp context) `org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath` to be specified in `/etc/tomcat9/<Engine>/<Host>/authzforce-ce.xml`  (more info in [webapp-context.xml](dist/src/webapp-context.xml) )
