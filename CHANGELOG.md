@@ -4,6 +4,40 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 10.0.0
+### Changed
+- Upgraded AuthzForce Parent: 8.0.0:
+  - Upgraded to Java 11 support (Java 8 no longer supported)	
+- Upgraded dependencies:
+  - authzforce-ce-rest-api-model: 6.0.0
+  -	authzforce-ce-jaxrs-utils: 2.0.1
+  - authzforce-ce-core-pdp-engine: 17.1.0
+  - authzforce-ce-core-pdp-io-xacml-json: 17.1.0
+  -	authzforce-ce-core-pap-api: 11.0.0
+  - authzforce-ce-pap-dao-flat-file: 13.0.0
+  - authzforce-ce-core-pdp-api: 18.0.1	
+  - authzforce-ce-xacml-json-model: 3.0.2
+  - Jakarta RESTful Web Services: 2.1.6
+  - JAXB (Jakarta XML Binding): 2.3.3
+  - Apache CXF v3.4.1
+  - Spring Boot Starter 2.3.5
+  - Spring Core: 5.2.10 	
+  - jettison: 1.4.1
+  - org.json:json: v20190722 
+  - org.everit.json.schema: 1.12.1	
+  - SLF4J API: 1.7.30
+
+
+### Added
+- GH-61: JSON Object support in XACML/JSON Requests/Responses (as defined by JSON Profile of XACML), allowing custom XACML datatypes with JSON object structures.
+- Support for validation of XACML/JSON requests (JSON Profile) with custom JSON schema stored in configuration directory, using new webapp environment property (e.g. specified in Tomcat webapp context) `org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath` to be specified in `/etc/tomcat9/<Engine>/<Host>/authzforce-ce.xml`  (more info in [webapp-context.xml](dist/src/webapp-context.xml) )
+
+### Fixed
+- GH-62: duplicate declaration of namespace prefix now allowed
+- CVE on jackson-databind -> v2.9.10.8
+- CVE-2018-8088 affecting slf4j
+
+
 ## 9.0.1
 ### Fixed
 - Tomcat startup error after Debian package install
@@ -31,7 +65,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 	- authzforce-ce-pap-dao-flat-file: 12.0.0
 
 ### Fixed
-- #46 : bad PolicySets pushed to the /pap/policies endpoint are still saved on server side even if a HTTP 400 Bad Request is returned.
+- GH-46: bad PolicySets pushed to the /pap/policies endpoint are still saved on server side even if a HTTP 400 Bad Request is returned.
 - Issues with XACML/JSON responses (XACML JSON Profile)
 - CVE on slf4j
 
