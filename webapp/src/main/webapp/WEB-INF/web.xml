@@ -43,7 +43,13 @@
       <env-entry-value>false</env-entry-value>
    </env-entry>
    <env-entry>
-      <description>Enable support for JSON Profile of XACML 3.0 on domains' PDP endpoints (empty string is equivalent to undefined/default behavior in which case Apache CXF framework computes the URL as usual)</description>
+      <description>Path to JSON schema file for XACML JSON Profile's Request validation, relative to ${org.ow2.authzforce.config.dir} (if undefined/empty value, the Request.schema.json file from authzforce-ce-xacml-json-model project is used by default)</description>
+      <env-entry-name>org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath</env-entry-name>
+      <env-entry-type>java.lang.String</env-entry-type>
+      <env-entry-value></env-entry-value>
+   </env-entry>
+   <env-entry>
+      <description>Base address specified in the auto-generated WADL. This parameter allows setting the public URL that may not be the same as the URL the service is deployed on. (For example, the service is behind a proxy of some sort).</description>
       <env-entry-name>org.ow2.authzforce.webapp.publishedEndpointUrl</env-entry-name>
       <env-entry-type>java.lang.String</env-entry-type>
       <env-entry-value></env-entry-value>
@@ -81,14 +87,18 @@
    </env-entry>
    <!-- <env-entry> -->
    <!-- <description>Optional maximum number of child elements for a given parent element in incoming XML. More info on "Controlling Large Request Payloads" -->
-   <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
+   <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.
+   This also sets the maximum number of properties (key-value pairs) in JSON objects of XACML/JSON requests.
+   </description> -->
    <!-- <env-entry-name>org.apache.cxf.stax.maxChildElements</env-entry-name> -->
    <!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
    <!-- <env-entry-value>1000</env-entry-value> -->
    <!-- </env-entry> -->
    <!-- <env-entry> -->
    <!-- <description>Optional maximum depth of an element in incoming XML. More info on "Controlling Large Request Payloads" and mitigate XML -->
-   <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.</description> -->
+   <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. If you comment out this environment entry or specify a negative value, CXF default value is used.
+   This also sets the maximum depth of JSON object in XACML/JSON requests.
+   </description> -->
    <!-- <env-entry-name>org.apache.cxf.stax.maxElementDepth</env-entry-name> -->
    <!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
    <!-- <env-entry-value>100</env-entry-value> -->
@@ -108,7 +118,9 @@
       if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
    <!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
       as it makes believe you can use shortcut strings like '64K' or '128M' as values but you can't. For maxAttributeSize = 100, error raised only when attribute value length > 181! WHY? Possible issue with 
-      woodstox library. FIXME: report this issue to CXF/Woodstox.</description> -->
+      woodstox library. FIXME: report this issue to CXF/Woodstox.
+      If this entry value is strictly positive and lower than maxTextLength, it also sets the max size of JSON strings for XACML/JSON requests.
+      </description> -->
    <!-- <env-entry-name>org.apache.cxf.stax.maxAttributeSize</env-entry-name> -->
    <!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
    <!-- <env-entry-value>1000</env-entry-value> -->
@@ -118,7 +130,9 @@
    <!-- DoS attacks (since CXF 2.7.4): http://cxf.apache.org/docs/security.html. This entry is ignored if active Spring profile (via 'spring.profiles.active' context parameter or 'spring.profiles.default' 
       if previous not defined) is '+fastinfoset', because it is not supported by FastInfoset parser. See https://issues.apache.org/jira/browse/CXF-6848: Daniel Kulp: "FastInfoset -->
    <!-- does not provide any means to enforce any of those security requirements." If you comment out this environment entry or specify a negative value, CXF default value is used. NB: CXF doc is misleading 
-      as it makes believe you can use shortcut strings like '64K' or '128M' but you can't.</description> -->
+      as it makes believe you can use shortcut strings like '64K' or '128M' but you can't.
+      If this entry value is strictly positive and lower than maxAttributeSize, it also sets the max size of JSON strings for XACML/JSON requests.
+      </description> -->
    <!-- <env-entry-name>org.apache.cxf.stax.maxTextLength</env-entry-name> -->
    <!-- <env-entry-type>java.lang.Integer</env-entry-type> -->
    <!-- <env-entry-value>1000</env-entry-value> -->

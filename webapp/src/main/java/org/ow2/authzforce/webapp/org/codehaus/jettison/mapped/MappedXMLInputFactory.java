@@ -1,6 +1,6 @@
-/**
+/*
  * Copyright 2006 Envoi Solutions LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ public class MappedXMLInputFactory extends AbstractXMLInputFactory
 
 	private final MappedNamespaceConvention convention;
 
-	public MappedXMLInputFactory(final Map nstojns)
+	public MappedXMLInputFactory(final Map<String, String> nstojns)
 	{
 		this(new Configuration(nstojns));
 	}
@@ -71,8 +71,8 @@ public class MappedXMLInputFactory extends AbstractXMLInputFactory
 	private static class ErrorLocation implements Location
 	{
 
-		private int line = -1;
-		private int column = -1;
+		private final int line;
+		private final int column;
 
 		public ErrorLocation(final int line, final int column)
 		{

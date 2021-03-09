@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -54,7 +54,7 @@ public class PolicyResourceImpl implements PolicyDaoClient, PolicyResource
 	 * Policy Resource Factory
 	 *
 	 */
-	public static final PolicyDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl> FACTORY = new PolicyDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl>()
+	public static final PolicyDaoClient.Factory<PolicyVersionResourceImpl, PolicyResourceImpl> FACTORY = new PolicyDaoClient.Factory<>()
 	{
 
 		@Override

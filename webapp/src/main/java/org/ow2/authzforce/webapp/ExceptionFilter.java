@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -17,23 +17,6 @@
  * along with AuthzForce CE.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.ow2.authzforce.webapp;
-
-/**
- * Copyright (C) 2012-2015 Thales Services SAS.
- *
- * This file is part of AuthzForce.
- *
- * AuthzForce is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later version.
- *
- * AuthzForce is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with AuthzForce. If not, see <http://www.gnu.org/licenses/>.
- */
-/**
- * 
- */
 
 import java.io.IOException;
 
@@ -69,7 +52,7 @@ public final class ExceptionFilter implements Filter
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
 	 */
 	@Override
-	public void init(FilterConfig filterConfig) throws ServletException
+	public void init(FilterConfig filterConfig)
 	{
 		// no init parameter
 	}
@@ -80,7 +63,7 @@ public final class ExceptionFilter implements Filter
 	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
 	 */
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException
 	{
 		try
 		{

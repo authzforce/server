@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -64,7 +64,7 @@ public class RESTfulPdpBasedAuthzInterceptorTest extends AbstractBusClientServer
 	private static final QName DOUBLEIT_WS_PORT_QNAME = new QName(NAMESPACE, "DoubleItTransportPort");
 
 	@org.junit.BeforeClass
-	public static void startServers() throws Exception
+	public static void startServers()
 	{
 		/*
 		 * Show classpath

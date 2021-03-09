@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,40 +18,11 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.*;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ow2.authzforce.core.pdp.impl.io.MultiDecisionXacmlJaxbRequestPreprocessor;
 import org.ow2.authzforce.core.pdp.impl.io.SingleDecisionXacmlJaxbRequestPreprocessor;
 import org.ow2.authzforce.core.pdp.testutil.ext.TestCombinedDecisionXacmlJaxbResultPostprocessor;
@@ -64,21 +35,8 @@ import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao.PdpCoreFeature;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao.PdpFeatureType;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
-import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
-import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
-import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
-import org.ow2.authzforce.rest.api.jaxrs.PdpPropertiesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
-import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
-import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
-import org.ow2.authzforce.rest.api.xmlns.Domain;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
-import org.ow2.authzforce.rest.api.xmlns.Feature;
-import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
-import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
-import org.ow2.authzforce.rest.api.xmlns.ResourceContent;
-import org.ow2.authzforce.rest.api.xmlns.Resources;
+import org.ow2.authzforce.rest.api.jaxrs.*;
+import org.ow2.authzforce.rest.api.xmlns.*;
 import org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider;
 import org.ow2.authzforce.xacml.identifiers.XPathVersion;
 import org.ow2.authzforce.xacml.identifiers.XacmlAttributeCategory;
@@ -86,24 +44,22 @@ import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.w3._2005.atom.Link;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Attribute;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Attributes;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Policy;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.RequestDefaults;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.testng.Assert.*;
 
 /**
  * Main tests specific to a domain, requires {@link RootResourcesTest} to be run first
@@ -112,7 +68,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainResourceTestWithoutAutoSyncOrVersionRolling.class);
 
-	private static final FileFilter DIRECTORY_FILTER = pathname -> pathname.isDirectory();
+	private static final FileFilter DIRECTORY_FILTER = File::isDirectory;
 
 	private WebClient httpClient;
 
@@ -128,17 +84,17 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	 * 
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @throws Exception
+	 * @param remoteAppBaseUrl remote app's base URL
+	 * @param enableFastInfoset enable Fast Infoset
+	 * @param domainSyncIntervalSec domain synchronization interval in seconds
+	 * @throws Exception error
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "useJSON", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("false") final boolean useJSON,
 	        @Optional("true") final boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), enableDoSMitigation, domainSyncIntervalSec,
+		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), "", enableDoSMitigation, domainSyncIntervalSec,
 		        enablePdpOnly);
 	}
 
@@ -146,7 +102,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	 * 
 	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
-	 * @throws Exception
+	 * @throws Exception error
 	 */
 	@AfterTest
 	public void afterTest() throws Exception
@@ -155,9 +111,9 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	/**
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @throws Exception
+	 * @param remoteAppBaseUrl remote app's base URL
+	 * @param enableFastInfoset enable Fast Infoset
+	 * @throws Exception error
 	 * 
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
@@ -189,14 +145,14 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 
 		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
 		final String appBaseUrl = apiProxyClientConf.getEndpoint().getEndpointInfo().getAddress();
-		httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider()), true);
+		httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider<JSONObject>()), true);
 
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
 
 	@Parameters({ "enablePdpOnly" })
 	@AfterClass
-	/**
+	/*
 	 * deleteDomain() already tested in {@link DomainSetTest#deleteDomains()}, so this is just for cleaning after testing
 	 */
 	public void deleteDomain(@Optional("false") final Boolean enablePdpOnly) throws Exception
@@ -293,7 +249,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		// test old externalID -> should fail
 		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(testDomainExternalId).getLinks();
 		assertTrue(domainLinks.isEmpty(),
-		        "Update of externalId on GET /domains/" + this.testDomainId + "/properties failed: old externaldId '" + testDomainExternalId + "' still mapped to the domain");
+		        "Update of externalId on GET /domains/" + this.testDomainId + "/properties failed: old externalId '" + testDomainExternalId + "' still mapped to the domain");
 
 		testDomainExternalId = newExternalId;
 
@@ -308,7 +264,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	{
 		// test the old externalId
 		final List<Link> domainLinks = domainsAPIProxyClient.getDomains(testDomainExternalId).getLinks();
-		assertTrue(domainLinks.isEmpty(), "Manual sync of externalId with GET or HEAD /domains/" + this.testDomainId + "/properties failed: old externaldId still mapped to the domain:");
+		assertTrue(domainLinks.isEmpty(), "Manual sync of externalId with GET or HEAD /domains/" + this.testDomainId + "/properties failed: old externalId still mapped to the domain:");
 
 		testDomainExternalId = newExternalId;
 
@@ -358,7 +314,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		// manual sync with GET /domains/{id}/properties
 		final DomainProperties newPropsFromAPI = testDomain.getDomainPropertiesResource().getDomainProperties();
 		final String externalIdFromAPI = newPropsFromAPI.getExternalId();
-		assertEquals(externalIdFromAPI, newExternalId, "Manual sync of externalId with GET /domains/" + this.testDomainId + "/properties failed: externaldId returned (" + externalIdFromAPI
+		assertEquals(externalIdFromAPI, newExternalId, "Manual sync of externalId with GET /domains/" + this.testDomainId + "/properties failed: externalId returned (" + externalIdFromAPI
 		        + ") does not match externalId in modified file: " + testDomainHelper.getPropertiesFile());
 
 		verifySyncAfterDomainPropertiesFileModification(newExternalId);
@@ -377,7 +333,6 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		catch (final ServerErrorException e)
 		{
 			assertTrue(enablePdpOnly, "getPAP method not allowed but enablePdpOnly=false");
-			return;
 		}
 	}
 
@@ -394,7 +349,6 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		catch (final ServerErrorException e)
 		{
 			assertTrue(enablePdpOnly, "getAttributeProviderList method not allowed but enablePdpOnly=false");
-			return;
 		}
 	}
 
@@ -403,13 +357,13 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	public void updateAttributeProviders(@Optional("false") final Boolean enablePdpOnly) throws JAXBException
 	{
 		final AttributeProvidersResource attributeProvidersResource = testDomain.getPapResource().getAttributeProvidersResource();
-		final JAXBElement<TestAttributeProviderDescriptor> jaxbElt = testDomainHelper.unmarshalRestApiEntity(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/IIA002(PolicySet)/attributeProvider.xml"),
+		final JAXBElement<TestAttributeProviderDescriptor> jaxbElt = testDomainHelper.unmarshalRestApiEntity(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/IIA002(PolicySet)/attributeProvider.xml"),
 		        TestAttributeProviderDescriptor.class);
 		final TestAttributeProviderDescriptor testAttrProviderDesc = jaxbElt.getValue();
 		final AttributeProviders updateAttrProviderDescsResult;
 		try
 		{
-			updateAttrProviderDescsResult = attributeProvidersResource.updateAttributeProviderList(new AttributeProviders(Collections.<AbstractAttributeProvider>singletonList(testAttrProviderDesc)));
+			updateAttrProviderDescsResult = attributeProvidersResource.updateAttributeProviderList(new AttributeProviders(Collections.singletonList(testAttrProviderDesc)));
 			assertFalse(enablePdpOnly, "updateAttributeProviderList method allowed but enablePdpOnly=true");
 		}
 		catch (final ServerErrorException e)
@@ -521,7 +475,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 			return;
 		}
 		/*
-		 * Push XACML Policy instead of PolicSet, although only PolicySets are allowed
+		 * Push XACML Policy instead of PolicySet, although only PolicySets are allowed
 		 */
 		final Policy policy = RestServiceTest.createDumbXacmlPolicy(TEST_POLICY_ID0, "1.0");
 		final javax.ws.rs.core.Response resp = httpClient.reset().path("domains").path(testDomainId).path("pap").path("policies").accept(MediaType.APPLICATION_XML_TYPE)
@@ -837,12 +791,12 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		 * Check that the policy is completely removed
 		 */
 		final List<Link> policyLinks = testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
-		assertNull(DomainAPIHelper.getMatchingLink(TEST_POLICY_DELETE_SINGLE_VERSION_ID, policyLinks), "Policy removal after removeing last remaining version failed");
+		assertNull(DomainAPIHelper.getMatchingLink(TEST_POLICY_DELETE_SINGLE_VERSION_ID, policyLinks), "Policy removal after removing last remaining version failed");
 		/*
 		 * Should throw NotFoundException
 		 */
 		policyRes.getPolicyVersions();
-		fail("Policy removal after removeing last remaining version failed");
+		fail("Policy removal after removing last remaining version failed");
 	}
 
 	@Test(dependsOnMethods = { "getRootPolicy", "deleteAndTryGetUnusedPolicy" })
@@ -870,7 +824,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test(dependsOnMethods = { "addAndGetPolicy", "deleteRootPolicy", "updateDomainProperties" })
-	public void updateRootPolicyRefToValidPolicy() throws JAXBException
+	public void updateRootPolicyRefToValidPolicy()
 	{
 		final PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();
 
@@ -894,7 +848,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test(dependsOnMethods = { "updateRootPolicyRefToValidPolicy" })
-	public void updateRootPolicyRefToMissingPolicy() throws JAXBException
+	public void updateRootPolicyRefToMissingPolicy()
 	{
 		final PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();
 		final PdpProperties props = propsRes.getOtherPdpProperties();
@@ -924,7 +878,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test(dependsOnMethods = { "updateRootPolicyRefToValidPolicy" })
-	public void updateRootPolicyRefToValidVersion() throws JAXBException
+	public void updateRootPolicyRefToValidVersion()
 	{
 		testDomainHelper.updateMaxPolicyCount(-1);
 		testDomainHelper.updateVersioningProperties(-1, false);
@@ -955,7 +909,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test(dependsOnMethods = { "updateRootPolicyRefToValidVersion" })
-	public void updateRootPolicyRefToMissingVersion() throws JAXBException
+	public void updateRootPolicyRefToMissingVersion()
 	{
 		final PdpPropertiesResource propsRes = testDomain.getPapResource().getPdpPropertiesResource();
 		final PdpProperties props = propsRes.getOtherPdpProperties();
@@ -990,13 +944,13 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		 */
 		testDomainHelper.resetPdpAndPrp();
 
-		final JAXBElement<PolicySet> jaxbElement = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/refPolicies/pps-employee.xml"),
+		final JAXBElement<PolicySet> jaxbElement = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid/refPolicies/pps-employee.xml"),
 		        PolicySet.class);
 		final PolicySet refPolicySet = jaxbElement.getValue();
 		final String refPolicyResId = testDomainHelper.testAddAndGetPolicy(refPolicySet);
 
 		// Set root policy referencing ref policy above
-		final JAXBElement<PolicySet> jaxbElement2 = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid/policy.xml"), PolicySet.class);
+		final JAXBElement<PolicySet> jaxbElement2 = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid/policy.xml"), PolicySet.class);
 		final PolicySet policySetWithRef = jaxbElement2.getValue();
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
@@ -1213,7 +1167,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	/**
 	 * This tests property 'org.apache.cxf.stax.maxChildElements' = {@value #XML_MAX_CHILD_ELEMENTS}
 	 * 
-	 * @throws JAXBException
+	 * @throws JAXBException error
 	 */
 	@Test(dependsOnMethods = { "addAndGetPolicy" }, expectedExceptions = NotFoundException.class)
 	public void addPolicyWithTooManyChildElements() throws JAXBException
@@ -1269,24 +1223,18 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	 * 
 	 * 
 	 * @return iterator over test data
-	 * @throws URISyntaxException
-	 * @throws IOException
 	 */
 	@DataProvider(name = "pdpTestFiles")
-	public Iterator<Object[]> createData() throws URISyntaxException, IOException
+	public Iterator<Object[]> createData()
 	{
-		final Collection<Object[]> testParams = new ArrayList<>();
+		final Collection<Object[]> testParams;
 		/*
 		 * Each sub-directory of the root directory is data for a specific test. So we configure a test for each directory
 		 */
-		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp");
-		for (final File subDir : testRootDir.listFiles(DIRECTORY_FILTER))
-		{
-			// specific test's resources directory location, used as parameter
-			// to PdpTest(String)
-			testParams.add(new Object[] { subDir });
-		}
-
+		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml");
+		// specific test's resources directory location, used as parameter
+		// to PdpTest(String)
+		testParams = Arrays.stream(Objects.requireNonNull(testRootDir.listFiles(DIRECTORY_FILTER))).map(subDir -> new Object[]{subDir}).collect(Collectors.toList());
 		return testParams.iterator();
 	}
 
@@ -1561,7 +1509,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 					assertTrue(outputFeature.isEnabled(), "Returned feature (" + MultiDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID + ") disabled!");
 					mdpFeatureFound = true;
 				}
-				else if (featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID) || featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.class)
+				else if (featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID) || featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.ID)
 				        || featureID.equals(MultiDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.ID))
 				{
 					/*
@@ -1602,19 +1550,20 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 				/*
 				 * Beware that there may be also the XACML/JSON request preprocs. We only deal with the XACML/XML ones here.
 				 */
-				if (featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID))
+				switch (featureID)
 				{
-					// another requestPreproc. Must not be enabled.
-					assertTrue(outputFeature.isEnabled(), "Returned default requestPreproc feature disabled! (" + featureID + ")");
-				}
-				else if (featureID.equals(SingleDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID))
-				{
-					assertFalse(outputFeature.isEnabled(), "Returned non-default XACML/XML requestPreproc feature enabled! (" + featureID + ")");
-				}
-				else if (featureID.equals(MultiDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID) || featureID.equals(MultiDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.ID))
-				{
-					assertFalse(outputFeature.isEnabled(), "Returned XACML/XML MDP requestPreproc feature enabled! (" + featureID + ")");
-					mdpFeatureFound = true;
+					case SingleDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID:
+						assertTrue(outputFeature.isEnabled(), "Returned default requestPreproc feature disabled! (" + featureID + ")");
+						break;
+					case SingleDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.ID:
+						// another requestPreproc. Must not be enabled.
+						assertFalse(outputFeature.isEnabled(), "Returned non-default XACML/XML requestPreproc feature enabled! (" + featureID + ")");
+						break;
+					case MultiDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID:
+					case MultiDecisionXacmlJaxbRequestPreprocessor.StrictVariantFactory.ID:
+						assertFalse(outputFeature.isEnabled(), "Returned XACML/XML MDP requestPreproc feature enabled! (" + featureID + ")");
+						mdpFeatureFound = true;
+						break;
 				}
 			}
 		}
@@ -1637,13 +1586,13 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test
-	public void requestPDPDumb() throws JAXBException
+	public void requestPDPDumb()
 	{
 		/*
 		 * This test is mostly for enablePdpOnly=true
 		 */
 		final Request xacmlReq = new Request(new RequestDefaults(XPathVersion.V2_0.getURI()),
-		        Collections.singletonList(new Attributes(null, Collections.<Attribute>emptyList(), XacmlAttributeCategory.XACML_1_0_ACCESS_SUBJECT.value(), null)), null, false, false);
+		        Collections.singletonList(new Attributes(null, Collections.emptyList(), XacmlAttributeCategory.XACML_1_0_ACCESS_SUBJECT.value(), null)), null, false, false);
 		testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 	}
 
@@ -1656,23 +1605,22 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 			return;
 		}
 
-		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/IIA001(PolicySet)");
+		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/IIA001(PolicySet)");
 		/*
 		 * This test is mostly for enablePdpOnly=true
 		 */
-		testDomainHelper.requestXacmlJsonPDP(testDir, Collections.<Feature>emptyList(), !IS_EMBEDDED_SERVER_STARTED.get(), httpClient);
+		testDomainHelper.requestXacmlJsonPDP(testDir, Collections.emptyList(), !IS_EMBEDDED_SERVER_STARTED.get(), httpClient);
 	}
 
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" }, dataProvider = "pdpTestFiles")
 	public void requestPDPWithoutMDP(final File testDirectory) throws JAXBException, IOException
 	{
 		// disable all features (incl. MDP) of PDP
-		testDomainHelper.requestPDP(testDirectory, Collections.<Feature>emptyList(), !IS_EMBEDDED_SERVER_STARTED.get());
+		testDomainHelper.requestPDP(testDirectory, Collections.emptyList(), !IS_EMBEDDED_SERVER_STARTED.get());
 	}
 
-	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "enableMDPRequestPreproc" })
-	public void requestPDPWithMDP(@Optional final String remoteAppBaseUrl) throws JAXBException, IOException
+	public void requestPDPWithMDP() throws JAXBException, IOException
 	{
 		// enable MDP on PDP
 		final Feature mdpFeature = new Feature(MultiDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID, FlatFileBasedDomainsDao.PdpFeatureType.REQUEST_PREPROC.toString(), true);

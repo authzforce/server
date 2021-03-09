@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * Copyright 2006 Envoi Solutions LLC
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +39,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	 */
 	private String valueKey = MIXED_CONTENT_VALUE_KEY;
 	/** Stack of open elements. */
-	private final Stack<JSONProperty> stack = new Stack<JSONProperty>();
+	private final Stack<JSONProperty> stack = new Stack<>();
 	/** Element currently being processed. */
 	private JSONProperty current;
 
@@ -122,7 +123,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 			{
 				// only add the text property if it's non-empty
 				String strValue = getValue().toString();
-				if (MIXED_CONTENT_VALUE_KEY == valueKey)
+				if (MIXED_CONTENT_VALUE_KEY.equals(valueKey))
 				{
 					strValue = strValue.trim();
 				}
@@ -180,7 +181,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 		@Override
 		public void addText(String text)
 		{
-			if (MIXED_CONTENT_VALUE_KEY == valueKey)
+			if (MIXED_CONTENT_VALUE_KEY.equals(valueKey))
 			{
 				text = text.trim();
 				if (text.length() == 0)
@@ -287,7 +288,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void setNamespaceContext(final NamespaceContext context) throws XMLStreamException
+	public void setNamespaceContext(final NamespaceContext context)
 	{
 		this.namespaceContext = context;
 	}
@@ -303,7 +304,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void writeStartDocument() throws XMLStreamException
+	public void writeStartDocument()
 	{
 		// The document is an object with one property -- the root element
 		current = new JSONPropertyObject(null, null, new JSONObject(convention.isDropRootElement(), convention.getIgnoredElements(), convention.isWriteNullAsString(),
@@ -312,7 +313,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void writeStartElement(final String prefix, final String local, final String ns) throws XMLStreamException
+	public void writeStartElement(final String prefix, final String local, final String ns)
 	{
 		final String parentKey = current.getTreeKey();
 		stack.push(current);
@@ -321,7 +322,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void writeAttribute(final String prefix, final String ns, final String local, final String value) throws XMLStreamException
+	public void writeAttribute(final String prefix, final String ns, final String local, final String value)
 	{
 		final String key = convention.isElement(prefix, ns, local) ? convention.createKey(prefix, ns, local) : convention.createAttributeKey(prefix, ns, local);
 		final JSONPropertyString prop = new JSONPropertyString(key, null);
@@ -330,7 +331,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void writeAttribute(final String ns, final String local, final String value) throws XMLStreamException
+	public void writeAttribute(final String ns, final String local, final String value)
 	{
 		writeAttribute(null, ns, local, value);
 	}
@@ -342,7 +343,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void writeCharacters(final String text) throws XMLStreamException
+	public void writeCharacters(final String text)
 	{
 		current.addText(text);
 	}
@@ -397,11 +398,7 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 				root.write(writer);
 			}
 		}
-		catch (final JSONException e)
-		{
-			throw new XMLStreamException(e);
-		}
-		catch (final IOException e)
+		catch (final JSONException | IOException e)
 		{
 			throw new XMLStreamException(e);
 		}
@@ -411,21 +408,21 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	// The following methods are supplied only to satisfy the interface
 
 	@Override
-	public void close() throws XMLStreamException
+	public void close()
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void flush() throws XMLStreamException
+	public void flush()
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public String getPrefix(final String arg0) throws XMLStreamException
+	public String getPrefix(final String arg0)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -439,49 +436,49 @@ public class MappedXMLStreamWriter extends AbstractXMLStreamWriter
 	}
 
 	@Override
-	public void setDefaultNamespace(final String arg0) throws XMLStreamException
+	public void setDefaultNamespace(final String arg0)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void setPrefix(final String arg0, final String arg1) throws XMLStreamException
+	public void setPrefix(final String arg0, final String arg1)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void writeDefaultNamespace(final String arg0) throws XMLStreamException
+	public void writeDefaultNamespace(final String arg0)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void writeEntityRef(final String arg0) throws XMLStreamException
+	public void writeEntityRef(final String arg0)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void writeNamespace(final String arg0, final String arg1) throws XMLStreamException
+	public void writeNamespace(final String arg0, final String arg1)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void writeProcessingInstruction(final String arg0) throws XMLStreamException
+	public void writeProcessingInstruction(final String arg0)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void writeProcessingInstruction(final String arg0, final String arg1) throws XMLStreamException
+	public void writeProcessingInstruction(final String arg0, final String arg1)
 	{
 		// TODO Auto-generated method stub
 

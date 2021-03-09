@@ -2,7 +2,7 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: authzforce-ce-server-dist
 
 Files: *
-Copyright: Copyright (C) 2012-2020 Thales. All rights reserved.
+Copyright: Copyright (C) 2012-2021 Thales. All rights reserved.
 Licence: GPL-3.0
  The full text of the GNU General Public
  License version 3 can be found in the file

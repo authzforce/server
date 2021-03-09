@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthzForce CE.
@@ -113,7 +113,7 @@ import org.ow2.authzforce.webapp.org.codehaus.jettison.mapped.Configuration;
 import org.w3c.dom.Document;
 
 /**
- * Fix for CXF issue: {@link JSONProvider} does not enforce JAX-RS (JSON in this case) depth control properties org.apache.cxf.stax.* (only innerElementCountThreshold is enforced and only affects
+ * Fix for CXF issue: {@link org.apache.cxf.jaxrs.provider.json.JSONProvider} does not enforce JAX-RS (JSON in this case) depth control properties org.apache.cxf.stax.* (only innerElementCountThreshold is enforced and only affects
  * JSONObject key-value pairs, not JSONArray elements!), as of CXF 3.1.8. This fix is adapted from protected method {@code getStreamReader()} of
  * {@link org.apache.cxf.jaxrs.provider.JAXBElementProvider}
  * <p>
@@ -184,58 +184,51 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 				throws Exception;
 	}
 
-	private static final JsonToXmlStreamReaderFactory MAPPED_CONVENTION_BASED_JSON_TO_XML_STREAM_READER_FACTORY = new JsonToXmlStreamReaderFactory()
+	private static final JsonToXmlStreamReaderFactory MAPPED_CONVENTION_BASED_JSON_TO_XML_STREAM_READER_FACTORY = (is, readXsiType, namespaceMap, namespaceSeparator, elementsToAttributes, primitiveArrayKeys, depthProps, maxStringLength, enc) ->
 	{
-
-		@Override
-		public XMLStreamReader createReader(final InputStream is, final boolean readXsiType, final ConcurrentMap<String, String> namespaceMap, final String namespaceSeparator,
-				final List<String> elementsToAttributes, final List<String> primitiveArrayKeys, final DocumentDepthProperties depthProps, final int maxStringLength, final String enc) throws Exception
+		// BEGIN CHANGE to JSONProvider (CXF 3.1.8)
+		// reader = JSONUtils.createStreamReader(is, readXsiType, namespaceMap, namespaceSeparator, primitiveArrayKeys, depthProps, enc);
+		if (readXsiType)
 		{
-			// BEGIN CHANGE to JSONProvider (CXF 3.1.8)
-			// reader = JSONUtils.createStreamReader(is, readXsiType, namespaceMap, namespaceSeparator, primitiveArrayKeys, depthProps, enc);
-			if (readXsiType)
-			{
-				/*
-				 * XSI namespace added to namespaceMap in setNamespaceMap()
-				 */
-				namespaceMap.putIfAbsent(JSONUtils.XSI_URI, JSONUtils.XSI_PREFIX);
-			}
-			// END CHANGE
-			final Configuration conf = new Configuration(namespaceMap);
-			if (namespaceSeparator != null)
-			{
-				conf.setJsonNamespaceSeparator(namespaceSeparator);
-			}
-
-			// BEGIN CHANGE
-			if (elementsToAttributes != null)
-			{
-				conf.setElementsAsAttributes(new HashSet<>(elementsToAttributes));
-			}
-			// END CHANGE
-
-			if (primitiveArrayKeys != null)
-			{
-				conf.setPrimitiveArrayKeys(new HashSet<>(primitiveArrayKeys));
-			}
-
-			// BEGIN CHANGE to JSONUtils#createStreamReader() (CXF 3.1.8)
-			// XMLInputFactory factory = depthProps != null
-			// ? new JettisonMappedReaderFactory(conf, depthProps)
-			// : new MappedXMLInputFactory(conf);
-			// depthProps already handled by createDepthReaderIfNeeded() called in createStreamReader() method
-			final XMLInputFactory factory = maxStringLength > 0 ? new HardenedMappedXMLInputFactory(conf, /* depthProps, */maxStringLength) : new SetPropertyAllowingMappedXMLInputFactory(conf /*
-																																															 * depthProps,
-																																															 */);
 			/*
-			 * Mitigation of XML External Entity attacks: (More info: https://find-sec-bugs.github.io/bugs.htm)
+			 * XSI namespace added to namespaceMap in setNamespaceMap()
 			 */
-			factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-			factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-			// END CHANGE
-			return new JSONUtils.JettisonReader(namespaceMap, factory.createXMLStreamReader(is, enc));
+			namespaceMap.putIfAbsent(JSONUtils.XSI_URI, JSONUtils.XSI_PREFIX);
+		}
+		// END CHANGE
+		final Configuration conf = new Configuration(namespaceMap);
+		if (namespaceSeparator != null)
+		{
+			conf.setJsonNamespaceSeparator(namespaceSeparator);
 		}
 
+		// BEGIN CHANGE
+		if (elementsToAttributes != null)
+		{
+			conf.setElementsAsAttributes(new HashSet<>(elementsToAttributes));
+		}
+		// END CHANGE
+
+		if (primitiveArrayKeys != null)
+		{
+			conf.setPrimitiveArrayKeys(new HashSet<>(primitiveArrayKeys));
+		}
+
+		// BEGIN CHANGE to JSONUtils#createStreamReader() (CXF 3.1.8)
+		// XMLInputFactory factory = depthProps != null
+		// ? new JettisonMappedReaderFactory(conf, depthProps)
+		// : new MappedXMLInputFactory(conf);
+		// depthProps already handled by createDepthReaderIfNeeded() called in createStreamReader() method
+		final XMLInputFactory factory = maxStringLength > 0 ? new HardenedMappedXMLInputFactory(conf, /* depthProps, */maxStringLength) : new SetPropertyAllowingMappedXMLInputFactory(conf /*
+																																														 * depthProps,
+																																														 */);
+		/*
+		 * Mitigation of XML External Entity attacks: (More info: https://find-sec-bugs.github.io/bugs.htm)
+		 */
+		factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+		factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+		// END CHANGE
+		return new JSONUtils.JettisonReader(namespaceMap, factory.createXMLStreamReader(is, enc));
 	};
 
 	private static final JsonToXmlStreamReaderFactory BADGERFISH_CONVENTION_BASED_JSON_TO_XML_STREAM_READER_FACTORY = new JsonToXmlStreamReaderFactory()
@@ -270,7 +263,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final boolean dropElementsInXmlStreamProp = getBooleanJsonProperty(DROP_ELEMENT_IN_XML_PROPERTY, dropElementsInXmlStream);
 			final XMLStreamWriter writer = JSONUtils.createBadgerFishWriter(os, enc);
 			return TransformUtils.createTransformWriterIfNeeded(writer, os, outElementsMap, dropElementsInXmlStreamProp ? outDropElements : null, outAppendMap, outAttributesMap, attributesToElements,
-					null);
+					null, StandardCharsets.UTF_8.name());
 		}
 
 	}
@@ -307,17 +300,17 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			}
 			if (!writeNullAsString)
 			{
-				config.setWriteNullAsString(writeNullAsString);
+				config.setWriteNullAsString(false);
 			}
 			final boolean ignoreEmpty = getBooleanJsonProperty(IGNORE_EMPTY_JSON_ARRAY_VALUES_PROPERTY, ignoreEmptyArrayValues);
 			if (ignoreEmpty)
 			{
-				config.setIgnoreEmptyArrayValues(ignoreEmpty);
+				config.setIgnoreEmptyArrayValues(true);
 			}
 
 			if (escapeForwardSlashesAlways)
 			{
-				config.setEscapeForwardSlashAlways(escapeForwardSlashesAlways);
+				config.setEscapeForwardSlashAlways(true);
 			}
 
 			final boolean dropRootInJsonStream = dropRootNeeded && !dropElementsInXmlStreamProp;
@@ -335,7 +328,8 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 				{
 					theArrayKeys = new LinkedList<>();
 				}
-				else if (dropRootInJsonStream)
+				// else theArrayKeys != null -> dropRootInJsonStream == true considering the if condition above
+				else
 				{
 					theArrayKeys = new LinkedList<>(theArrayKeys);
 				}
@@ -351,7 +345,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			// BEGIN CHANGE
 			// return createTransformWriterIfNeeded(writer, os, dropElementsInXmlStreamProp);
 			return TransformUtils.createTransformWriterIfNeeded(writer, os, outElementsMap, dropElementsInXmlStreamProp ? outDropElements : null, outAppendMap, outAttributesMap, attributesToElements,
-					null);
+					null, StandardCharsets.UTF_8.name());
 			// END CHANGE
 		}
 	}
@@ -566,7 +560,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 				xsr = createReader(/* type, */realStream, isCollection, enc);
 			}
 
-			Object response = null;
+			Object response;
 			if (JAXBElement.class.isAssignableFrom(type) || !isCollection && (unmarshalAsJaxbElement || jaxbElementClassMap != null && jaxbElementClassMap.containsKey(theType.getName())))
 			{
 				response = unmarshaller.unmarshal(xsr, theType);
@@ -670,7 +664,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final InputStream isAfter = new ByteArrayInputStream(after.getBytes());
 			final InputStream[] streams = new InputStream[] { isBefore, is, isAfter };
 
-			final Enumeration<InputStream> list = new Enumeration<InputStream>()
+			final Enumeration<InputStream> list = new Enumeration<>()
 			{
 				private int index;
 
@@ -826,11 +820,11 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 
 		final Object firstObj = it.hasNext() ? it.next() : null;
 
-		String startTag = null;
-		String endTag = null;
+		final String startTag;
+		final String endTag;
 		if (!dropCollectionWrapperElement)
 		{
-			QName qname = null;
+			final QName qname;
 			if (firstObj instanceof JAXBElement)
 			{
 				final JAXBElement<?> el = (JAXBElement<?>) firstObj;
@@ -935,15 +929,15 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 		if (mc != null && MessageUtils.isTrue(mc.get(Marshaller.JAXB_FORMATTED_OUTPUT)))
 		{
 			final StringIndenter formatter;
-			try (final OutputStream actualOs = new CachedOutputStream())
+			try (final CachedOutputStream actualOs = new CachedOutputStream())
 			{
 				marshalRaw(ms, actualObject, actualClass, genericType, enc, actualOs, isCollection);
-				formatter = new StringIndenter(IOUtils.newStringFromBytes(((CachedOutputStream) actualOs).getBytes()));
+				formatter = new StringIndenter(IOUtils.newStringFromBytes(actualOs.getBytes()));
 			}
 			try (final Writer outWriter = new OutputStreamWriter(os, enc))
 			{
 				IOUtils.copy(new StringReader(formatter.result()), outWriter, 2048);
-				outWriter.close();
+				// outWriter.close() automatically called when exiting the try-with-resources block
 			}
 		}
 		else
@@ -1075,9 +1069,9 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			{
 				try
 				{
-					final int totalElementCount = totalElementCountStr != null ? Integer.valueOf(totalElementCountStr) : -1;
-					final int elementLevel = elementLevelStr != null ? Integer.valueOf(elementLevelStr) : -1;
-					final int innerElementCount = innerElementCountStr != null ? Integer.valueOf(innerElementCountStr) : -1;
+					final int totalElementCount = totalElementCountStr != null ? Integer.parseInt(totalElementCountStr) : -1;
+					final int elementLevel = elementLevelStr != null ? Integer.parseInt(elementLevelStr) : -1;
+					final int innerElementCount = innerElementCountStr != null ? Integer.parseInt(innerElementCountStr) : -1;
 					return new DocumentDepthProperties(totalElementCount, elementLevel, innerElementCount);
 				}
 				catch (final Exception ex)

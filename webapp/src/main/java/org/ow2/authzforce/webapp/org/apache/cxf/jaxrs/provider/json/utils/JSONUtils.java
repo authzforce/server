@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -105,9 +105,8 @@ public final class JSONUtils
 				xsw.serializeAsArray(key);
 			}
 		}
-		final XMLStreamWriter writer = !writeXsiType || dropRootElement ? new IgnoreContentJettisonWriter(xsw, writeXsiType, dropRootElement) : xsw;
 
-		return writer;
+		return !writeXsiType || dropRootElement ? new IgnoreContentJettisonWriter(xsw, writeXsiType, dropRootElement) : xsw;
 	}
 
 	public static Configuration createConfiguration(final ConcurrentHashMap<String, String> namespaceMap, final boolean writeXsiType, final boolean attributesAsElements, final TypeConverter converter)
@@ -135,7 +134,7 @@ public final class JSONUtils
 		return ignoreNamespaces ? new IgnoreNamespacesWriter(writer, ignoreXsiAttributes) : writer;
 	}
 
-	private static String getKey(final MappedNamespaceConvention convention, final QName qname) throws Exception
+	private static String getKey(final MappedNamespaceConvention convention, final QName qname)
 	{
 		return convention.createKey(qname.getPrefix(), qname.getNamespaceURI(), qname.getLocalPart());
 
@@ -160,7 +159,7 @@ public final class JSONUtils
 		}
 		if (primitiveArrayKeys != null)
 		{
-			conf.setPrimitiveArrayKeys(new HashSet<String>(primitiveArrayKeys));
+			conf.setPrimitiveArrayKeys(new HashSet<>(primitiveArrayKeys));
 		}
 
 		final XMLInputFactory factory = depthProps != null ? new JettisonMappedReaderFactory(conf, depthProps) : new MappedXMLInputFactory(conf);
@@ -249,7 +248,7 @@ public final class JSONUtils
 				}
 
 				@Override
-				public Iterator<?> getPrefixes(final String ns)
+				public Iterator<String> getPrefixes(final String ns)
 				{
 					final String prefix = getPrefix(ns);
 					return prefix == null ? null : Collections.singletonList(prefix).iterator();
@@ -337,7 +336,7 @@ public final class JSONUtils
 	{
 		String lastText;
 		boolean isMixed;
-		List<Boolean> mixed = new LinkedList<Boolean>();
+		List<Boolean> mixed = new LinkedList<>();
 
 		IgnoreMixedContentWriter(final XMLStreamWriter writer)
 		{

@@ -1,0 +1,167 @@
+{
+	"$schema": "http://json-schema.org/draft-06/schema",
+	"$id": "common-std-with-geometry.schema.json",
+	"title": "Common JSON schema to Request and Response objects defined in JSON profile of XACML 3.0 v1.0",
+	"definitions": 
+	{
+		"AttributeValueType": 
+		{
+			"anyOf":
+			[
+				{
+					"type": "boolean"
+				},
+
+				{
+					"type": "number"
+				},
+
+				{
+					"type": "string"
+				},
+
+				{
+					"$ref": "Geometry.schema.json"
+				},
+
+				{
+					"type": "array",
+					"items": 
+					{
+						"type": "boolean"
+					},
+
+					"minItems": 0
+				},
+
+				{
+					"type": "array",
+					"items": 
+					{
+						"type": ["string","number"]
+					},
+
+					"minItems": 0
+				},
+
+				{
+					"type": "array",
+					"items": 
+					{
+						"$ref": "Geometry.schema.json"
+					},
+
+					"minItems": 0
+				}
+			]
+		},
+
+		"AttributeType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"AttributeId": 
+				{
+					"type": "string",
+					"format": "uri-reference"
+				},
+
+				"Issuer": 
+				{
+					"type": "string"
+				},
+
+				"IncludeInResult": 
+				{
+					"type": "boolean"
+				},
+
+				"DataType": 
+				{
+					"type": "string",
+					"format": "uri-reference"
+				},
+
+				"Value": 
+				{
+					"$ref": "#/definitions/AttributeValueType"
+				}
+			},
+
+			"required": 
+			[
+				"AttributeId",
+				"Value"
+			],
+
+			"additionalProperties": false
+		},
+
+		"AttributeCategoryType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"CategoryId": 
+				{
+					"type": "string",
+					"format": "uri-reference"
+				},
+
+				"Id": 
+				{
+					"type": "string"
+				},
+
+				"Content": 
+				{
+					"type": "string"
+				},
+
+				"Attribute": 
+				{
+					"type": "array",
+					"items": 
+					{
+						"$ref": "#/definitions/AttributeType"
+					},
+
+					"minItems": 0
+				}
+			},
+
+			"required": 
+			[
+				"CategoryId"
+			],
+
+			"additionalProperties": false
+		},
+		
+		"IdReferenceType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"Id": 
+				{
+					"type": "string",
+					"format": "uri-reference"
+				},
+
+				"Version": 
+				{
+					"type": "string"
+				}
+			},
+
+			"required": 
+			[
+				"Id"
+			],
+
+			"additionalProperties": false
+		}
+	}
+}

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2012-2017 Thales Services SAS.
  *
  * This file is part of AuthzForce CE.
@@ -74,7 +74,7 @@ public final class JAXRSSubResourceCompatibleFIStaxInInterceptor extends FIStaxI
 		}
 
 		final String inContentType = (String) message.get(Message.CONTENT_TYPE);
-		if (inContentType != null && inContentType.indexOf("fastinfoset") != -1 && message.getContent(InputStream.class) != null && message.getContent(XMLStreamReader.class) == null)
+		if (inContentType != null && inContentType.contains("fastinfoset") && message.getContent(InputStream.class) != null && message.getContent(XMLStreamReader.class) == null)
 		{
 			message.setContent(XMLStreamReader.class, getParser(message.getContent(InputStream.class)));
 			// add the StaxInEndingInterceptor which will close the reader

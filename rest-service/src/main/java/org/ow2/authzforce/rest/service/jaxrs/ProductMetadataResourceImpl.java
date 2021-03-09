@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -60,10 +60,6 @@ public final class ProductMetadataResourceImpl implements ProductMetadataResourc
 		final Properties prodProps = new Properties();
 		try (final InputStream propFileIn = ProductMetadataResourceImpl.class.getResourceAsStream(PRODUCT_PROPERTIES_CLASSPATH_URL))
 		{
-			if (propFileIn == null)
-			{
-				throw new RuntimeException("Missing product properties resource on the classpath: " + PRODUCT_PROPERTIES_CLASSPATH_URL);
-			}
 			prodProps.load(propFileIn);
 		}
 		catch (final IOException e)

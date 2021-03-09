@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * Copyright 2006 Envoi Solutions LLC
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -134,8 +135,8 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 	{
 		try
 		{
-			Object newObj = null;
-			String nextKey = null;
+			final Object newObj;
+			String nextKey;
 			if (node.getArray() != null)
 			{
 				int index = node.getArrayIndex();
@@ -186,7 +187,6 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 				nodes.push(node);
 				currentValue = (String) newObj;
 				event = START_ELEMENT;
-				return;
 			}
 			else if (newObj instanceof JSONArray)
 			{
@@ -199,14 +199,12 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 					nodes.push(node);
 					processElement();
 				}
-				return;
 			}
 			else if (newObj instanceof JSONObject)
 			{
 				node = new Node((Node) nodes.peek(), nextKey, (JSONObject) newObj, convention);
 				nodes.push(node);
 				event = START_ELEMENT;
-				return;
 			}
 			else
 			{
@@ -214,7 +212,6 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 				nodes.push(node);
 				currentValue = JSONObject.NULL.equals(newObj) ? null : newObj.toString();
 				event = START_ELEMENT;
-				return;
 			}
 		}
 		catch (final JSONException e)
@@ -291,12 +288,12 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 	}
 
 	@Override
-	public void close() throws XMLStreamException
+	public void close()
 	{
 	}
 
 	@Override
-	public String getElementText() throws XMLStreamException
+	public String getElementText()
 	{
 		event = CHARACTERS;
 		return currentValue;
@@ -311,7 +308,7 @@ public class MappedXMLStreamReader extends AbstractXMLStreamReader
 	@Override
 	public String getText()
 	{
-		if (currentValue != null && "null".equals(currentValue) && !convention.isReadNullAsString())
+		if ("null".equals(currentValue) && !convention.isReadNullAsString())
 		{
 			return null;
 		}

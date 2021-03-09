@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 Thales.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -122,7 +122,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		testDomain = domainsResourceBean.getDomainResource(testDomainId);
 		// force externalId
 		final DomainPropertiesResource testDomainPropsResource = testDomain.getDomainPropertiesResource();
-		final DomainProperties domainProperties = new DomainProperties(testDomainPropsResource.getDomainProperties().getDescription(), "external" + Integer.toString(domainExternalId));
+		final DomainProperties domainProperties = new DomainProperties(testDomainPropsResource.getDomainProperties().getDescription(), "external" + domainExternalId);
 		domainExternalId += 1;
 		testDomain.getDomainPropertiesResource().updateDomainProperties(domainProperties);
 	}
@@ -161,7 +161,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	public void addAndGetDomain()
 	{
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties("Test domain", "external" + Integer.toString(domainExternalId));
+		final DomainProperties domainProperties = new DomainProperties("Test domain", "external" + domainExternalId);
 		domainExternalId += 1;
 		final Link domainLink = domainsResourceBean.addDomain(domainProperties);
 		assertNotNull(domainLink, "Domain creation failure");

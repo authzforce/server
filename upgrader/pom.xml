@@ -96,8 +96,8 @@
             </executions>
          </plugin>
          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>findbugs-maven-plugin</artifactId>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
             <executions>
                <execution>
                   <phase>verify</phase>
@@ -112,8 +112,11 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
+               <headerDefinitions>
+                  <headerDefinition>license/header-defs.xml</headerDefinition>
+               </headerDefinitions>
                <includes>
-                  <include>src/test/java</include>
+                  <include>src/test/java/**</include>
                </includes>
             </configuration>
             <executions>

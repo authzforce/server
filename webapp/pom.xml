@@ -67,12 +67,17 @@
 		<dependency>
 			<groupId>org.codehaus.jettison</groupId>
 			<artifactId>jettison</artifactId>
-			<version>1.3.8</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-extension-providers</artifactId>
 			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.fastinfoset</groupId>
+			<artifactId>FastInfoset</artifactId>
+			<version>1.2.18</version>
 		</dependency>
 		<!-- http://cxf.apache.org/docs/jax-rs.html#JAX-RS-FromCXF2.7.xtoCXF3.0.0 , item 4: WADL Auto Generator code has been moved to a new cxf-rt-rs-service-description -->
 		<dependency>
@@ -188,8 +193,8 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
 				<configuration>
 					<onlyAnalyze>org.ow2.authzforce.*</onlyAnalyze>
 				</configuration>
@@ -224,6 +229,9 @@
 				<artifactId>license-maven-plugin</artifactId>
 				<configuration>
 					<header>license/thales-gpl.header.txt</header>
+					<headerDefinitions>
+						<headerDefinition>license/header-defs.xml</headerDefinition>
+					</headerDefinitions>
 					<excludes>
 						<exclude>src/main/java/org/ow2/authzforce/webapp/org/apache/**</exclude>
 						<exclude>src/main/java/org/ow2/authzforce/webapp/org/codehaus/**</exclude>
@@ -306,11 +314,11 @@
 					<suiteXmlFiles>
 						<!-- Parameters in the XML files seem to be ignored (more info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html) -->
 						<!-- Using multiple test suites simplifies debugging and prevent some TestNG issues happening when reusing same class/methods over multiple tests in same test suite -->
-						<suiteXmlFile>src/test/resources/test.suites/xml_pdp_only.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/xml_full.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/fast_infoset.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/json.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/resources/test.suites/others.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites/xml_pdp_only.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites/xml_full.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites/fast_infoset.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites/json.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites/others.xml</suiteXmlFile>
 					</suiteXmlFiles>
 					<skipAfterFailureCount>1</skipAfterFailureCount>
 					<!-- redirectTestOutputToFile: set this to 'true' to redirect the unit test standard output to a file (found in reportsDirectory/testName-output.txt) -->

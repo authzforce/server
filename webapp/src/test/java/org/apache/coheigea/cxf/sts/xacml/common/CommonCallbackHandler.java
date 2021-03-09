@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -30,7 +30,7 @@ public class CommonCallbackHandler implements CallbackHandler
 {
 
 	@Override
-	public void handle(final Callback[] callbacks) throws IOException, UnsupportedCallbackException
+	public void handle(final Callback[] callbacks)
 	{
 		for (final Callback callback : callbacks)
 		{

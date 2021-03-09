@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -55,7 +56,7 @@ public class AdminDomainTest extends RestServiceTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdminDomainTest.class);
 
-	private static final FileFilter DIRECTORY_FILTER = pathname -> pathname.isDirectory();
+	private static final FileFilter DIRECTORY_FILTER = File::isDirectory;
 
 	private DomainAPIHelper testDomainHelper = null;
 
@@ -80,7 +81,7 @@ public class AdminDomainTest extends RestServiceTest
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
 	        @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
@@ -132,18 +133,16 @@ public class AdminDomainTest extends RestServiceTest
 	 * 
 	 * 
 	 * @return iterator over test data
-	 * @throws URISyntaxException
-	 * @throws IOException
 	 */
 	@DataProvider(name = "adminPdpTestFiles")
-	public static Iterator<Object[]> createData() throws URISyntaxException, IOException
+	public static Iterator<Object[]> createData()
 	{
 		final Collection<Object[]> testParams = new ArrayList<>();
 		/*
 		 * Each sub-directory of the root directory is data for a specific test. So we configure a test for each directory
 		 */
 		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "admin");
-		for (final File subDir : testRootDir.listFiles(DIRECTORY_FILTER))
+		for (final File subDir : Objects.requireNonNull(testRootDir.listFiles(DIRECTORY_FILTER)))
 		{
 			// specific test's resources directory location, used as parameter
 			// to PdpTest(String)

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2006 Envoi Solutions LLC
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +46,8 @@ import org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json.utils.JSONUt
 public class MappedNamespaceConvention implements Convention, NamespaceContext
 {
 	private static final String DOT_NAMESPACE_SEP = ".";
-	private Map<Object, Object> xnsToJns = new HashMap<>();
-	private final Map<Object, Object> jnsToXns = new HashMap<>();
+	private Map<String, String> xnsToJns = new HashMap<>();
+	private final Map<String, String> jnsToXns = new HashMap<>();
 	private List<?> attributesAsElements;
 	private List<?> ignoredElements;
 	private List<String> jsonAttributesAsElements;
@@ -85,13 +85,12 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 		this.ignoreEmptyArrayValues = config.isIgnoreEmptyArrayValues();
 		this.escapeForwardSlashAlways = config.isEscapeForwardSlashAlways();
 		this.jsonNamespaceSeparator = config.getJsonNamespaceSeparator();
-		for (final Entry<Object, Object> entry2 : xnsToJns.entrySet())
+		for (final Entry<String, String> entry : xnsToJns.entrySet())
 		{
-			final Map.Entry<?, ?> entry = entry2;
 			jnsToXns.put(entry.getValue(), entry.getKey());
 		}
 
-		jsonAttributesAsElements = new ArrayList<String>();
+		jsonAttributesAsElements = new ArrayList<>();
 		if (attributesAsElements != null)
 		{
 			for (final Object name : attributesAsElements)
@@ -189,8 +188,8 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 				}
 				else
 				{
-					final String strValue = o == null ? null : o.toString();
-					QName name = null;
+					final String strValue = o.toString();
+					final QName name;
 					// note that a non-prefixed attribute name implies NO namespace,
 					// i.e. as opposed to the in-scope default namespace
 					if (k.contains(getNamespaceSeparator()))
@@ -252,7 +251,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 			return "";
 		}
 
-		return (String) jnsToXns.get(prefix);
+		return jnsToXns.get(prefix);
 	}
 
 	/*
@@ -269,16 +268,16 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 			return "";
 		}
 
-		return (String) xnsToJns.get(namespaceURI);
+		return xnsToJns.get(namespaceURI);
 	}
 
 	@Override
-	public Iterator<Object> getPrefixes(final String arg0)
+	public Iterator<String> getPrefixes(final String arg0)
 	{
 
 		if (ignoreNamespaces)
 		{
-			return Collections.emptySet().iterator();
+			return Collections.emptyIterator();
 		}
 
 		return jnsToXns.keySet().iterator();
@@ -301,7 +300,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 		}
 	}
 
-	private void readAttribute(final Node n, final String name, final String value) throws JSONException
+	private void readAttribute(final Node n, final String name, final String value)
 	{
 
 		final QName qname = createQName(name);
@@ -313,7 +312,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 
 		final String nsSeparator = getNamespaceSeparator();
 		int dot = name.lastIndexOf(nsSeparator);
-		QName qname = null;
+		final QName qname;
 		String local = name;
 
 		if (dot == -1)
@@ -350,7 +349,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 		}
 		final String jns = getJSONNamespace(p, ns);
 		// String jns = getPrefix(ns);
-		if (jns != null && jns.length() != 0)
+		if (jns.length() != 0)
 		{
 			builder.append(jns).append(getNamespaceSeparator());
 		}
@@ -365,7 +364,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 			return "";
 		}
 
-		String jns = (String) xnsToJns.get(ns);
+		String jns = xnsToJns.get(ns);
 		if (jns == null && providedPrefix != null && providedPrefix.length() > 0)
 		{
 			jns = providedPrefix;
@@ -383,7 +382,7 @@ public class MappedNamespaceConvention implements Convention, NamespaceContext
 		final StringBuilder builder = new StringBuilder();
 		final String jns = getJSONNamespace(p, ns);
 		// String jns = getPrefix(ns);
-		if (jns != null && jns.length() != 0)
+		if (jns.length() != 0)
 		{
 			builder.append(jns).append(getNamespaceSeparator());
 		}

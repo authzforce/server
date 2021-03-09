@@ -1,0 +1,119 @@
+{
+	"$schema": "http://json-schema.org/draft-06/schema",
+	"$id": "Request-with-geometry.schema.json",
+	"title": "JSON schema of Request object defined in JSON profile of XACML 3.0 v1.0",
+	"definitions": 
+	{
+		"RequestReferenceType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"ReferenceId": 
+				{
+					"type": "array",
+					"items": 
+					{
+						"description": "Each item is a Category/Id",
+						"type": "string"
+					},
+
+					"minItems": 1
+				}
+			},
+
+			"required": 
+			[
+				"ReferenceId"
+			],
+
+			"additionalProperties": false
+		},
+
+		"MultiRequestsType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"RequestReference": 
+				{
+					"type": "array",
+					"items": 
+					{
+						"$ref": "#/definitions/RequestReferenceType"
+					},
+
+					"minItems": 1
+				}
+			},
+
+			"required": 
+			[
+				"RequestReference"
+			],
+
+			"additionalProperties": false
+		},
+
+		"RequestType": 
+		{
+			"type": "object",
+			"properties": 
+			{
+				"ReturnPolicyIdList": 
+				{
+					"type": "boolean"
+				},
+
+				"CombinedDecision": 
+				{
+					"type": "boolean"
+				},
+
+				"XPathVersion": 
+				{
+					"type": "string"
+				},
+
+				"Category": 
+				{
+					"type": "array",
+					"items": 
+					{
+						"$ref": "common-std-with-geometry.schema.json#/definitions/AttributeCategoryType"
+					},
+
+					"minItems": 1
+				},
+
+				"MultiRequests": 
+				{
+					"$ref": "#/definitions/MultiRequestsType"
+				}
+			},
+
+			"required": 
+			[
+				"Category"
+			],
+
+			"additionalProperties": false
+		}
+	},
+
+	"type": "object",
+	"properties": 
+	{
+		"Request": 
+		{
+			"$ref": "#/definitions/RequestType"
+		}
+	},
+
+	"required": 
+	[
+		"Request"
+	],
+
+	"additionalProperties": false
+}

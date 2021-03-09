@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2006 Envoi Solutions LLC
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ public class Configuration
 			try
 			{
 				final Class<? extends TypeConverter> tc = Class.forName(userSpecifiedClass).asSubclass(TypeConverter.class);
-				tc.newInstance(); /* Blow up as soon as possible. */
+				final TypeConverter  typeConverter = tc.getDeclaredConstructor().newInstance(); /* Blow up as soon as possible. */
 				cf = new ConverterFactory()
 				{
 					@Override
@@ -60,7 +60,7 @@ public class Configuration
 					{
 						try
 						{
-							return tc.newInstance();
+							return typeConverter;
 						}
 						catch (final Exception e)
 						{
@@ -83,21 +83,21 @@ public class Configuration
 		converterFactory = cf;
 	}
 
-	private Map xmlToJsonNamespaces;
-	private List attributesAsElements;
+	private Map<String, String> xmlToJsonNamespaces;
+	private List<String> attributesAsElements;
 	/*
 	 * BEGIN CHANGE to transform specific JSON keys - not prefixed with attributeKey - to XML attributes (opposite of attributesAsElements)
 	 */
-	private Set<String> elementsAsAttributes = Collections.EMPTY_SET;
+	private Set<String> elementsAsAttributes = Collections.emptySet();
 	/*
 	 * END
 	 */
-	private List ignoredElements;
-	private boolean supressAtAttributes;
+	private List<String> ignoredElements;
+	private boolean suppressAtAttributes;
 	private String attributeKey = "@";
 	private boolean ignoreNamespaces;
 	private boolean dropRootElement;
-	private Set primitiveArrayKeys = Collections.EMPTY_SET;
+	private Set<String> primitiveArrayKeys = Collections.emptySet();
 	private boolean writeNullAsString = true;
 	private boolean readNullAsString;
 	private boolean ignoreEmptyArrayValues;
@@ -109,16 +109,16 @@ public class Configuration
 	public Configuration()
 	{
 		super();
-		this.xmlToJsonNamespaces = new HashMap();
+		this.xmlToJsonNamespaces = new HashMap<>();
 	}
 
-	public Configuration(final Map xmlToJsonNamespaces)
+	public Configuration(final Map<String, String> xmlToJsonNamespaces)
 	{
 		super();
 		this.xmlToJsonNamespaces = xmlToJsonNamespaces;
 	}
 
-	public Configuration(final Map xmlToJsonNamespaces, final List attributesAsElements, final List ignoredElements)
+	public Configuration(final Map<String, String> xmlToJsonNamespaces, final List<String> attributesAsElements, final List<String> ignoredElements)
 	{
 		super();
 		this.xmlToJsonNamespaces = xmlToJsonNamespaces;
@@ -136,32 +136,32 @@ public class Configuration
 		this.ignoreNamespaces = ignoreNamespaces;
 	}
 
-	public List getAttributesAsElements()
+	public List<String> getAttributesAsElements()
 	{
 		return attributesAsElements;
 	}
 
-	public void setAttributesAsElements(final List attributesAsElements)
+	public void setAttributesAsElements(final List<String> attributesAsElements)
 	{
 		this.attributesAsElements = attributesAsElements;
 	}
 
-	public List getIgnoredElements()
+	public List<String> getIgnoredElements()
 	{
 		return ignoredElements;
 	}
 
-	public void setIgnoredElements(final List ignoredElements)
+	public void setIgnoredElements(final List<String> ignoredElements)
 	{
 		this.ignoredElements = ignoredElements;
 	}
 
-	public Map getXmlToJsonNamespaces()
+	public Map<String, String> getXmlToJsonNamespaces()
 	{
 		return xmlToJsonNamespaces;
 	}
 
-	public void setXmlToJsonNamespaces(final Map xmlToJsonNamespaces)
+	public void setXmlToJsonNamespaces(final Map<String, String> xmlToJsonNamespaces)
 	{
 		this.xmlToJsonNamespaces = xmlToJsonNamespaces;
 	}
@@ -178,12 +178,12 @@ public class Configuration
 
 	public boolean isSupressAtAttributes()
 	{
-		return this.supressAtAttributes;
+		return this.suppressAtAttributes;
 	}
 
 	public void setSupressAtAttributes(final boolean supressAtAttributes)
 	{
-		this.supressAtAttributes = supressAtAttributes;
+		this.suppressAtAttributes = supressAtAttributes;
 	}
 
 	public String getAttributeKey()
@@ -201,12 +201,12 @@ public class Configuration
 		return converterFactory.newDefaultConverterInstance();
 	}
 
-	public Set getPrimitiveArrayKeys()
+	public Set<String> getPrimitiveArrayKeys()
 	{
 		return primitiveArrayKeys;
 	}
 
-	public void setPrimitiveArrayKeys(final Set primitiveArrayKeys)
+	public void setPrimitiveArrayKeys(final Set<String> primitiveArrayKeys)
 	{
 		this.primitiveArrayKeys = primitiveArrayKeys;
 	}

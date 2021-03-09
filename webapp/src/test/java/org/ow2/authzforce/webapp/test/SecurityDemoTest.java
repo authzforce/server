@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -78,7 +78,6 @@ public class SecurityDemoTest extends RestServiceTest
 	 * @param remoteAppBaseUrl
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
-	 * @param testCtx
 	 * @throws Exception
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
@@ -86,7 +85,7 @@ public class SecurityDemoTest extends RestServiceTest
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
 			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.JSON, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.JSON, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
@@ -102,7 +101,7 @@ public class SecurityDemoTest extends RestServiceTest
 	}
 
 	@BeforeClass
-	public void addDomain() throws JAXBException, IOException
+	public void addDomain() throws JAXBException
 	{
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
@@ -116,10 +115,10 @@ public class SecurityDemoTest extends RestServiceTest
 		testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
 	}
 
-	@AfterClass
-	/**
+	/*
 	 * deleteDomain() already tested in {@link DomainSetTest#deleteDomains()}, so this is just for cleaning after testing
 	 */
+	@AfterClass
 	public void deleteDomain()
 	{
 		// this will throw NotFoundException if

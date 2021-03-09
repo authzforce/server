@@ -67,6 +67,7 @@ applications, AuthzForce also provides a PDP engine as a Java library in
             validation;
         -   DoS mitigation: JSON parser variant checking max JSON string size,
             max number of JSON keys/array items and max JSON object depth.
+    - [GeoXACML 1.0.1](http://portal.opengeospatial.org/files/?artifact_id=42734). Supported as third-party extension from [Secure Dimensions](https://github.com/securedimensions/authzforce-geoxacml-basic)
     -   Experimental support for:
         -   [XACML Data Loss Prevention / Network Access Control (DLP/NAC) Profile Version 1.0](http://docs.oasis-open.org/xacml/xacml-3.0-dlp-nac/v1.0/xacml-3.0-dlp-nac-v1.0.html):
             only `dnsName-value` datatype and `dnsName-value-equal` function are

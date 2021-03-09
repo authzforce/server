@@ -30,7 +30,7 @@
       <dependency>
          <groupId>${project.groupId}</groupId>
          <artifactId>${artifactId.prefix}-rest-api-model</artifactId>
-         <version>5.7.0</version>
+         <version>6.0.0</version>
       </dependency>
       <dependency>
          <groupId>${project.groupId}</groupId>
@@ -39,7 +39,7 @@
       <dependency>
          <groupId>org.ow2.authzforce</groupId>
          <artifactId>authzforce-ce-jaxrs-utils</artifactId>
-         <version>1.6.0</version>
+         <version>2.0.1</version>
       </dependency>
    </dependencies>
    <build>
@@ -83,7 +83,7 @@
                      <resources>
                         <!-- Replace variable 'productName', 'project.version', 'build.date' in some source files. The result goes to ${project.build.directory}. -->
                         <resource>
-                           <directory>src</directory>
+                           <directory>src/main/resources</directory>
                            <filtering>true</filtering>
                            <includes>
                               <include>org.ow2.authzforce.server.product.properties</include>
@@ -112,8 +112,8 @@
             </executions>
          </plugin>
          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>findbugs-maven-plugin</artifactId>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
             <executions>
                <execution>
                   <phase>verify</phase>
@@ -144,8 +144,11 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
+               <headerDefinitions>
+                  <headerDefinition>license/header-defs.xml</headerDefinition>
+               </headerDefinitions>
                <includes>
-                  <include>src/**</include>
+                  <include>src/main/java/**</include>
                </includes>
                <excludes>
                   <exclude>src/test/resources/**</exclude>

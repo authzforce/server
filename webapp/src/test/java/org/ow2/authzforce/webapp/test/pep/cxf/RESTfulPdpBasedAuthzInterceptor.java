@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -280,7 +280,7 @@ public class RESTfulPdpBasedAuthzInterceptor extends AbstractPhaseInterceptor<Me
 	/**
 	 * Handle any Obligations returned by the PDP. Does nothing by default. Override this method if you want to handle Obligations/Advice in a specific way
 	 */
-	protected void handleObligationsOrAdvice(final Request request, final Principal principal, final Message message, final Result result) throws Exception
+	protected void handleObligationsOrAdvice(final Request request, final Principal principal, final Message message, final Result result)
 	{
 		// Do nothing by default
 	}
