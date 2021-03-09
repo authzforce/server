@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,10 +18,6 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-/**
- *
- *
- */
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -98,7 +94,7 @@ public class RootResourcesTest extends RestServiceTest
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean useJSON,
 	        @Optional("true") final Boolean enableDoSMitigation, @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML), enableDoSMitigation, domainSyncIntervalSec,
+		startServerAndInitCLient(remoteAppBaseUrl, useJSON ? ClientType.JSON : (enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML),"", enableDoSMitigation, domainSyncIntervalSec,
 		        enablePdpOnly);
 	}
 
@@ -184,7 +180,7 @@ public class RootResourcesTest extends RestServiceTest
 			final Invocation.Builder builder = target.request().accept("application/fastinfoset");
 			try (final javax.ws.rs.core.Response response = builder.get())
 			{
-				/**
+				/*
 				 * CXF should return code 500 with Payload: "No message body writer has been found for class org.ow2.authzforce.rest.api.xmlns.Resources, ContentType: application/fastinfoset"
 				 */
 				assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE.getStatusCode());
@@ -273,7 +269,7 @@ public class RootResourcesTest extends RestServiceTest
 		Arrays.fill(chars, 'a');
 		final String description = new String(chars);
 		// externalID is x:NCName therefore cannot start with a number
-		final DomainProperties domainProperties = new DomainProperties(description, "external" + Integer.toString(nextCreatedDomainIndex));
+		final DomainProperties domainProperties = new DomainProperties(description, "external" + nextCreatedDomainIndex);
 		nextCreatedDomainIndex += 1;
 		try
 		{
@@ -594,7 +590,7 @@ public class RootResourcesTest extends RestServiceTest
 		final Response actualResponse = testDomainRes.getPdpResource().requestPolicyDecision(request);
 		createdDomainIds.add(SAMPLE_DOMAIN_ID);
 
-		assertTrue(actualResponse != null, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
+		assertNotNull(actualResponse, "Manual sync with PDP API method requestPolicyDecision() failed: could not get PDP response after creating domain directory on disk");
 	}
 
 	// @Test(dependsOnMethods = { "getPdpAfterDomainDirCreated" })

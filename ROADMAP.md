@@ -18,9 +18,9 @@ any time.
 ## Short term
 
 The following list of features are planned to be addressed in the short term,
-and incorporated in the next release of the product planned for **2020**:
+and incorporated in the next release of the product planned for **2021**:
 
-- #50 .
+*N/A*
 
 ## Medium term
 
@@ -28,7 +28,7 @@ The following list of features are planned to be addressed in the medium term,
 typically within the subsequent release(s) generated in the next **9 months**
 after next planned release:
 
-- GeoXACML support
+- #50 .
 
 ## Long term
 

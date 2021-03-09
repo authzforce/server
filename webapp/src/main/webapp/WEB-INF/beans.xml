@@ -24,6 +24,9 @@
    <jee:jndi-lookup id="jndi_syncIntervalSec" jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer" default-value="#{T(java.lang.Integer).valueOf(0)}" />
    <jee:jndi-lookup id="jndi_enablePdpOnly" jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
    <jee:jndi-lookup id="jndi_enableXacmlJsonProfile" jndi-name="org.ow2.authzforce.domains.enableXacmlJsonProfile" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
+   <!-- Path to JSON schema file for XACML JSON Profile's Request validation, relative to #{jndi_configDir} (if undefined, the Request.schema.json from authzforce-ce-xacml-json-model project is used by default) -->
+   <jee:jndi-lookup id="jndi_xacmlJsonSchemaRelativePath" jndi-name="org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath" expected-type="java.lang.String" default-value="" />
+
    <!-- XML security properties used to set the corresponding JAXRS server pproperties defined in the doc: http://cxf.apache.org/docs/security.html, for "Controlling Large Request Payloads" and mitigate 
       XML DoS attacks (since CXF 2.7.4). You should not try to set them via system properties (this does not work as expected). If you comment out this environment entry or specify a negative value, CXF default 
       value is used. -->
@@ -138,6 +141,9 @@
             <!-- Fast Infoset replaced by JSON support: -->
             <bean class="org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider">
                <!-- Provider for XACML/JSON profile support (only to be used on /pdp resource) -->
+               <constructor-arg
+                       name="schema"
+                       value="#{ jndi_xacmlJsonSchemaRelativePath.length() == 0? T(org.ow2.authzforce.xacml.json.model.XacmlJsonUtils).REQUEST_SCHEMA: T(org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider).loadSchema(jndi_configDir + '/' + jndi_xacmlJsonSchemaRelativePath) }" />
                <!-- Only innerElementCountThreshold, innerElementLevelThreshold and maxTextLength/maxAttributeSize are supported. If one of them is negative or zero, all these properties are ignored -->
                <constructor-arg name="maxJsonStringSize"
                   value="#{jndi_staxMaxAttributeSize &lt;= 0 ? jndi_staxMaxTextLength: (jndi_staxMaxTextLength &lt;= 0 ? jndi_staxMaxAttributeSize: T(java.lang.Math).min(jndi_staxMaxAttributeSize,jndi_staxMaxTextLength) ) }" />

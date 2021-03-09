@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -46,25 +46,19 @@ public class PolicyVersionResourceImpl implements PolicyVersionDaoClient, Policy
 	 * Policy version resource Factory
 	 *
 	 */
-	public static final PolicyVersionDaoClient.Factory<PolicyVersionResourceImpl> FACTORY = new PolicyVersionDaoClient.Factory<PolicyVersionResourceImpl>()
+	public static final PolicyVersionDaoClient.Factory<PolicyVersionResourceImpl> FACTORY = (policyId, versionId, domainDAO) ->
 	{
-
-		@Override
-		public PolicyVersionResourceImpl getInstance(final String policyId, final PolicyVersion versionId, final DomainDao<?, ?> domainDAO)
+		if (versionId == null)
 		{
-			if (versionId == null)
-			{
-				throw ILLEGAL_VERSION_ARGUMENT_EXCEPTION;
-			}
-
-			if (domainDAO == null)
-			{
-				throw ILLEGAL_VERSION_DAO_ARGUMENT_EXCEPTION;
-			}
-
-			return new PolicyVersionResourceImpl(policyId, versionId, domainDAO);
+			throw ILLEGAL_VERSION_ARGUMENT_EXCEPTION;
 		}
 
+		if (domainDAO == null)
+		{
+			throw ILLEGAL_VERSION_DAO_ARGUMENT_EXCEPTION;
+		}
+
+		return new PolicyVersionResourceImpl(policyId, versionId, domainDAO);
 	};
 
 	private final PolicyVersion versionId;

@@ -3,7 +3,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>9.0.1</version>
+      <version>10.0.0</version>
       <relativePath>..</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-upgrader</artifactId>
@@ -96,8 +96,8 @@
             </executions>
          </plugin>
          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>findbugs-maven-plugin</artifactId>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
             <executions>
                <execution>
                   <phase>verify</phase>
@@ -112,8 +112,11 @@
             <artifactId>license-maven-plugin</artifactId>
             <configuration>
                <header>license/thales-gpl.header.txt</header>
+               <headerDefinitions>
+                  <headerDefinition>license/header-defs.xml</headerDefinition>
+               </headerDefinitions>
                <includes>
-                  <include>src/test/java</include>
+                  <include>src/test/java/**</include>
                </includes>
             </configuration>
             <executions>

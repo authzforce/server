@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -31,6 +31,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
+import org.everit.json.schema.ValidationException;
 import org.ow2.authzforce.jaxrs.util.JaxbErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +83,10 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 			final String errMsg;
 
 			final Throwable cause = ex.getCause();
-			if (cause instanceof IllegalArgumentException)
+			/*
+			JAXB provider throws IllegalArgumentException, but JSON provider with JSON schema throws org.everit.json.schema.ValidationException
+			 */
+			if (cause instanceof IllegalArgumentException || cause instanceof ValidationException)
 			{
 				respStatus = HttpServletResponse.SC_BAD_REQUEST;
 				final Throwable causeBehind = cause.getCause();

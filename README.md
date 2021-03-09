@@ -7,7 +7,7 @@
 [![Support badge](https://img.shields.io/badge/support-ask.fiware.org-yellowgreen.svg)](https://ask.fiware.org/questions/scope:all/sort:activity-desc/tags:authzforce/)
 <br/>
 [![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.org/authzforce/server.svg?branch=develop)](https://travis-ci.org/authzforce/server)
+[![CI](https://github.com/authzforce/server/workflows/CI/badge.svg)](https://github.com/authzforce/server/actions?query=workflow%3ACI)
 ![Status](https://nexus.lab.fiware.org/static/badges/statuses/authzforce.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&utm_medium=referral&utm_content=authzforce/server&utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
@@ -67,6 +67,7 @@ applications, AuthzForce also provides a PDP engine as a Java library in
             validation;
         -   DoS mitigation: JSON parser variant checking max JSON string size,
             max number of JSON keys/array items and max JSON object depth.
+    - [GeoXACML 1.0.1](http://portal.opengeospatial.org/files/?artifact_id=42734). Supported as third-party extension from [Secure Dimensions](https://github.com/securedimensions/authzforce-geoxacml-basic)
     -   Experimental support for:
         -   [XACML Data Loss Prevention / Network Access Control (DLP/NAC) Profile Version 1.0](http://docs.oasis-open.org/xacml/xacml-3.0-dlp-nac/v1.0/xacml-3.0-dlp-nac-v1.0.html):
             only `dnsName-value` datatype and `dnsName-value-equal` function are
@@ -147,10 +148,10 @@ More information in the previous section.
 -   Conformance with
     [REST Profile of XACML v3.0 Version 1.0](http://docs.oasis-open.org/xacml/xacml-rest/v1.0/xacml-rest-v1.0.html)
 -   Supported data formats, aka content types:
-    - `application/xml`: XML based on API schema; 
-    - `application/fastinfoset`: [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) based on API's XML schema; 
-    - `application/json`: JSON based on API's XMLschema with a generic XML-to-JSON mapping convention 
-    - `application/xacml+xml`: XACML content only, as defined by [RFC 7061](https://tools.ietf.org/html/rfc7061) 
+    - `application/xml`: XML based on API schema;
+    - `application/fastinfoset`: [Fast Infoset](http://www.itu.int/en/ITU-T/asn1/Pages/Fast-Infoset.aspx) based on API's XML schema;
+    - `application/json`: JSON based on API's XMLschema with a generic XML-to-JSON mapping convention
+    - `application/xacml+xml`: XACML content only, as defined by [RFC 7061](https://tools.ietf.org/html/rfc7061)
     - `application/xacml+json`: JSON format for XACML Request/Response on PDP only, as defined by [XACML v3.0 - JSON Profile Version 1.0](http://docs.oasis-open.org/xacml/xacml-json-http/v1.0/xacml-json-http-v1.0.html)
 -   Defined in standard
     [Web Application Description Language and XML schema](https://github.com/authzforce/rest-api-model/tree/develop/src/main/resources)
@@ -249,7 +250,7 @@ forwards the request to the web service implementation if the decision is
 Permit, else rejects it. For more information, see the Javadoc of
 [RESTfulPdpBasedAuthzInterceptorTest](webapp/src/test/java/org/ow2/authzforce/webapp/test/pep/cxf/RESTfulPdpBasedAuthzInterceptorTest.java).
 
-    
+
 ## Testing
 
 To run unit tests, install Maven and type
@@ -318,7 +319,7 @@ $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-st
     ```console
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 -DnoDeploy=true jgitflow:release-finish
     ```
-    
+
     More info on jgitflow: http://jgitflow.bitbucket.org/
 5.  Connect and log in to the OSS Nexus Repository Manager:
     https://oss.sonatype.org/
@@ -348,17 +349,17 @@ Apache License.
 
 ### Are there any legal issues with GPL 3.0? Is it safe for me to use?
 
-There is absolutely no problem in using a product licensed under GPL 3.0. Issues with GPL 
-(or AGPL) licenses are mostly related with the fact that different people assign different 
+There is absolutely no problem in using a product licensed under GPL 3.0. Issues with GPL
+(or AGPL) licenses are mostly related with the fact that different people assign different
 interpretations on the meaning of the term “derivate work” used in these licenses. Due to this,
 some people believe that there is a risk in just _using_ software under GPL or AGPL licenses
 (even without _modifying_ it).
 
-For the avoidance of doubt, the owners of this software licensed under an GPL 3.0 license  
+For the avoidance of doubt, the owners of this software licensed under an GPL 3.0 license
 wish to make a clarifying public statement as follows:
 
 > Please note that software derived as a result of modifying the source code of this
-> software in order to fix a bug or incorporate enhancements is considered a derivative 
-> work of the product. Software that merely uses or aggregates (i.e. links to) an otherwise 
+> software in order to fix a bug or incorporate enhancements is considered a derivative
+> work of the product. Software that merely uses or aggregates (i.e. links to) an otherwise
 > unmodified version of existing software is not considered a derivative work, and therefore
 > it does not need to be released as under the same license, or even released as open source.

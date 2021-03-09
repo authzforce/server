@@ -30,7 +30,10 @@
 	<Environment name="org.ow2.authzforce.domains.enableXacmlJsonProfile" value="true" type="java.lang.Boolean" override="false"
 		description="Enable support for JSON Profile of XACML 3.0 on domains' PDP endpoints iff true" />
 
-	<!-- <Environment name="org.ow2.authzforce.webapp.publishedEndpointUrl" value="http://localhost:8080" type="java.lang.Boolean" override="false" description="Base address specified in the auto-generated 
+	<Environment name="org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath" value="" type="java.lang.String" override="false"
+				 description="Path to JSON schema file for XACML JSON Profile's Request validation, relative to ${org.ow2.authzforce.config.dir} (if undefined/empty value, the Request.schema.json file from authzforce-ce-xacml-json-model project is used by default)" />
+
+	<!-- <Environment name="org.ow2.authzforce.webapp.publishedEndpointUrl" value="http://localhost:8080" type="java.lang.String" override="false" description="Base address specified in the auto-generated
 		WADL. This parameter allows setting the public URL that may not be the same as the URL the service is deployed on. (For example, the service is behind a proxy of some sort)." /> -->
 
 	<!-- <Environment name="org.ow2.authzforce.webapp.jsonKeysWithArrays" type="java.lang.String" override="false" description="Comma-separated list of JSON keys with values to be always serialized to JSON 

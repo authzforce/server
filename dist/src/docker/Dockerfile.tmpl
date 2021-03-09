@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2020 Thales.
+# Copyright (C) 2012-2021 Thales.
 #
 # This file is part of AuthzForce CE.
 #
@@ -23,7 +23,7 @@
 
 # The alternative is to use FROM ubuntu:* then install tomcat ubuntu package and use upstart/sysctl init script but this is not the way to go:
 # https://github.com/docker/docker/issues/6800
-FROM tomcat:9-jre8
+FROM tomcat:9-jre11-slim
 MAINTAINER AuthzForce Team
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -37,7 +37,7 @@ ENV DEBIAN_FRONTEND noninteractive
 #ENV HTTP_PROXY 'http://user:password@proxy-host:proxy-port'
 #ENV HTTPS_PROXY 'http://user:password@proxy-host:proxy-port'
 
-ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"
+ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -server"
 
 ENV AUTHZFORCE_SERVER_VERSION="${project.version}"
 ENV AUTHZFORCE_SERVER_DOWNLOAD_URL="https://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/$AUTHZFORCE_SERVER_VERSION/authzforce-ce-server-dist-$AUTHZFORCE_SERVER_VERSION.deb"

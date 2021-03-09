@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,15 +18,18 @@
  */
 package org.ow2.authzforce.webapp;
 
-import java.beans.ConstructorProperties;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.ow2.authzforce.jaxrs.util.JaxbErrorMessage;
+import org.ow2.authzforce.jaxrs.util.JsonRiJaxrsProvider;
+import org.ow2.authzforce.xacml.json.model.LimitsCheckingJSONObject;
+import org.ow2.authzforce.xacml.json.model.SpringBasedJsonSchemaClient;
+import org.springframework.util.ResourceUtils;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
@@ -37,38 +40,73 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-
-import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.ow2.authzforce.jaxrs.util.JaxbErrorMessage;
-import org.ow2.authzforce.xacml.json.model.LimitsCheckingJSONObject;
+import java.beans.ConstructorProperties;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * JAX-RS entity provider for {@link JSONObject} input/output with configurable Consume/Produce media types and optional buffering
  * <p>
- * TODO: this is copy-paste from org.ow2.authzforce.core.pdp.xacml.json.jaxrs.JsonRiJaxrsProvider class (authzforce-ce-jaxrs-pdp-xacml-json project), except this one handles {@link JaxbErrorMessage},
+ * TODO: this is copy-paste from {@link org.ow2.authzforce.jaxrs.util.JsonRiJaxrsProvider} class (authzforce-ce-jaxrs-utils project), except this one handles {@link JaxbErrorMessage},
  * and extends CXF-specific {@link AbstractConfigurableProvider} to allow configuration of Consume/Produce media types and use of this info at runtime. See how we can reuse in one way or the other.
  */
 @Provider
 public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<JSONObject>, MessageBodyWriter<T>
 {
-	private interface JSONObjectFactory
+	private static final BadRequestException EMPTY_JSON_OBJECT_BAD_REQUEST_EXCEPTION = new BadRequestException("object cannot be empty");
+
+	private interface JsonObjectFactory
 	{
 		JSONObject getInstance(final InputStream entityStream);
 	}
 
-	private static final JSONObjectFactory DEFAULT_JSON_TOKENER_FACTORY = new JSONObjectFactory()
+	private static class BaseJsonObjectFactory implements JsonObjectFactory
 	{
-		@Override
-		public JSONObject getInstance(final InputStream entityStream)
+		protected JSONObject parse(final InputStream entityStream)
 		{
 			return new JSONObject(new JSONTokener(entityStream));
 		}
-	};
 
-	private final JSONObjectFactory jsonObjectFactory;
+		protected void schemaValidate(final JSONObject jsonObj)
+		{
+			// no validation
+		}
+
+		@Override
+		public final JSONObject getInstance(final InputStream entityStream) throws ValidationException
+		{
+			final JSONObject jsonObj = parse(entityStream);
+			schemaValidate(jsonObj);
+			return jsonObj;
+		}
+
+	}
+
+	private static final JsonObjectFactory DEFAULT_JSON_TOKENER_FACTORY = entityStream -> new JSONObject(new JSONTokener(entityStream));
+
+	/**
+	 * Utility function to be used in Spring config to load JSON schema from file
+	 * @param schemaLocation schema location
+	 * @return JSON Schema
+	 * @throws IOException error accessing schema file
+	 */
+	public static Schema loadSchema(final String schemaLocation) throws IOException
+	{
+		final File schemaFile = ResourceUtils.getFile(schemaLocation);
+		try (final BufferedReader reader = Files.newBufferedReader(schemaFile.toPath(), StandardCharsets.UTF_8))
+		{
+			final JSONObject rawSchema = new JSONObject(new JSONTokener(reader));
+			return SchemaLoader.builder().schemaJson(rawSchema).resolutionScope("file://"+schemaFile.getParent()+ File.separator).schemaClient(new SpringBasedJsonSchemaClient()).build().load().build();
+		}
+	}
+
+	private final JsonObjectFactory jsonObjectFactory;
 
 	/**
 	 * Constructs JSON provider using default insecure {@link JSONTokener}. Only for trusted environments or protected by JSON-threat-mitigating proxy (e.g. WAF as in Web Application Firewall)
@@ -79,9 +117,135 @@ public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvide
 	}
 
 	/**
+	 * Constructs JSON provider using default insecure {@link JSONTokener} with single JSON schema validation. Only for trusted environments or protected by JSON-threat-mitigating proxy (e.g. WAF as
+	 * in Web Application Firewall)
+	 *
+	 * @param schema
+	 *            JSON schema, null iff no schema validation shall occur
+	 */
+	public JsonRiCxfJaxrsProvider(final Schema schema)
+	{
+		jsonObjectFactory = schema == null ? DEFAULT_JSON_TOKENER_FACTORY : new BaseJsonObjectFactory()
+		{
+
+			@Override
+			protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
+			{
+				schema.validate(jsonObj);
+			}
+
+		};
+	}
+
+	/**
+	 * Constructs JSON provider using default insecure {@link JSONTokener} with validation against a given schema depending on the input JSON root property. Only for trusted environments or protected
+	 * by JSON-threat-mitigating proxy (e.g. WAF as in Web Application Firewall).
+	 *
+	 * @param schemasByPropertyName
+	 *            mappings of JSON property names to schemas, defining which schema to apply according to which (root) property the input JSON object has; if {@code schemasByPropertyName} is empty, or
+	 *            {@code schemasByPropertyName} does not contain any schema for the input JSON (root) property, no schema validation shall occur. Any input JSON without any root property is considered
+	 *            invalid.
+	 */
+	public JsonRiCxfJaxrsProvider(final Map<String, Schema> schemasByPropertyName)
+	{
+		jsonObjectFactory = schemasByPropertyName == null || schemasByPropertyName.isEmpty() ? DEFAULT_JSON_TOKENER_FACTORY : new BaseJsonObjectFactory()
+		{
+
+			@Override
+			protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
+			{
+				final Iterator<String> keysIt = jsonObj.keys();
+				if (!keysIt.hasNext())
+				{
+					/*
+					 * JSONException extends RuntimeException so it is not caught as IllegalArgumentException
+					 */
+					throw EMPTY_JSON_OBJECT_BAD_REQUEST_EXCEPTION;
+				}
+
+				final Schema schema = schemasByPropertyName.get(keysIt.next());
+				if (schema != null)
+				{
+					schema.validate(jsonObj);
+				}
+			}
+
+		};
+	}
+
+	private static class LimitsCheckingJsonObjectFactory extends BaseJsonObjectFactory
+	{
+		private final int maxJsonStringSize;
+		private final int maxNumOfImmediateChildren;
+		private final int maxDepth;
+
+		private LimitsCheckingJsonObjectFactory(final int maxJsonStringSize, final int maxNumOfImmediateChildren, final int maxDepth)
+		{
+			this.maxJsonStringSize = maxJsonStringSize;
+			this.maxNumOfImmediateChildren = maxNumOfImmediateChildren;
+			this.maxDepth = maxDepth;
+		}
+
+		@Override
+		protected final JSONObject parse(final InputStream entityStream)
+		{
+			return new LimitsCheckingJSONObject(new InputStreamReader(entityStream, StandardCharsets.UTF_8), maxJsonStringSize, maxNumOfImmediateChildren, maxDepth);
+		}
+
+	}
+
+
+	/**
 	 * Constructs JSON provider using hardened {@link JSONTokener} that checks limits on JSON structures, such as arrays and strings, in order to mitigate content-level attacks. Downside: it is slower
-	 * at parsing than for {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
-	 * 
+	 * at parsing than for {@link JsonRiJaxrsProvider#JsonRiJaxrsProvider()}.
+	 *
+	 * @param schema
+	 *            JSON schema, null means no schema validation
+	 *
+	 * @param maxJsonStringSize
+	 *            allowed maximum size of JSON keys and string values. Negative or zero values disable limit checking altogether (the other max*** arguments have no effect).
+	 * @param maxNumOfImmediateChildren
+	 *            allowed maximum number of keys (therefore key-value pairs) in JSON object, or items in JSON array. egative or zero values disable limit checking altogether (the other max*** arguments have no effect).
+	 * @param maxDepth
+	 *            allowed maximum depth of JSON object. egative or zero values disable limit checking altogether (the other max*** arguments have no effect).
+	 */
+	@ConstructorProperties({"schema", "maxJsonStringSize", "maxNumOfImmediateChildren", "maxDepth" })
+	public JsonRiCxfJaxrsProvider(final Schema schema, final int maxJsonStringSize, final int maxNumOfImmediateChildren, final int maxDepth)
+	{
+		if (maxJsonStringSize <= 0 || maxNumOfImmediateChildren <= 0 || maxDepth <= 0)
+		{
+			// limit checking disabled
+			jsonObjectFactory = new BaseJsonObjectFactory() {
+				@Override
+				protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
+				{
+					schema.validate(jsonObj);
+				}
+			};
+		} else
+		{
+			jsonObjectFactory = schema == null ? new LimitsCheckingJsonObjectFactory(maxJsonStringSize, maxNumOfImmediateChildren, maxDepth)
+					: new LimitsCheckingJsonObjectFactory(maxJsonStringSize, maxNumOfImmediateChildren, maxDepth)
+			{
+				@Override
+				protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
+				{
+					schema.validate(jsonObj);
+				}
+
+			};
+		}
+	}
+
+	/**
+	 * Constructs JSON provider using hardened {@link JSONTokener} that checks limits on JSON structures, such as arrays and strings, in order to mitigate content-level attacks. Downside: it is slower
+	 * at parsing than for {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.  This provider also validates input JSON against a given schema depending on the input JSON root property.
+	 *
+	 * @param schemasByRootKey
+	 * 	 *            mappings of JSON property names to schemas, defining which schema to apply according to which (root) property the input JSON object has; if {@code schemasByRootKey} is empty, or
+	 * 	 *            {@code schemasByRootKey} does not contain any schema for the input JSON (root) property, no schema validation shall occur. Any input JSON without any root property is considered
+	 * 	 *            invalid.
+	 *
 	 * @param maxJsonStringSize
 	 *            allowed maximum size of JSON keys and string values. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 * @param maxNumOfImmediateChildren
@@ -90,23 +254,60 @@ public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvide
 	 * @param maxDepth
 	 *            allowed maximum depth of JSON object. If negative or zero, limits are ignored and this is equivalent to {@link JsonRiCxfJaxrsProvider#JsonRiCxfJaxrsProvider()}.
 	 */
-	@ConstructorProperties({ "maxJsonStringSize", "maxNumOfImmediateChildren", "maxDepth" })
-	public JsonRiCxfJaxrsProvider(final int maxJsonStringSize, final int maxNumOfImmediateChildren, final int maxDepth)
+	@ConstructorProperties({"schemasByRootKey", "maxJsonStringSize", "maxNumOfImmediateChildren", "maxDepth" })
+	public JsonRiCxfJaxrsProvider(final Map<String, Schema> schemasByRootKey, final int maxJsonStringSize, final int maxNumOfImmediateChildren, final int maxDepth)
 	{
 		if (maxJsonStringSize <= 0 || maxNumOfImmediateChildren <= 0 || maxDepth <= 0)
 		{
-			jsonObjectFactory = DEFAULT_JSON_TOKENER_FACTORY;
+			if(schemasByRootKey == null || schemasByRootKey.isEmpty() ) {
+				jsonObjectFactory = DEFAULT_JSON_TOKENER_FACTORY;
+			} else {
+				jsonObjectFactory = new BaseJsonObjectFactory() {
+					@Override
+					protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
+					{
+						final Iterator<String> keysIt = jsonObj.keys();
+						if (!keysIt.hasNext())
+						{
+							/*
+							 * JSONException extends RuntimeException so it is not caught as IllegalArgumentException
+							 */
+							throw EMPTY_JSON_OBJECT_BAD_REQUEST_EXCEPTION;
+						}
+
+						final Schema schema = schemasByRootKey.get(keysIt.next());
+						if (schema != null)
+						{
+							schema.validate(jsonObj);
+						}
+					}
+				};
+			}
 		}
 		else
 		{
-			jsonObjectFactory = new JSONObjectFactory()
+			jsonObjectFactory = schemasByRootKey == null || schemasByRootKey.isEmpty() ? new LimitsCheckingJsonObjectFactory(maxJsonStringSize, maxNumOfImmediateChildren, maxDepth)
+					: new LimitsCheckingJsonObjectFactory(maxJsonStringSize, maxNumOfImmediateChildren, maxDepth)
 			{
-
 				@Override
-				public JSONObject getInstance(final InputStream entityStream)
+				protected void schemaValidate(final JSONObject jsonObj) throws ValidationException
 				{
-					return new LimitsCheckingJSONObject(entityStream, maxJsonStringSize, maxNumOfImmediateChildren, maxDepth);
+					final Iterator<String> keysIt = jsonObj.keys();
+					if (!keysIt.hasNext())
+					{
+						/*
+						 * JSONException extends RuntimeException so it is not caught as IllegalArgumentException
+						 */
+						throw EMPTY_JSON_OBJECT_BAD_REQUEST_EXCEPTION;
+					}
+
+					final Schema schema = schemasByRootKey.get(keysIt.next());
+					if (schema != null)
+					{
+						schema.validate(jsonObj);
+					}
 				}
+
 			};
 		}
 	}
@@ -155,7 +356,7 @@ public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvide
 
 	@Override
 	public JSONObject readFrom(final Class<JSONObject> type, final Type genericType, final Annotation[] annotations, final MediaType mediaType, final MultivaluedMap<String, String> httpHeaders,
-			final InputStream entityStream) throws IOException, WebApplicationException
+			final InputStream entityStream) throws WebApplicationException
 	{
 		try
 		{

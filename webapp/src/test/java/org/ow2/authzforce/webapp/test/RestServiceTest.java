@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,10 +18,6 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-/**
- *
- *
- */
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -95,7 +91,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	protected static final AtomicBoolean IS_EMBEDDED_SERVER_STARTED = new AtomicBoolean(false);
 
-	private static final int XML_MAX_CHILD_ELEMENTS = 20;
+	protected static final int XML_MAX_CHILD_ELEMENTS = 20;
 
 	/*
 	 * Below that value getWADL() test fails because WADL depth too big
@@ -134,7 +130,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/PolicyReference.Valid");
+	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid");
 	static
 	{
 		if (!XACML_POLICYREFS_PDP_TEST_DIR.exists())
@@ -268,13 +264,12 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * @param enablePdpOnly
 	 * @param addSampleDomain
 	 * @return
-	 * @throws ServletException
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 * @throws LifecycleException
 	 */
-	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
-	        final boolean addSampleDomain) throws ServletException, IllegalArgumentException, IOException, LifecycleException
+	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final String xacmlJsonSchemaRelativePath, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
+	        final boolean addSampleDomain) throws IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -285,7 +280,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			FlatFileDAOUtils.deleteDirectory(DOMAINS_DIR.toPath(), 4);
 		}
 
-		DOMAINS_DIR.mkdirs();
+		final boolean dirCreated = DOMAINS_DIR.mkdirs();
+		if(!dirCreated) {
+			throw new RuntimeException("Failed to create directory: " + DOMAINS_DIR);
+		}
 
 		if (addSampleDomain)
 		{
@@ -353,8 +351,9 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		// override env-entry for enablePdpOnly
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.domains.enablePdpOnly", Boolean.class, Boolean.toString(enablePdpOnly)));
 
-		// override env-entry for enableXacmlJsonProfile
+		// override env-entry for enableXacmlJsonProfile and XacmlJsonSchemaRelativePath if user-defined, default is empty string
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.domains.enableXacmlJsonProfile", Boolean.class, Boolean.toString(!enableFastInfoset)));
+		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.domains.xacmlJsonSchemaRelativePath", String.class, xacmlJsonSchemaRelativePath));
 
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.jsonKeysToXmlAttributes", String.class, ""));
 		webappNamingResources.addEnvironment(newJndiEnvEntry("org.ow2.authzforce.webapp.xmlAttributesToJsonLikeElements", Boolean.class, Boolean.FALSE.toString()));
@@ -385,7 +384,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		XML, FAST_INFOSET, JSON
 	}
 
-	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
+	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final String xacmlJsonSchemaRelativePath, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
 	        throws Exception
 	{
 		/*
@@ -394,11 +393,11 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false);
+			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, xacmlJsonSchemaRelativePath, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false);
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
-		/**
+		/*
 		 * Create the REST (JAX-RS) client
 		 */
 		// initialize client properties from Spring
@@ -484,7 +483,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		Arrays.stream(proxyClientConfs).forEach(clientConf -> {
 			clientConf.getOutInterceptors().add(new MediaTypeHeaderSetter(clientFixedContentMediaType));
 			clientConf.getHttpConduit().getClient().setAccept(clientFixedContentMediaType.toString());
-			/**
+			/*
 			 * Request/response logging (for debugging).
 			 */
 			clientConf.getHttpConduit().getClient().setConnectionTimeout(0);
@@ -522,14 +521,15 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	private static void showUsage()
 	{
 		System.out.println("Usage using default parameter values: java RestServiceTest");
-		System.out.println("Usage for non-default values: java RestServiceTest [port enableFastInfoset domainsSyncIntervalSec enablePdpOnly]");
+		System.out.println("Usage for non-default values: java RestServiceTest [port enableFastInfoset enableDoSMitigation domainsSyncIntervalSec enablePdpOnly xacmlJsonSchemaRelativePath]");
 		System.out.println("- port: (integer) server port, dynamically allocated if negative. Default: 8080.");
 		System.out.println("- enableFastInfoset: (true|false) whether to enable FastInfoset support (true) or not (false). Default: false.");
+		System.out.println("- enableDoSMitigation: (true|false) whether to enable DoS mitigation (true) or not (false). Default: false.");
 		System.out.println("- domainsSyncIntervalSec: (integer) domains sync interval (seconds), disabled if negative. Default: -1");
 		System.out.println("- enablePdpOnly: (true|false) whether to enable PDP features only, i.e. disable PAP/admin features. Default: false.");
 	}
 
-	public static void main(final String... args) throws IllegalArgumentException, ServletException, IOException, LifecycleException
+	public static void main(final String... args) throws IllegalArgumentException, IOException, LifecycleException
 	{
 		final int port;
 		final boolean enableFastInfoset;
@@ -554,10 +554,10 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			try
 			{
 				port = Integer.parseInt(args[0], 10);
-				enableFastInfoset = Boolean.valueOf(args[1]);
-				enableDoSMitigation = Boolean.valueOf(args[2]);
+				enableFastInfoset = Boolean.parseBoolean(args[1]);
+				enableDoSMitigation = Boolean.parseBoolean(args[2]);
 				domainSyncIntervalSec = Integer.parseInt(args[3], 10);
-				enablePdpOnly = Boolean.valueOf(args[4]);
+				enablePdpOnly = Boolean.parseBoolean(args[4]);
 			}
 			catch (final Exception e)
 			{
@@ -566,7 +566,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			}
 		}
 
-		final Tomcat tomcat = startServer(port, enableFastInfoset, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true);
+		final Tomcat tomcat = startServer(port, enableFastInfoset, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true);
 		System.out.println("Server up and listening!");
 		tomcat.getServer().await();
 	}

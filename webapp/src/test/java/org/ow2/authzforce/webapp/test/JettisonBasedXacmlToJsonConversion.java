@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -54,20 +54,20 @@ public class JettisonBasedXacmlToJsonConversion
 		{
 
 			@Override
-			public void warning(final SAXParseException exception) throws SAXException
+			public void warning(final SAXParseException exception)
 			{
 				System.out.println(exception);
 			}
 
 			@Override
-			public void fatalError(final SAXParseException exception) throws SAXException
+			public void fatalError(final SAXParseException exception)
 			{
 				System.out.println(exception);
 
 			}
 
 			@Override
-			public void error(final SAXParseException exception) throws SAXException
+			public void error(final SAXParseException exception)
 			{
 				System.out.println(exception);
 

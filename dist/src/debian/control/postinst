@@ -17,7 +17,7 @@ systemctl daemon-reload
 
 db_get [[productId]]/restartTomcat
 if [ "$RET" = true ]; then
-        export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server"'
+        export JAVA_OPTS='"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -server"'
         sed -i 's|^\(JAVA_OPTS\s*=\s*\).*$|\1'"$JAVA_OPTS"'|' /etc/default/tomcat9
         systemctl stop tomcat9
         rm -rf /var/log/tomcat9/*
@@ -25,7 +25,7 @@ if [ "$RET" = true ]; then
 fi
 
 echo "If you answered 'No' to the second question, you need to set the JAVA_OPTS in '/etc/default/tomcat9' by yourself before restarting Tomcat:" 
-echo "    JAVA_OPTS=\"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -server\""
+echo "    JAVA_OPTS=\"-Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -server\""
 echo
 echo "If Tomcat fails to restart, check for any Tomcat high-level error in Tomcat log directory: /var/log/tomcat9"
 echo "Then fix it, in particular check the settings in Tomcat init script /etc/default/tomcat9 and restart Tomcat as follows:"

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2012-2020 THALES.
+/*
+ * Copyright (C) 2012-2021 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -76,14 +76,14 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
+	 *
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
-	 * 
+	 *
 	 * @param remoteAppBaseUrl
 	 * @param enableFastInfoset
 	 * @param domainSyncIntervalSec
 	 * @throws Exception
-	 * 
+	 *
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
@@ -91,11 +91,11 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("true") final Boolean enableDoSMitigation,
 			@Optional("-1") final int domainSyncIntervalSec, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
 	}
 
 	/**
-	 * 
+	 *
 	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
 	 * @throws Exception
@@ -107,7 +107,7 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 	}
 
 	@BeforeClass
-	public void addDomain() throws JAXBException, IOException
+	public void addDomain() throws JAXBException
 	{
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Some description", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
@@ -124,10 +124,10 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 		// first test enables version rolling
 	}
 
-	@AfterClass
-	/**
+	/*
 	 * deleteDomain() already tested in {@link DomainSetTest#deleteDomains()}, so this is just for cleaning after testing
 	 */
+	@AfterClass
 	public void deleteDomain()
 	{
 		// this will throw NotFoundException if syncToRemoveDomainFromAPIAfterDirectorydeleted() succeeded
@@ -239,7 +239,7 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 		// wait for sync
 
 		// test the old externalId
-		List<Link> domainLinks = null;
+		List<Link> domainLinks;
 		boolean syncDone = false;
 		while (!syncDone)
 		{
@@ -276,8 +276,7 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 
 		// check PDP returned policy identifier
 		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(RestServiceTest.XACML_IIIG301_PDP_TEST_DIR, RootResourcesTest.REQUEST_FILENAME));
-		boolean isNewRootPolicyRefMatched = false;
-		while (!isNewRootPolicyRefMatched)
+		while (true)
 		{
 			final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 			for (final JAXBElement<IdReferenceType> jaxbElt : actualResponse.getResults().get(0).getPolicyIdentifierList().getPolicyIdReferencesAndPolicySetIdReferences())
@@ -287,7 +286,6 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 				{
 					assertEquals(jaxbElt.getValue(), newRootPolicyRef,
 							"Auto sync with PDP configuration file failed: PolicySetIdReference returned by PDP does not match the root policyRef in PDP configuration file");
-					isNewRootPolicyRefMatched = true;
 					return;
 				}
 			}
@@ -374,9 +372,9 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 
 	/**
 	 * To be executed last since the domain is removed as a result if successful
-	 * 
+	 *
 	 * @param remoteBaseUrl
-	 * 
+	 *
 	 * @throws InterruptedException
 	 * @throws IOException
 	 * @throws IllegalArgumentException
@@ -402,8 +400,7 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 		// check whether domain's PDP reachable
 		final File testDir = new File(RootResourcesTest.XACML_SAMPLES_DIR, "IIIG301");
 		final Request xacmlReq = (Request) unmarshaller.unmarshal(new File(testDir, REQUEST_FILENAME));
-		boolean syncDone = false;
-		while (!syncDone)
+		while (true)
 		{
 			try
 			{
@@ -412,7 +409,6 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 			catch (final NotFoundException nfe)
 			{
 				// OK
-				syncDone = true;
 				break;
 			}
 		}
