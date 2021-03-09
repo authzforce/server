@@ -18,18 +18,12 @@
  */
 package org.ow2.authzforce.webapp;
 
-import java.io.IOException;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Servlet filter that catches any exception to hide it from client, and maps it to HTTP status Bad Request if {@code NoSuchMethodError}, else to Internal Server Error; and logs the error using SLF4J.
