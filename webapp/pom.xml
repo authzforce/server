@@ -13,7 +13,7 @@
 	<url>https://github.com/authzforce/server/webapp</url>
 	<properties>
 		<!-- Tomcat version on Ubuntu 18.04 LTS (official target OS) -->
-		<tomcat.version>9.0.35</tomcat.version>
+		<tomcat.version>9.0.41</tomcat.version>
 	</properties>
 	<scm>
 		<connection>scm:git:${git.url.base}.git</connection>
