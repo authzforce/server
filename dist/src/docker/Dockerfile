@@ -39,7 +39,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -server"
 
-ENV AUTHZFORCE_SERVER_VERSION=10.0.0
+ENV AUTHZFORCE_SERVER_VERSION=10.0.0-1
 ENV AUTHZFORCE_SERVER_DOWNLOAD_URL="https://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/$AUTHZFORCE_SERVER_VERSION/authzforce-ce-server-dist-$AUTHZFORCE_SERVER_VERSION.deb"
 
 # Download and install Authzforce Server (service starts automatically)
@@ -68,6 +68,10 @@ RUN curl --silent --output authzforce-ce-server.deb --location $AUTHZFORCE_SERVE
  rm -rf /opt/authzforce-ce-server/data/domains/* && \
  rm -rf /root/authzforce && \
  rm -f authzforce-ce-server.deb
+ 
+VOLUME /opt/authzforce-ce-server/data
+VOLUME /usr/local/tomcat/conf
+ 
 CMD ["catalina.sh", "run"]
 
 ### Exposed ports
