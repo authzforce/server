@@ -10,9 +10,9 @@ This guide provides the procedure to install the AuthzForce server from the tarb
 * RAM: 4GB min
 * Disk space: 10 GB min
 * File system: ext4
-* Operating System: Ubuntu 18.04 LTS 
+* Operating System: Ubuntu 20.04 LTS 
 * Java environment: 
-    * JRE 8 either from OpenJDK or Oracle; 
+    * JRE 11 either from OpenJDK or Oracle; 
     * Tomcat 9.x.
 
 ## Installation
