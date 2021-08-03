@@ -17,6 +17,8 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
   - authzforce-ce-pap-dao-flat-file: 13.0.1
   - authzforce-ce-core-pap-api: 11.0.1
   - authzforce-ce-core-pdp-engine: 17.1.1
+    - authzforce-ce-core-pdp-api to 18.0.2
+    - javax.mail to 1.6.2
   - authzforce-ce-jaxrs-utils: 2.0.2
 
 
