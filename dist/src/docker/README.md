@@ -3,7 +3,7 @@
 This image of a minimal AuthzForce Server runtime is intended to work together with [Identity Manager - Keyrock](http://catalogue.fiware.org/enablers/identity-management-keyrock) and [PEP Proxy Wilma](http://catalogue.fiware.org/enablers/pep-proxy-wilma) generic enabler.
 
 ## Image contents
-- OpenJDK JRE 8;
+- OpenJDK JRE 11;
 - Tomcat 9 (since AuthzForce Server v9.0.1, else Tomcat 8 for older versions);
 - AuthzForce Server CE (version matching the Docker image tag).
 
@@ -14,7 +14,7 @@ This image gives you a minimal installation for testing purposes. The AuthzForce
 Create a container using `authzforce/server` image by doing (replace the first *8080* after *-p* with whatever network port you want to use on the host to access the AuthzForce Server, e.g. 80; and *release-9.0.1* with the current Docker image tag that you are using):
 
 ```
-docker run -d -p 8080:8080 --name <container-name> authzforce/server:release-9.0.1
+docker run -d -p 8080:8080 --name <container-name> authzforce/server
 ```
 
 As stands in the AuthzForce Installation and administration guide on [readthedocs.org](https://readthedocs.org/projects/authzforce-ce-fiware/versions/) (select the version matching the Docker image tag, then **AuthzForce - Installation and Administration Guide**) you can:
