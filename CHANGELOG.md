@@ -4,13 +4,21 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 10.1.1
+### Fixed
+- CVE-2021-22696 and CVE-2021-3046 fixed by upgrading **authzforce-ce-parent to v8.0.3**
+- GH-64: XACML/JSON schema loading fails when offline (no Internet connection), preventing AuthzForce Server to start (linked to everit-org/json-schema#88 )
+    - Fixed by upgrading dependency authzforce-ce-xacml-json-model: 3.0.4
+- Upgraded authzforce-ce-jaxrs-utils to 2.0.3 to match dependency authzforce-ce-xacml-json-model in same version
+- Upgraded authzforce-ce-pap-dao-flat-file to 13.0.2 to match indirect dependency authzforce-ce-xacml-json-model in same version
+  - Upgraded authzforce-ce-core-pdp-engine to 17.1.2
+
+
 ## 10.1.0
 ### Changed
 - FastInfoset version: 2.0.0
 
 ### Fixed
-- GH-64: XACML/JSON schema loading fails when offline (no Internet connection), preventing AuthzForce Server to start (linked to everit-org/json-schema#88 )
-  - Fixed in dependency authzforce-ce-xacml-json-model: 3.0.3
 - authzforce-ce-parent upgraded to v8.0.2 to fix CVE-2021-22118: 
   - Upgraded Spring: 5.2.15
 - Dependency fixes:
