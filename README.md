@@ -331,6 +331,8 @@ $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-st
     [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
 9. Build and publish the Docker image:
    ```shell
+     $ git checkout master
+     $ mvn clean package
      $ cd dist/target/classes/docker
      $ ./release.sh
    ```
