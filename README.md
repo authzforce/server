@@ -9,7 +9,7 @@
 [![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.io/en/latest/?badge=latest)
 [![CI](https://github.com/authzforce/server/workflows/CI/badge.svg)](https://github.com/authzforce/server/actions?query=workflow%3ACI)
 ![Status](https://nexus.lab.fiware.org/static/badges/statuses/authzforce.svg)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&utm_medium=referral&utm_content=authzforce/server&utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/edd2ba7c87f44bf1beb2575e2d7e50ed)](https://www.codacy.com/gh/authzforce/server/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
 
 AuthzForce Server provides a multi-tenant RESTful API to Policy Administration
