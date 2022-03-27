@@ -4,7 +4,7 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-parent</artifactId>
-      <version>8.0.3</version>
+      <version>8.2.1</version>
    </parent>
    <artifactId>authzforce-ce-server</artifactId>
    <!-- FIWARE Versioning + Version must be equal or higher than 'authzforce-ce-rest-api-model' dependency in 'rest-service' module -->
@@ -15,10 +15,10 @@
    <url>${project.url}</url>
    <properties>
       <git.url.base>https://github.com/authzforce/server</git.url.base>
-      <authzforce-ce-core.version>17.1.2</authzforce-ce-core.version>
-      <authzforce-ce-core-pap-api.version>11.0.1</authzforce-ce-core-pap-api.version>
+      <authzforce-ce-core.version>20.1.0</authzforce-ce-core.version>
+      <authzforce-ce-core-pap-api.version>12.0.0</authzforce-ce-core-pap-api.version>
       <!-- Version must be compatible with authzforce-ce-core and authzforce-ce-core-pap-api versions above. -->
-      <authzforce-ce-pap-dao-flat-file.version>13.0.2</authzforce-ce-pap-dao-flat-file.version>
+      <authzforce-ce-pap-dao-flat-file.version>14.0.0</authzforce-ce-pap-dao-flat-file.version>
       <productId>authzforce-ce-server</productId>
       <productName>AuthzForce CE Server</productName>
       <productMaintainer>THALES</productMaintainer>
@@ -70,8 +70,13 @@
       <pluginManagement>
          <plugins>
             <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>build-helper-maven-plugin</artifactId>
+               <version>3.3.0</version>
+            </plugin>
+            <plugin>
                <artifactId>maven-resources-plugin</artifactId>
-               <version>3.0.1</version>
+               <version>3.2.0</version>
             </plugin>
             <plugin>
                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->

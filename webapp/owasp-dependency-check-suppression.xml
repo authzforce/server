@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions
 	xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
-<!-- 	<suppress> -->
-<!-- 		<notes><![CDATA[ -->
-<!--       false positive: logback-ext-spring-0.1.5.jar (cpe:/a:logback:logback:0.1.5, org.logback-extensions:logback-ext-spring:0.1.5) : CVE-2017-5929 
+ 	<suppress>
+ 		<notes><![CDATA[
+      false positive: logback-ext-spring-0.1.5.jar (cpe:/a:logback:logback:0.1.5, org.logback-extensions:logback-ext-spring:0.1.5) : CVE-2017-5929
 Reported: https://github.com/jeremylong/DependencyCheck/issues/1680
--->
-<!--       ]]></notes> -->
-<!-- 		<gav regex="true">org\.logback-extensions:logback-ext-spring:.*</gav> -->
-<!-- 		<cve>CVE-2017-5929</cve> -->
-<!-- 	</suppress> -->
+      ]]></notes>
+		<gav regex="true">org\.logback-extensions:logback-ext-spring:.*</gav>
+		<cve>CVE-2017-5929</cve>
+		<cve>CVE-2021-42550</cve>
+	</suppress>
 </suppressions>

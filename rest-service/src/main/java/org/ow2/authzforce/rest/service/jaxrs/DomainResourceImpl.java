@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,65 +18,31 @@
  */
 package org.ow2.authzforce.rest.service.jaxrs;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-
-import org.json.JSONObject;
-import org.ow2.authzforce.core.pap.api.dao.DomainDao;
-import org.ow2.authzforce.core.pap.api.dao.DomainDaoClient;
-import org.ow2.authzforce.core.pap.api.dao.PdpFeature;
-import org.ow2.authzforce.core.pap.api.dao.PolicyDaoClient;
-import org.ow2.authzforce.core.pap.api.dao.PrpRwProperties;
-import org.ow2.authzforce.core.pap.api.dao.ReadableDomainProperties;
-import org.ow2.authzforce.core.pap.api.dao.ReadablePdpProperties;
-import org.ow2.authzforce.core.pap.api.dao.TooManyPoliciesException;
-import org.ow2.authzforce.core.pap.api.dao.WritablePdpProperties;
-import org.ow2.authzforce.rest.api.jaxrs.AttributeProvidersResource;
-import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
-import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
-import org.ow2.authzforce.rest.api.jaxrs.PapResource;
-import org.ow2.authzforce.rest.api.jaxrs.PdpPropertiesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PdpResource;
-import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
-import org.ow2.authzforce.rest.api.jaxrs.PrpPropertiesResource;
-import org.ow2.authzforce.rest.api.xmlns.ApplicablePolicies;
-import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
-import org.ow2.authzforce.rest.api.xmlns.Domain;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
-import org.ow2.authzforce.rest.api.xmlns.Feature;
-import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
-import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
-import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
-import org.ow2.authzforce.rest.api.xmlns.ResourceContent;
-import org.ow2.authzforce.rest.api.xmlns.Resources;
-import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
-import org.w3._2005.atom.Link;
-import org.w3._2005.atom.Relation;
-
+import com.google.common.collect.ImmutableMap;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+import org.apache.cxf.phase.PhaseInterceptorChain;
+import org.json.JSONObject;
+import org.ow2.authzforce.core.pap.api.dao.*;
+import org.ow2.authzforce.rest.api.jaxrs.*;
+import org.ow2.authzforce.rest.api.xmlns.*;
+import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3._2005.atom.Link;
+import org.w3._2005.atom.Relation;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * Domain Resource implementation. Each domain managed by {@link DomainsResourceImpl} is an instance of this class.
@@ -88,6 +54,7 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl, PolicyResourceImpl>>
         implements DomainDaoClient<DAO>, DomainResource, DomainPropertiesResource, PapResource, PdpResource, PoliciesResource, AttributeProvidersResource, PdpPropertiesResource, PrpPropertiesResource
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DomainResourceImpl.class);
 	/**
 	 * Escapes strings so they can be safely included in URL path segments
 	 */
@@ -98,6 +65,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 	private static final BadRequestException INVALID_ARG_BAD_REQUEST_EXCEPTION = new BadRequestException("Invalid argument");
 
 	private static final DatatypeFactory XML_DATATYPE_FACTORY;
+
 	static
 	{
 		try
@@ -482,6 +450,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 		return attributeproviders;
 	}
 
+	@SuppressFBWarnings("CRLF_INJECTION_LOGS")
 	@Override
 	public Link addPolicy(final PolicySet policy)
 	{
@@ -490,10 +459,18 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PolicySet conflictingPolicy;
+		final Object xmlnsContexts = PhaseInterceptorChain.getCurrentMessage().get(PolicyVersionResourceImpl.XML_NS_CONTEXTS_CXF_MESSAGE_CONTEXT_PROPERTY_NAME);
+
+		if(xmlnsContexts == null) {
+			LOGGER.warn("CXF MessageContext property '{}' is undefined. Expected instance of {}. Verify CXF JAXBElementProvider implementation/configuration.", PolicyVersionResourceImpl.XML_NS_CONTEXTS_CXF_MESSAGE_CONTEXT_PROPERTY_NAME, Map.class);
+		} else if(!(xmlnsContexts instanceof Map)) {
+			throw new RuntimeException("Invalid value type of injected CXF MessageContext property '"+ PolicyVersionResourceImpl.XML_NS_CONTEXTS_CXF_MESSAGE_CONTEXT_PROPERTY_NAME +"': " + xmlnsContexts + ". Expected: " + Map.class + "<String, String>");
+		}
+
+		final AuthzPolicy conflictingPolicy;
 		try
 		{
-			conflictingPolicy = domainDAO.addPolicy(policy);
+			conflictingPolicy = domainDAO.addPolicy(new JaxbXacmlAuthzPolicy(policy, xmlnsContexts == null? ImmutableMap.of(): ImmutableMap.copyOf( (Map<String, String>) xmlnsContexts)));
 		}
 		catch (final IOException e)
 		{
@@ -570,6 +547,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 		return new Resources(policyResourceLinks);
 	}
 
+	@SuppressFBWarnings(value="EI_EXPOSE_REP")
 	@Override
 	public DAO getDao()
 	{

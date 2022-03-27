@@ -84,6 +84,7 @@ import javax.xml.stream.XMLStreamWriter;
 import net.sf.saxon.lib.StandardURIChecker;
 import net.sf.saxon.om.NameChecker;
 
+import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.io.CachedOutputStream;
@@ -543,7 +544,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final XMLStreamReader xsr;
 			final Class<?> theType;
 			final Class<?> theGenericType;
-			try (final InputStream realStream = getInputStream(type, genericType, is))
+			try (InputStream realStream = getInputStream(type, genericType, is))
 			{
 				if (Document.class.isAssignableFrom(type))
 				{
@@ -926,15 +927,15 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			throws Exception
 	{
 		final MessageContext mc = getContext();
-		if (mc != null && MessageUtils.isTrue(mc.get(Marshaller.JAXB_FORMATTED_OUTPUT)))
+		if (mc != null && PropertyUtils.isTrue(mc.get(Marshaller.JAXB_FORMATTED_OUTPUT)))
 		{
 			final StringIndenter formatter;
-			try (final CachedOutputStream actualOs = new CachedOutputStream())
+			try (CachedOutputStream actualOs = new CachedOutputStream())
 			{
 				marshalRaw(ms, actualObject, actualClass, genericType, enc, actualOs, isCollection);
 				formatter = new StringIndenter(IOUtils.newStringFromBytes(actualOs.getBytes()));
 			}
-			try (final Writer outWriter = new OutputStreamWriter(os, enc))
+			try (Writer outWriter = new OutputStreamWriter(os, enc))
 			{
 				IOUtils.copy(new StringReader(formatter.result()), outWriter, 2048);
 				// outWriter.close() automatically called when exiting the try-with-resources block
@@ -981,7 +982,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final Object prop = mc.get(name);
 			if (prop != null)
 			{
-				return MessageUtils.isTrue(prop);
+				return PropertyUtils.isTrue(prop);
 			}
 		}
 		return defaultValue;

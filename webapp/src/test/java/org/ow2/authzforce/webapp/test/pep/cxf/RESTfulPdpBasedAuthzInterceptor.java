@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -254,7 +254,7 @@ public class RESTfulPdpBasedAuthzInterceptor extends AbstractPhaseInterceptor<Me
 
 			if (serviceName != null)
 			{
-				final String resourceIdPrefix = serviceName.toString() + "#";
+				final String resourceIdPrefix = serviceName + "#";
 				if (serviceName.getNamespaceURI() != null && serviceName.getNamespaceURI().equals(operationName.getNamespaceURI()))
 				{
 					resourceId = resourceIdPrefix + operationName.getLocalPart();

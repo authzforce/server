@@ -44,7 +44,7 @@
       <value>application/fastinfoset</value>
    </util:list>
 
-   <bean id="clientJaxbProviderFI" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+   <bean id="clientJaxbProviderFI" class="org.ow2.authzforce.webapp.NamespaceCollectingCxfJAXBElementProvider">
       <property name="singleJaxbContext" value="true" />
       <property name="extraClass" value="#{extraJaxbClasses.toArray()}" />
       <property name="schemaHandler" ref="clientApiSchemaHandler" />

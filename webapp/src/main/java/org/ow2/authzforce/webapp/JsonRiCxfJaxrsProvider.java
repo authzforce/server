@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -99,7 +99,7 @@ public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvide
 	public static Schema loadSchema(final String schemaLocation) throws IOException
 	{
 		final File schemaFile = ResourceUtils.getFile(schemaLocation);
-		try (final BufferedReader reader = Files.newBufferedReader(schemaFile.toPath(), StandardCharsets.UTF_8))
+		try (BufferedReader reader = Files.newBufferedReader(schemaFile.toPath(), StandardCharsets.UTF_8))
 		{
 			final JSONObject rawSchema = new JSONObject(new JSONTokener(reader));
 			return SchemaLoader.builder().schemaJson(rawSchema).resolutionScope("file://"+schemaFile.getParent()+ File.separator).schemaClient(new SpringBasedJsonSchemaClient()).build().load().build();
@@ -342,7 +342,7 @@ public final class JsonRiCxfJaxrsProvider<T> extends AbstractConfigurableProvide
 		{
 			throw new RuntimeException("Unexpected input object class to MessageBodyWriter '" + this.getClass() + "': " + o.getClass());
 		}
-		try (final OutputStreamWriter writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8))
+		try (OutputStreamWriter writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8))
 		{
 			json.write(writer);
 		}

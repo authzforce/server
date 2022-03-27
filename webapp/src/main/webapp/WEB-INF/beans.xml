@@ -133,7 +133,7 @@
                   </util:list>
                </constructor-arg>
             </bean>
-            <bean class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+            <bean class="org.ow2.authzforce.webapp.NamespaceCollectingCxfJAXBElementProvider">
                <property name="singleJaxbContext" value="true" />
                <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
                <property name="schemaHandler" ref="apiSchemaHandler" />
@@ -240,7 +240,7 @@
             <ref bean="domainsResourceBean" />
          </jaxrs:serviceBeans>
          <jaxrs:providers>
-            <bean id="jaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider">
+            <bean id="jaxbProvider" class="org.ow2.authzforce.webapp.NamespaceCollectingCxfJAXBElementProvider">
                <property name="singleJaxbContext" value="true" />
                <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
                <property name="schemaHandler" ref="apiSchemaHandler" />

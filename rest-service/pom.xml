@@ -5,7 +5,7 @@
       <artifactId>authzforce-ce-server</artifactId>
       <!-- Version must be equal or higher than authzforce-ce-rest-api-model dependency -->
       <version>10.1.2-SNAPSHOT</version>
-      <relativePath>..</relativePath>
+      <relativePath>../pom.xml</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-rest-service</artifactId>
    <name>${project.groupId}:${project.artifactId}</name>
@@ -41,6 +41,15 @@
          <artifactId>authzforce-ce-jaxrs-utils</artifactId>
          <version>2.0.3</version>
       </dependency>
+      <dependency>
+         <groupId>com.github.spotbugs</groupId>
+         <artifactId>spotbugs-annotations</artifactId>
+         <optional>true</optional>
+      </dependency>
+       <dependency>
+           <groupId>org.apache.cxf</groupId>
+           <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+       </dependency>
    </dependencies>
    <build>
       <plugins>
@@ -50,7 +59,6 @@
             <!-- inherited from authzforce-ce-parent, with a different format, so we use a plugin. -->
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.12</version>
             <executions>
                <execution>
                   <id>set-current-date-property</id>

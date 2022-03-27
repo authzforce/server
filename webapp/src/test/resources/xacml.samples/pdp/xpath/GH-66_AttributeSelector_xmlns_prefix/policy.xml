@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:md="urn:example:med:schemas:record" PolicySetId="root" Version="1.0.5" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit">
+    <PolicySetDefaults>
+        <XPathVersion>http://www.w3.org/TR/2007/REC-xpath20-20070123</XPathVersion>
+    </PolicySetDefaults>
+    <Target />
+    <Policy PolicyId="polo" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit">
+        <Target>
+        </Target>
+        <Rule RuleId="Ruleo" Effect="Permit">
+            <Condition>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeDesignator MustBePresent="false" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" AttributeId="urn:oasis:names:tc:xacml:3.0:example:attribute:parent-guardian-id" DataType="http://www.w3.org/2001/XMLSchema#string" />
+                    </Apply>
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeSelector MustBePresent="false"
+                                           Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource"
+                                           Path="/md:record/md:parentGuardian/md:parentGuardianId/text()" DataType="http://www.w3.org/2001/XMLSchema#string" />
+                    </Apply>
+                </Apply>
+            </Condition>
+        </Rule>
+    </Policy>
+</PolicySet>

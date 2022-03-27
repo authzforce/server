@@ -16,8 +16,8 @@
       <!-- Domains sync interval (seconds) -->
    <parameter name="org.ow2.authzforce.domains.sync.interval" value="0" />
    
-   <test name="Test_upgrade_from_8.x" preserve-order="true" enabled="true">
-      <parameter name="server.root.dir" value="target/server/from-8.x" />
+   <test name="Test_upgrade_from_9.x,10.x" preserve-order="true" enabled="true">
+      <parameter name="server.root.dir" value="target/server/from-9.x,10.x" />
       <classes>
          <class name="org.ow2.authzforce.upgrader.test.UpgradedDataLoadTest" />
       </classes>

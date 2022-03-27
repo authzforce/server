@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -100,7 +100,7 @@ public class ErrorHandlerInterceptor extends AbstractPhaseInterceptor<Message>
 
 			final JaxbErrorMessage errorEntity = new JaxbErrorMessage(errMsg, null);
 			response.setStatus(respStatus);
-			try (final ServletOutputStream out = response.getOutputStream())
+			try (ServletOutputStream out = response.getOutputStream())
 			{
 				final Marshaller marshaller = AUTHZ_API_JAXB_CONTEXT.createMarshaller();
 				marshaller.marshal(errorEntity, out);

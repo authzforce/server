@@ -305,10 +305,10 @@ The sources for the manuals are located in
 $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 ```
 
-2.  Update the [changelog](CHANGELOG.md) with the new version according to
+2. Update the [changelog](CHANGELOG.md) with the new version according to
     keepachangelog.com.
-3.  Commit
-4.  Perform the software release (example using a HTTP proxy):
+3. Commit
+4. Perform the software release (example using a HTTP proxy):
 
     ```console
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
@@ -321,20 +321,21 @@ $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-st
     ```
 
     More info on jgitflow: http://jgitflow.bitbucket.org/
-5.  Connect and log in to the OSS Nexus Repository Manager:
+5. Connect and log in to the OSS Nexus Repository Manager:
     https://oss.sonatype.org/
-6.  Go to Staging Profiles and select the pending repository authzforce-\*...
+6. Go to Staging Profiles and select the pending repository authzforce-\*...
     you just uploaded with `jgitflow:release-finish`
-7.  Click the Release button to release to Maven Central.
-8.  When the artifacts have been successfully published on Maven Central, follow
+7. Click the Release button to release to Maven Central.
+8. When the artifacts have been successfully published on Maven Central, follow
     the instructions in the
     [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
-9.  Build the Dockerfile by triggering Docker automated build on the current
-    Github release branch in
-    [authzforce-ce-server's Docker repository](https://hub.docker.com/r/authzforce/server/)
-    (_Build Settings_). Check the result in _Build Details_.
-10.  Update the versions in badges at the top of this file.
-11.  Create a release on Github with a description based on the
+9. Build and publish the Docker image:
+   ```shell
+     $ cd dist/target/classes/docker
+     $ ./release.sh
+   ```
+10. Update the versions in badges at the top of this file.
+11. Create a release on Github with a description based on the
     [release description template](release.description.tmpl.md), replacing M/m/P
     with the new major/minor/patch versions.
 
