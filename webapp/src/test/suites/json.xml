@@ -66,7 +66,7 @@
       <!-- Custom XACML Datatype allowed by the custom JSON schema -->
       <parameter name="customDatatype" value="urn:ow2:authzforce:feature:pdp:data-type:test-custom-from-json-object" />
       <!-- Comma-separated paths to directories holding XACML policy/request/response to test with, relative to RestServiceTest.XACML_SAMPLES_DIR -->
-      <parameter name="xacmlTestDirs" value="pdp/json/GeoJSON_good,pdp/json/GeoJSON_bad" />
+      <parameter name="xacmlTestDirs" value="pdp/default_features/json/GeoJSON_good,pdp/default_features/json/GeoJSON_bad" />
       <classes>
          <class name="org.ow2.authzforce.webapp.test.DomainPdpResourceTestWithCustomXacmlJsonSchema" />
       </classes>

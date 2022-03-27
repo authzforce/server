@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,10 +18,11 @@
  */
 package org.ow2.authzforce.webapp.test;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.*;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.json.JSONException;
+import org.apache.cxf.jaxrs.provider.BinaryDataProvider;
 import org.json.JSONObject;
 import org.ow2.authzforce.core.pdp.impl.io.MultiDecisionXacmlJaxbRequestPreprocessor;
 import org.ow2.authzforce.core.pdp.impl.io.SingleDecisionXacmlJaxbRequestPreprocessor;
@@ -55,7 +56,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,6 +71,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	private static final FileFilter DIRECTORY_FILTER = File::isDirectory;
 
 	private WebClient httpClient;
+	private boolean enableFastInfoset = false;
 
 	private DomainAPIHelper testDomainHelper = null;
 
@@ -121,6 +122,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	@BeforeClass
 	public void addDomain(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset, @Optional("false") final Boolean enablePdpOnly) throws Exception
 	{
+		this.enableFastInfoset = enableFastInfoset;
 		if (enablePdpOnly)
 		{
 			/*
@@ -145,7 +147,14 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 
 		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
 		final String appBaseUrl = apiProxyClientConf.getEndpoint().getEndpointInfo().getAddress();
-		httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider<JSONObject>()), true);
+
+		if(enableFastInfoset)
+		{
+			// FastInfoset payloads will be passed to the client as byte[] (binary)
+			httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new BinaryDataProvider()), true);
+		} else {
+			httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider<JSONObject>()), true);
+		}
 
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
@@ -357,7 +366,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	public void updateAttributeProviders(@Optional("false") final Boolean enablePdpOnly) throws JAXBException
 	{
 		final AttributeProvidersResource attributeProvidersResource = testDomain.getPapResource().getAttributeProvidersResource();
-		final JAXBElement<TestAttributeProviderDescriptor> jaxbElt = testDomainHelper.unmarshalRestApiEntity(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/IIA002(PolicySet)/attributeProvider.xml"),
+		final JAXBElement<TestAttributeProviderDescriptor> jaxbElt = testDomainHelper.unmarshalRestApiEntity(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml/IIA002(PolicySet)/attributeProvider.xml"),
 		        TestAttributeProviderDescriptor.class);
 		final TestAttributeProviderDescriptor testAttrProviderDesc = jaxbElt.getValue();
 		final AttributeProviders updateAttrProviderDescsResult;
@@ -944,13 +953,13 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		 */
 		testDomainHelper.resetPdpAndPrp();
 
-		final JAXBElement<PolicySet> jaxbElement = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid/refPolicies/pps-employee.xml"),
+		final JAXBElement<PolicySet> jaxbElement = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml/PolicyReference.Valid/refPolicies/pps-employee.xml"),
 		        PolicySet.class);
 		final PolicySet refPolicySet = jaxbElement.getValue();
 		final String refPolicyResId = testDomainHelper.testAddAndGetPolicy(refPolicySet);
 
 		// Set root policy referencing ref policy above
-		final JAXBElement<PolicySet> jaxbElement2 = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid/policy.xml"), PolicySet.class);
+		final JAXBElement<PolicySet> jaxbElement2 = testDomainHelper.unmarshalXacml(new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml/PolicyReference.Valid/policy.xml"), PolicySet.class);
 		final PolicySet policySetWithRef = jaxbElement2.getValue();
 		// Add the policy and point the rootPolicyRef to new policy with refs to
 		// instantiate it as root policy (validate, etc.)
@@ -1231,7 +1240,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		/*
 		 * Each sub-directory of the root directory is data for a specific test. So we configure a test for each directory
 		 */
-		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml");
+		final File testRootDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml");
 		// specific test's resources directory location, used as parameter
 		// to PdpTest(String)
 		testParams = Arrays.stream(Objects.requireNonNull(testRootDir.listFiles(DIRECTORY_FILTER))).map(subDir -> new Object[]{subDir}).collect(Collectors.toList());
@@ -1271,7 +1280,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		// verify on disk if the server is local
 		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
 		{
-			final boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isEnableXPath();
+			final boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isXPathEnabled();
 			assertTrue(xpathEvalEnabled, "Failed to enable XPath support in PDP configuration");
 		}
 
@@ -1280,8 +1289,8 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 
 		// verify on disk if the server is local
 		if (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty())
-		{
-			final boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isEnableXPath();
+		{@SuppressFBWarnings(value="EI_EXPOSE_REP")
+			final boolean xpathEvalEnabled = testDomainHelper.getPdpConfFromFile().isXPathEnabled();
 			assertFalse(xpathEvalEnabled, "Failed to disable XPath support in PDP configuration");
 		}
 	}
@@ -1598,14 +1607,14 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 
 	@Parameters({ "useJSON" })
 	@Test(dependsOnMethods = { "requestPDPDumb" })
-	public void requestXacmlJsonPDPDumb(@Optional final Boolean useJSON) throws JAXBException, JSONException, IOException
+	public void requestXacmlJsonPDPDumb(@Optional final Boolean useJSON) throws Exception
 	{
 		if (!useJSON)
 		{
 			return;
 		}
 
-		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/IIA001(PolicySet)");
+		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml/IIA001(PolicySet)");
 		/*
 		 * This test is mostly for enablePdpOnly=true
 		 */
@@ -1613,20 +1622,20 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 	}
 
 	@Test(dependsOnMethods = { "setRootPolicyWithGoodRefs" }, dataProvider = "pdpTestFiles")
-	public void requestPDPWithoutMDP(final File testDirectory) throws JAXBException, IOException
+	public void requestPDPWithoutMDP(final File testDirectory) throws Exception
 	{
 		// disable all features (incl. MDP) of PDP
-		testDomainHelper.requestPDP(testDirectory, Collections.emptyList(), !IS_EMBEDDED_SERVER_STARTED.get());
+		testDomainHelper.requestXacmlXmlPDP(testDirectory, Collections.emptyList(), !IS_EMBEDDED_SERVER_STARTED.get(), java.util.Optional.empty(), enableFastInfoset);
 	}
 
 	@Test(dependsOnMethods = { "enableMDPRequestPreproc" })
-	public void requestPDPWithMDP() throws JAXBException, IOException
+	public void requestPDPWithMDP() throws Exception
 	{
 		// enable MDP on PDP
 		final Feature mdpFeature = new Feature(MultiDecisionXacmlJaxbRequestPreprocessor.LaxVariantFactory.ID, FlatFileBasedDomainsDao.PdpFeatureType.REQUEST_PREPROC.toString(), true);
 		final List<Feature> inputFeatures = Collections.singletonList(mdpFeature);
-		final File testDirectory = new File(RestServiceTest.XACML_SAMPLES_DIR, "IIIE302(PolicySet)");
-		testDomainHelper.requestPDP(testDirectory, inputFeatures, !IS_EMBEDDED_SERVER_STARTED.get());
+		final File testDirectory = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/mdp/IIIE302(PolicySet)");
+		testDomainHelper.requestXacmlXmlPDP(testDirectory, inputFeatures, !IS_EMBEDDED_SERVER_STARTED.get(), java.util.Optional.empty(), enableFastInfoset);
 	}
 
 	private void verifySyncAfterPdpConfFileModification(final IdReferenceType newRootPolicyRef) throws JAXBException
@@ -1865,5 +1874,25 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		testDomain.getPapResource().getPoliciesResource().getPolicies().getLinks();
 
 		verifyPdpReturnedPolicies(newRootPolicySetRef);
+	}
+
+	/**
+	 * Test for issue https://github.com/authzforce/server/issues/66
+	 */
+	@Parameters({ "useJSON" })
+	@Test(dependsOnMethods = {"requestPDPWithoutMDP", "enableThenDisableXPath" })
+	public void issueGH66_AttributeSelector_Path_with_xmlns_prefix(@Optional final Boolean useJSON) throws Exception
+	{
+		if(useJSON) {
+			// Does not apply to JSON Profile, for XML only
+			return;
+		}
+
+		// XPath feature required
+		final Feature xpathFeature = new Feature(PdpCoreFeature.XPATH_EVAL.toString(), PdpFeatureType.CORE.toString(), true);
+		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xpath/GH-66_AttributeSelector_xmlns_prefix");
+
+		// Pass httpClient to send raw XACML Policy (as String) instead of JAXB value because it is a XPath test (AttributeSelector) with extra namespace prefix-URIs only used in XPATH expressions (not in XML schema), therefore would be lost when unmarshalled to JAXB.
+		testDomainHelper.requestXacmlXmlPDP(testDir, Collections.singletonList(xpathFeature), !IS_EMBEDDED_SERVER_STARTED.get(), java.util.Optional.of(httpClient), enableFastInfoset);
 	}
 }

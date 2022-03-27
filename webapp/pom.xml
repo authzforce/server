@@ -3,8 +3,8 @@
 	<parent>
 		<groupId>org.ow2.authzforce</groupId>
 		<artifactId>authzforce-ce-server</artifactId>
-		<version>10.1.1</version>
-		<relativePath>..</relativePath>
+		<version>11.0.0</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>authzforce-ce-server-webapp</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -164,6 +164,11 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>${artifactId.prefix}-core-pdp-testutils</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.spotbugs</groupId>
+			<artifactId>spotbugs-annotations</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -329,7 +334,7 @@
 						<property>
 							<name>surefire.testng.verbose</name>
 							<!-- verbosity level from 0 to 10 (10 is the most detailed), or -1 for debug More info: http://maven.apache.org/surefire/maven-surefire-plugin/examples/testng.html -->
-							<value>2</value>
+							<value>3</value>
 						</property>
 					</properties>
 				</configuration>

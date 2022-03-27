@@ -9,7 +9,7 @@
 [![Documentation badge](https://readthedocs.org/projects/authzforce-ce-fiware/badge/?version=latest)](http://authzforce-ce-fiware.readthedocs.io/en/latest/?badge=latest)
 [![CI](https://github.com/authzforce/server/workflows/CI/badge.svg)](https://github.com/authzforce/server/actions?query=workflow%3ACI)
 ![Status](https://nexus.lab.fiware.org/static/badges/statuses/authzforce.svg)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cdb9dd59cbf04a95bfbfbdcf770bb7d8)](https://www.codacy.com/app/coder103/authzforce-ce-server?utm_source=github.com&utm_medium=referral&utm_content=authzforce/server&utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/edd2ba7c87f44bf1beb2575e2d7e50ed)](https://www.codacy.com/gh/authzforce/server/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=authzforce/server&amp;utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fauthzforce%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fauthzforce%2Fserver?ref=badge_shield)
 
 AuthzForce Server provides a multi-tenant RESTful API to Policy Administration
@@ -305,10 +305,10 @@ The sources for the manuals are located in
 $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-start
 ```
 
-2.  Update the [changelog](CHANGELOG.md) with the new version according to
+2. Update the [changelog](CHANGELOG.md) with the new version according to
     keepachangelog.com.
-3.  Commit
-4.  Perform the software release (example using a HTTP proxy):
+3. Commit
+4. Perform the software release (example using a HTTP proxy):
 
     ```console
     $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-finish
@@ -321,20 +321,23 @@ $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-st
     ```
 
     More info on jgitflow: http://jgitflow.bitbucket.org/
-5.  Connect and log in to the OSS Nexus Repository Manager:
+5. Connect and log in to the OSS Nexus Repository Manager:
     https://oss.sonatype.org/
-6.  Go to Staging Profiles and select the pending repository authzforce-\*...
+6. Go to Staging Profiles and select the pending repository authzforce-\*...
     you just uploaded with `jgitflow:release-finish`
-7.  Click the Release button to release to Maven Central.
-8.  When the artifacts have been successfully published on Maven Central, follow
+7. Click the Release button to release to Maven Central.
+8. When the artifacts have been successfully published on Maven Central, follow
     the instructions in the
     [Release section of fiware repository](https://github.com/authzforce/fiware/blob/master/README.md#release).
-9.  Build the Dockerfile by triggering Docker automated build on the current
-    Github release branch in
-    [authzforce-ce-server's Docker repository](https://hub.docker.com/r/authzforce/server/)
-    (_Build Settings_). Check the result in _Build Details_.
-10.  Update the versions in badges at the top of this file.
-11.  Create a release on Github with a description based on the
+9. Build and publish the Docker image:
+   ```shell
+     $ git checkout master
+     $ mvn clean package
+     $ cd dist/target/classes/docker
+     $ ./release.sh
+   ```
+10. Update the versions in badges at the top of this file.
+11. Create a release on Github with a description based on the
     [release description template](release.description.tmpl.md), replacing M/m/P
     with the new major/minor/patch versions.
 

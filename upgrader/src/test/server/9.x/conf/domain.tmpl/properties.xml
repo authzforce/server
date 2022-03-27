@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<domainProperties
-	xmlns="http://authzforce.github.io/pap-dao-flat-file/xmlns/properties/3.6"
-	maxPolicyCount="10" maxVersionCountPerPolicy="10"
-	versionRollingEnabled="true" />

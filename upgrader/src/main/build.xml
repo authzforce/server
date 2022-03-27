@@ -30,14 +30,14 @@
 	<property name="build.dir" value="build" />
 	<property name="src.dir" value="src" />
 
-	<property name="old.version" value="" description="Old Authzforce version: 8.x" />
-	<condition property="old.version.pattern" value="8.x">
-		<matches pattern="(8)\..*" string="${old.version}" />
+	<property name="old.version" value="" description="Old Authzforce version: 9.x | 10.x" />
+	<condition property="old.version.pattern" value="9.x,10.x">
+		<matches pattern="(9|10)\..*" string="${old.version}" />
 	</condition>
-	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 8.x" unless="old.version.pattern" />
+	<fail message="Invalid old.version arg: undefined or does not match one of these patterns: 9.x, 10.x" unless="old.version.pattern" />
 	<property name="xslt.dir" location="xslt/${old.version.pattern}" />
 
-	<property name="old.install.dir" value="" description="Old Authzforce (8.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
+	<property name="old.install.dir" value="" description="Old Authzforce (9.x, 10.x) installation directory that contains 'conf' and 'data' folders (e.g. '/opt/authzforce', '/opt/authzforce-ce-server)', etc." />
 	<fail message="Invalid old.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>
@@ -48,7 +48,7 @@
 		</condition>
 	</fail>
 
-	<property name="new.install.dir" value="" description="Current Authzforce (9.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
+	<property name="new.install.dir" value="" description="Current AuthzForce (9.x) installation directory that contains 'conf' and 'data' folders (e.g. /opt/authzforce-ce-server)" />
 	<fail message="Invalid new.install.dir arg: undefined, or file does not exist">
 		<condition>
 			<not>

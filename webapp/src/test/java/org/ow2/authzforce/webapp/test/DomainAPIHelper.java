@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,32 +18,31 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import com.sun.xml.fastinfoset.tools.FI_SAX_XML;
+import com.sun.xml.fastinfoset.tools.XML_SAX_FI;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.ow2.authzforce.core.pdp.api.XmlUtils;
+import org.ow2.authzforce.core.pdp.api.io.XacmlJaxbParsingUtils;
 import org.ow2.authzforce.core.pdp.impl.PdpModelHandler;
 import org.ow2.authzforce.core.pdp.testutil.TestUtils;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
@@ -73,6 +72,7 @@ import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
+import org.xml.sax.InputSource;
 
 import static org.testng.Assert.*;
 
@@ -250,7 +250,7 @@ class DomainAPIHelper
         // change root policyref in PDP conf file
         final Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
         final TopLevelPolicyElementRef newRootPolicyRef = new TopLevelPolicyElementRef(policy.getPolicySetId(), policy.getVersion(), true);
-        pdpConf.setRootPolicyRef(newRootPolicyRef);
+        final Pdp newPdpConf = new Pdp(pdpConf.getAttributeDatatypes(), pdpConf.getFunctions(), pdpConf.getCombiningAlgorithms(), pdpConf.getAttributeProviders(), pdpConf.getPolicyProviders(), newRootPolicyRef, pdpConf.getDecisionCache(), pdpConf.getIoProcChains(), pdpConf.getVersion(), pdpConf.isStandardDatatypesEnabled(), pdpConf.isStandardFunctionsEnabled(), pdpConf.isStandardCombiningAlgorithmsEnabled(), pdpConf.isStandardAttributeProvidersEnabled(), pdpConf.isXPathEnabled(), pdpConf.isStrictAttributeIssuerMatch(), pdpConf.getMaxIntegerValue(), pdpConf.getMaxVariableRefDepth(), pdpConf.getMaxPolicyRefDepth(), pdpConf.getClientRequestErrorVerbosityLevel() );
         /*
          * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution), to make sure the lastModifiedTime will be actually changed after
          * updating
@@ -260,7 +260,7 @@ class DomainAPIHelper
             Thread.sleep(1000);
         }
 
-        pdpModelHandler.marshal(pdpConf, domainPDPConfFile);
+        pdpModelHandler.marshal(newPdpConf, domainPDPConfFile);
         return new IdReferenceType(policy.getPolicySetId(), policy.getVersion(), null, null);
     }
 
@@ -275,7 +275,7 @@ class DomainAPIHelper
 
         // change maxPolicyRefDepth in PDP conf file
         final Pdp pdpConf = pdpModelHandler.unmarshal(new StreamSource(domainPDPConfFile), Pdp.class);
-        pdpConf.setMaxPolicyRefDepth(BigInteger.valueOf(maxPolicyRefDepth));
+        final Pdp newPdpConf = new Pdp(pdpConf.getAttributeDatatypes(), pdpConf.getFunctions(), pdpConf.getCombiningAlgorithms(), pdpConf.getAttributeProviders(), pdpConf.getPolicyProviders(), pdpConf.getRootPolicyRef(), pdpConf.getDecisionCache(), pdpConf.getIoProcChains(), pdpConf.getVersion(), pdpConf.isStandardDatatypesEnabled(), pdpConf.isStandardFunctionsEnabled(), pdpConf.isStandardCombiningAlgorithmsEnabled(), pdpConf.isStandardAttributeProvidersEnabled(), pdpConf.isXPathEnabled(), pdpConf.isStrictAttributeIssuerMatch(), pdpConf.getMaxIntegerValue(), pdpConf.getMaxVariableRefDepth(), BigInteger.valueOf(maxPolicyRefDepth), pdpConf.getClientRequestErrorVerbosityLevel() );
         /*
          * Wait at least 1 sec before updating the file, if filesystem is "legacy" (file timestamp limited to second resolution), to make sure the lastModifiedTime will be actually changed after
          * updating
@@ -285,7 +285,7 @@ class DomainAPIHelper
             Thread.sleep(1000);
         }
 
-        pdpModelHandler.marshal(pdpConf, domainPDPConfFile);
+        pdpModelHandler.marshal(newPdpConf, domainPDPConfFile);
     }
 
     /**
@@ -428,6 +428,37 @@ class DomainAPIHelper
         return setRootPolicy(policySet.getPolicySetId(), ignoreVersion ? null : policySet.getVersion());
     }
 
+    protected IdReferenceType setRootPolicy(final String rawUnparsedXacmlPolicy, String policyId, String policyVersion, WebClient httpClient, boolean enableFastInfoset) throws Exception
+    {
+        assert rawUnparsedXacmlPolicy != null && policyId != null && policyVersion != null && httpClient != null;
+
+        final String returnedRawPolicySet;
+        if(enableFastInfoset) {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            new XML_SAX_FI().convert(new StringReader(rawUnparsedXacmlPolicy), byteArrayOutputStream);
+            httpClient.reset().path("domains").path(domainId).path("pap").path("policies").type("application/fastinfoset").accept("application/fastinfoset").post(byteArrayOutputStream.toByteArray());
+            final byte[] returnedFastInfosetBytes = httpClient.reset().path("domains").path(domainId).path("pap").path("policies").path(policyId).path(policyVersion).accept("application/fastinfoset").get(byte[].class);
+            final ByteArrayOutputStream rawUnparsedPolicySetXmlOutputStream = new ByteArrayOutputStream();
+            new FI_SAX_XML().parse(new ByteArrayInputStream(returnedFastInfosetBytes), rawUnparsedPolicySetXmlOutputStream);
+            returnedRawPolicySet = rawUnparsedPolicySetXmlOutputStream.toString(StandardCharsets.UTF_8);
+        } else {
+            httpClient.reset().path("domains").path(domainId).path("pap").path("policies").type("application/xml").accept("application/xml").post(rawUnparsedXacmlPolicy);
+            returnedRawPolicySet = httpClient.reset().path("domains").path(domainId).path("pap").path("policies").path(policyId).path(policyVersion).accept("application/xml").get(String.class);
+        }
+
+        // compare input raw and returned raw PolicySet to make sure XPath namespace contexts are preserved
+        final XmlUtils.XmlnsFilteringParserFactory xacmlParserFactory = XacmlJaxbParsingUtils.getXacmlParserFactory(true);
+        final XmlUtils.XmlnsFilteringParser xacmlParser = xacmlParserFactory.getInstance();
+        xacmlParser.parse(new InputSource(new StringReader(rawUnparsedXacmlPolicy)));
+
+        final XmlUtils.XmlnsFilteringParser returnedXacmlParser = xacmlParserFactory.getInstance();
+        returnedXacmlParser.parse(new InputSource(new StringReader(returnedRawPolicySet)));
+
+        assertTrue(returnedXacmlParser.getNamespacePrefixUriMap().entrySet().containsAll(xacmlParser.getNamespacePrefixUriMap().entrySet()));
+
+        return setRootPolicy(policyId, policyVersion);
+    }
+
     protected Pdp getPdpConfFromFile() throws JAXBException
     {
         if (pdpModelHandler == null)
@@ -515,7 +546,7 @@ class DomainAPIHelper
         void test() throws JAXBException, IOException;
     }
 
-    private void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final PdpRequestTest pdpReqTest) throws JAXBException, IOException
+    private void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, Optional<WebClient> httpClientForSendingRawUnparsedPolicy, boolean enableFastInfoset, final PdpRequestTest pdpReqTest) throws Exception
     {
         if (pdpFeaturesToEnable != null)
         {
@@ -565,9 +596,16 @@ class DomainAPIHelper
             }
 
             final JAXBElement<PolicySet> rootPolicy = unmarshalXacml(rootPolicyFile, PolicySet.class);
-            // Add the policy and point the rootPolicyRef to new policy with refs to
-            // instantiate it as root policy (validate, etc.)
-            setRootPolicy(rootPolicy.getValue(), true);
+            if(httpClientForSendingRawUnparsedPolicy.isEmpty())
+            {
+                // Add the policy and point the rootPolicyRef to new policy with refs to
+                // instantiate it as root policy (validate, etc.)
+                setRootPolicy(rootPolicy.getValue(), true);
+            } else {
+                final String rawUnparsedPolicy = Files.readString(rootPolicyFile.toPath());
+                final PolicySet policySet = rootPolicy.getValue();
+                setRootPolicy(rawUnparsedPolicy, policySet.getPolicySetId(), policySet.getVersion(), httpClientForSendingRawUnparsedPolicy.get(), enableFastInfoset);
+            }
         }
 
         pdpReqTest.test();
@@ -582,23 +620,21 @@ class DomainAPIHelper
      * @throws JAXBException
      * @throws IOException
      */
-    protected void requestPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote) throws JAXBException, IOException
+    protected void requestXacmlXmlPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, Optional<WebClient> httpClientForSendingRawUnparsedPolicy, boolean enableFastInfoset) throws Exception
     {
-        requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, () ->
+        requestPDP(testDirectory, pdpFeaturesToEnable,  isPdpRemote, httpClientForSendingRawUnparsedPolicy, enableFastInfoset, () ->
         {
             final JAXBElement<Request> xacmlReq = unmarshalXacml(new File(testDirectory, RestServiceTest.REQUEST_FILENAME), Request.class);
             final JAXBElement<Response> expectedResponse = unmarshalXacml(new File(testDirectory, RestServiceTest.EXPECTED_RESPONSE_FILENAME), Response.class);
             final Response actualResponse = domain.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
-            // final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());
-
             assertNormalizedXacmlJaxbResponseEquals(expectedResponse.getValue(), actualResponse);
         });
     }
 
     public void requestXacmlJsonPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final WebClient httpClient)
-            throws JAXBException, JSONException, IOException
+            throws Exception
     {
-        requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, () ->
+        requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, Optional.empty(), false, () ->
         {
             final File xacmlReqFile = new File(testDirectory, "request.json");
             final JSONObject xacmlReq;

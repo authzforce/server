@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -318,25 +318,23 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 		final Request xacmlReq = jaxbXacmlReq.getValue();
 
 		boolean isNewRefPolicyRefMatched = false;
-		while (!isNewRefPolicyRefMatched)
-		{
 			final Response actualResponse = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 			final List<JAXBElement<IdReferenceType>> jaxbPolicyRefs = actualResponse.getResults().get(0).getPolicyIdentifierList().getPolicyIdReferencesAndPolicySetIdReferences();
-			final List<IdReferenceType> returnedPolicyIdentifiers = new ArrayList<>();
 			for (final JAXBElement<IdReferenceType> jaxbPolicyRef : jaxbPolicyRefs)
 			{
 				final String tagLocalName = jaxbPolicyRef.getName().getLocalPart();
 				if (tagLocalName.equals("PolicySetIdReference"))
 				{
 					final IdReferenceType idRef = jaxbPolicyRef.getValue();
-					returnedPolicyIdentifiers.add(idRef);
 					if (idRef.equals(newRefPolicySetRef))
 					{
 						isNewRefPolicyRefMatched = true;
+						break;
 					}
 				}
 			}
-		}
+
+		assertTrue(isNewRefPolicyRefMatched, "new referenced PolicySetIdReference "+ newRefPolicySetRef +" (from root policy) not found in PDP response's PolicyIdentifierList");
 
 		// Redo the same but adding new root policy version on disk this time
 		final IdReferenceType newRootPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, true, isFilesystemLegacy);
@@ -349,25 +347,23 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 		 */
 		// Check PDP returned policy identifiers
 		boolean isNewRootPolicyRefMatched = false;
-		while (!isNewRootPolicyRefMatched)
-		{
 			final Response actualResponse2 = testDomain.getPdpResource().requestPolicyDecision(xacmlReq);
 			final List<JAXBElement<IdReferenceType>> jaxbPolicyRefs2 = actualResponse2.getResults().get(0).getPolicyIdentifierList().getPolicyIdReferencesAndPolicySetIdReferences();
-			final List<IdReferenceType> returnedPolicyIdentifiers = new ArrayList<>();
 			for (final JAXBElement<IdReferenceType> jaxbPolicyRef : jaxbPolicyRefs2)
 			{
 				final String tagLocalName = jaxbPolicyRef.getName().getLocalPart();
 				if (tagLocalName.equals("PolicySetIdReference"))
 				{
 					final IdReferenceType idRef = jaxbPolicyRef.getValue();
-					returnedPolicyIdentifiers.add(idRef);
 					if (idRef.equals(newRootPolicySetRef))
 					{
 						isNewRootPolicyRefMatched = true;
+						break;
 					}
 				}
 			}
-		}
+
+		assertTrue(isNewRootPolicyRefMatched, "new root PolicySetIdReference "+ newRootPolicySetRef +" not found in PDP response's PolicyIdentifierList");
 	}
 
 	/**

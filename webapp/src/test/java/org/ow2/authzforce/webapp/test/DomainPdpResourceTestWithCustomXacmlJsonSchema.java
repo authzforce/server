@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -127,7 +127,7 @@ public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceT
 	}
 
 	@Test(dataProvider = "getData")
-	public void requestPdpWithValidXacmlJsonWithCustomJsonObjectDatatype(final String customDatatype, final String xacmlTestDirRelativePath) throws JAXBException, JSONException, IOException
+	public void requestPdpWithValidXacmlJsonWithCustomJsonObjectDatatype(final String customDatatype, final String xacmlTestDirRelativePath) throws Exception
 	{
 		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, xacmlTestDirRelativePath);
 		final Feature geometryDatatypeFeature = new Feature(customDatatype, FlatFileBasedDomainsDao.PdpFeatureType.DATATYPE.toString(), true);

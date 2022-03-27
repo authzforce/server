@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" ReturnPolicyIdList="false" CombinedDecision="false">
+
+  <Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+
+    <Attribute IncludeInResult="false" AttributeId="urn:oasis:names:tc:xacml:3.0:example:attribute:parent-guardian-id" Issuer="med.example.com">
+
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">alberto</AttributeValue>
+
+    </Attribute>
+
+
+  </Attributes>
+
+  <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
+
+    <Content>
+
+      <md:record xmlns:md="urn:example:med:schemas:record">
+
+        <md:parentGuardian>
+          <md:parentGuardianId>alberto</md:parentGuardianId>
+        </md:parentGuardian>
+
+      </md:record>
+
+    </Content>
+
+
+  </Attributes>
+
+
+
+</Request>

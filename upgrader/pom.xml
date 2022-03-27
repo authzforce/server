@@ -3,8 +3,8 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>10.1.1</version>
-      <relativePath>..</relativePath>
+      <version>11.0.0</version>
+      <relativePath>../pom.xml</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-upgrader</artifactId>
    <name>${project.groupId}:${project.artifactId}</name>
@@ -170,21 +170,21 @@
             </dependencies>
             <executions>
                <execution>
-                  <id>upgrade-from-8.x</id>
+                  <id>upgrade-from-9.x-or-10.x</id>
                   <phase>generate-test-resources</phase>
                   <goals>
                      <goal>run</goal>
                   </goals>
                   <configuration>
                      <target>
-                        <copy todir="${project.basedir}/target/server/from-8.x/conf">
-                           <fileset dir="${project.basedir}/src/test/server/9.x/conf" />
+                        <copy todir="${project.basedir}/target/server/from-9.x,10.x/conf">
+                           <fileset dir="${project.basedir}/src/test/server/9.x,10.x/conf" />
                         </copy>
                         <taskdef resource="net/sf/antcontrib/antlib.xml" />
                         <ant antfile="${project.basedir}/src/main/build.xml" inheritAll="false" inheritRefs="false">
-                           <property name="old.version" value="8.0.0" />
-                           <property name="old.install.dir" value="${project.basedir}/src/test/server/8.x" />
-                           <property name="new.install.dir" value="${project.basedir}/target/server/from-8.x" />
+                           <property name="old.version" value="9.0.0" />
+                           <property name="old.install.dir" value="${project.basedir}/src/test/server/9.x,10.x" />
+                           <property name="new.install.dir" value="${project.basedir}/target/server/from-9.x,10.x" />
                            <!-- <property name="ignore.domain.name" value="true" /> -->
                            <!-- <property name="pdp.max.var.ref.depth" value="20" /> -->
                            <!-- <property name="pdp.max.policy.ref.depth" value="20" /> -->

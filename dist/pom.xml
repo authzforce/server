@@ -3,8 +3,8 @@
    <parent>
       <groupId>org.ow2.authzforce</groupId>
       <artifactId>authzforce-ce-server</artifactId>
-      <version>10.1.1</version>
-      <relativePath>..</relativePath>
+      <version>11.0.0</version>
+      <relativePath>../pom.xml</relativePath>
    </parent>
    <artifactId>authzforce-ce-server-dist</artifactId>
    <!-- If using 'pom' packaging, jdeb refuses to execute. -->
@@ -34,7 +34,6 @@
                authzforce-ce-parent, with a different format, so we use a plugin. -->
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.12</version>
             <executions>
                <execution>
                   <id>jdeb-changelog-timestamp-property</id>
@@ -89,6 +88,7 @@
                               <include>debian/changes.jdeb.txt</include>
                               <include>tar/README.md</include>
                               <include>docker/Dockerfile.tmpl</include>
+                              <include>docker/release.sh.tmpl</include>
                            </includes>
                         </resource>
                      </resources>
@@ -99,17 +99,28 @@
          <plugin>
             <groupId>com.coderplus.maven.plugins</groupId>
             <artifactId>copy-rename-maven-plugin</artifactId>
-            <version>1.0</version>
+            <version>1.0.1</version>
             <executions>
                <execution>
-                  <id>copy-and-rename-file</id>
+                  <id>copy-and-rename-dockerfile</id>
                   <phase>process-resources</phase>
                   <goals>
                      <goal>rename</goal>
                   </goals>
                   <configuration>
                      <sourceFile>${project.build.outputDirectory}/docker/Dockerfile.tmpl</sourceFile>
-                     <destinationFile>${basedir}/src/docker/Dockerfile</destinationFile>
+                     <destinationFile>${project.build.outputDirectory}/docker/Dockerfile</destinationFile>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>copy-and-rename-release-script</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                     <goal>rename</goal>
+                  </goals>
+                  <configuration>
+                     <sourceFile>${project.build.outputDirectory}/docker/release.sh.tmpl</sourceFile>
+                     <destinationFile>${project.build.outputDirectory}/docker/release.sh</destinationFile>
                   </configuration>
                </execution>
             </executions>
@@ -158,7 +169,7 @@
          <plugin>
             <artifactId>jdeb</artifactId>
             <groupId>org.vafer</groupId>
-            <version>1.4</version>
+            <version>1.10</version>
             <executions>
                <execution>
                   <phase>package</phase>

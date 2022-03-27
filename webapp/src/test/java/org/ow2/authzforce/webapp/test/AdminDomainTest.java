@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -23,7 +23,6 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -60,41 +59,7 @@ public class AdminDomainTest extends RestServiceTest
 
 	private DomainAPIHelper testDomainHelper = null;
 
-	private DomainResource testDomain = null;
-	private String testDomainId = null;
-
-	private final String testDomainExternalId = "admin";
-
-	/**
-	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
-	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
-	 * 
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @param enablePdpOnly
-	 * @throws Exception
-	 */
-	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
-	@BeforeTest()
-	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
-	        @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
-	{
-		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
-	}
-
-	/**
-	 * 
-	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
-	 *
-	 * @throws Exception
-	 */
-	@AfterTest
-	public void afterTest() throws Exception
-	{
-		shutdownServer();
-	}
+	private boolean enableFastInfoset = false;
 
 	/**
 	 * @param remoteAppBaseUrl
@@ -107,17 +72,50 @@ public class AdminDomainTest extends RestServiceTest
 	@BeforeClass
 	public void addDomain(@Optional final String remoteAppBaseUrl, @Optional("false") final Boolean enableFastInfoset) throws Exception
 	{
+		this.enableFastInfoset = enableFastInfoset;
+		String testDomainExternalId = "admin";
 		final Link domainLink = domainsAPIProxyClient.addDomain(new DomainProperties("Superadmin domain", testDomainExternalId));
 		assertNotNull(domainLink, "Domain creation failure");
 
 		// The link href gives the new domain ID
-		testDomainId = domainLink.getHref();
+		String testDomainId = domainLink.getHref();
 		LOGGER.debug("Added domain ID={}", testDomainId);
-		testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
+		DomainResource testDomain = domainsAPIProxyClient.getDomainResource(testDomainId);
 		assertNotNull(testDomain, String.format("Error retrieving (admin) domain ID=%s", testDomainId));
 		this.testDomainHelper = new DomainAPIHelper(testDomainId, testDomain, unmarshaller, pdpModelHandler);
 
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
+	}
+
+	/**
+	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
+	 *
+	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
+	 *
+	 * @param remoteAppBaseUrl
+	 * @param enableFastInfoset
+	 * @param domainSyncIntervalSec
+	 * @param enablePdpOnly
+	 * @throws Exception
+	 */
+	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
+	@BeforeTest()
+	public void beforeTest(@Optional final String remoteAppBaseUrl, @Optional("false") final boolean enableFastInfoset, @Optional("true") final boolean enableDoSMitigation,
+						   @Optional("-1") final int domainSyncIntervalSec, @Optional("false") final boolean enablePdpOnly) throws Exception
+	{
+		startServerAndInitCLient(remoteAppBaseUrl, enableFastInfoset ? ClientType.FAST_INFOSET : ClientType.XML, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly);
+	}
+
+	/**
+	 *
+	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
+	 *
+	 * @throws Exception
+	 */
+	@AfterTest
+	public void afterTest() throws Exception
+	{
+		shutdownServer();
 	}
 
 	@Test
@@ -153,9 +151,9 @@ public class AdminDomainTest extends RestServiceTest
 	}
 
 	@Test(dependsOnMethods = { "setRootPolicy" }, dataProvider = "adminPdpTestFiles")
-	public void requestPDP(final File testDirectory) throws JAXBException, IOException
+	public void requestPDP(final File testDirectory) throws Exception
 	{
 		// disable all features (incl. MDP) of PDP
-		testDomainHelper.requestPDP(testDirectory, null, !IS_EMBEDDED_SERVER_STARTED.get());
+		testDomainHelper.requestXacmlXmlPDP(testDirectory, null, !IS_EMBEDDED_SERVER_STARTED.get(), java.util.Optional.empty(), enableFastInfoset);
 	}
 }

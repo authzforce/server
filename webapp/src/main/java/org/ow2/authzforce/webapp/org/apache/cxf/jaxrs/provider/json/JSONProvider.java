@@ -40,28 +40,31 @@
  */
 package org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.SequenceInputStream;
-import java.io.StringReader;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import net.sf.saxon.lib.StandardURIChecker;
+import net.sf.saxon.om.NameChecker;
+import org.apache.cxf.common.util.PropertyUtils;
+import org.apache.cxf.helpers.CastUtils;
+import org.apache.cxf.helpers.IOUtils;
+import org.apache.cxf.io.CachedOutputStream;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.apache.cxf.jaxrs.ext.Nullable;
+import org.apache.cxf.jaxrs.provider.AbstractJAXBProvider;
+import org.apache.cxf.jaxrs.utils.*;
+import org.apache.cxf.staxutils.DepthRestrictingStreamReader;
+import org.apache.cxf.staxutils.DocumentDepthProperties;
+import org.apache.cxf.staxutils.StaxUtils;
+import org.apache.cxf.staxutils.W3CDOMStreamWriter;
+import org.apache.cxf.staxutils.transform.TransformUtils;
+import org.codehaus.jettison.AbstractXMLInputFactory;
+import org.codehaus.jettison.JSONSequenceTooLargeException;
+import org.codehaus.jettison.mapped.SimpleConverter;
+import org.codehaus.jettison.mapped.TypeConverter;
+import org.codehaus.jettison.util.StringIndenter;
+import org.ow2.authzforce.webapp.HardenedMappedXMLInputFactory;
+import org.ow2.authzforce.webapp.SetPropertyAllowingMappedXMLInputFactory;
+import org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json.utils.JSONUtils;
+import org.ow2.authzforce.webapp.org.codehaus.jettison.mapped.Configuration;
+import org.w3c.dom.Document;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -80,37 +83,14 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-
-import net.sf.saxon.lib.StandardURIChecker;
-import net.sf.saxon.om.NameChecker;
-
-import org.apache.cxf.helpers.CastUtils;
-import org.apache.cxf.helpers.IOUtils;
-import org.apache.cxf.io.CachedOutputStream;
-import org.apache.cxf.jaxrs.ext.MessageContext;
-import org.apache.cxf.jaxrs.ext.Nullable;
-import org.apache.cxf.jaxrs.provider.AbstractJAXBProvider;
-import org.apache.cxf.jaxrs.utils.AnnotationUtils;
-import org.apache.cxf.jaxrs.utils.ExceptionUtils;
-import org.apache.cxf.jaxrs.utils.HttpUtils;
-import org.apache.cxf.jaxrs.utils.InjectionUtils;
-import org.apache.cxf.jaxrs.utils.JAXBUtils;
-import org.apache.cxf.message.MessageUtils;
-import org.apache.cxf.staxutils.DepthRestrictingStreamReader;
-import org.apache.cxf.staxutils.DocumentDepthProperties;
-import org.apache.cxf.staxutils.StaxUtils;
-import org.apache.cxf.staxutils.W3CDOMStreamWriter;
-import org.apache.cxf.staxutils.transform.TransformUtils;
-import org.codehaus.jettison.AbstractXMLInputFactory;
-import org.codehaus.jettison.JSONSequenceTooLargeException;
-import org.codehaus.jettison.mapped.SimpleConverter;
-import org.codehaus.jettison.mapped.TypeConverter;
-import org.codehaus.jettison.util.StringIndenter;
-import org.ow2.authzforce.webapp.HardenedMappedXMLInputFactory;
-import org.ow2.authzforce.webapp.SetPropertyAllowingMappedXMLInputFactory;
-import org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json.utils.JSONUtils;
-import org.ow2.authzforce.webapp.org.codehaus.jettison.mapped.Configuration;
-import org.w3c.dom.Document;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Fix for CXF issue: {@link org.apache.cxf.jaxrs.provider.json.JSONProvider} does not enforce JAX-RS (JSON in this case) depth control properties org.apache.cxf.stax.* (only innerElementCountThreshold is enforced and only affects
@@ -543,7 +523,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final XMLStreamReader xsr;
 			final Class<?> theType;
 			final Class<?> theGenericType;
-			try (final InputStream realStream = getInputStream(type, genericType, is))
+			try (InputStream realStream = getInputStream(type, genericType, is))
 			{
 				if (Document.class.isAssignableFrom(type))
 				{
@@ -926,15 +906,15 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			throws Exception
 	{
 		final MessageContext mc = getContext();
-		if (mc != null && MessageUtils.isTrue(mc.get(Marshaller.JAXB_FORMATTED_OUTPUT)))
+		if (mc != null && PropertyUtils.isTrue(mc.get(Marshaller.JAXB_FORMATTED_OUTPUT)))
 		{
 			final StringIndenter formatter;
-			try (final CachedOutputStream actualOs = new CachedOutputStream())
+			try (CachedOutputStream actualOs = new CachedOutputStream())
 			{
 				marshalRaw(ms, actualObject, actualClass, genericType, enc, actualOs, isCollection);
 				formatter = new StringIndenter(IOUtils.newStringFromBytes(actualOs.getBytes()));
 			}
-			try (final Writer outWriter = new OutputStreamWriter(os, enc))
+			try (Writer outWriter = new OutputStreamWriter(os, enc))
 			{
 				IOUtils.copy(new StringReader(formatter.result()), outWriter, 2048);
 				// outWriter.close() automatically called when exiting the try-with-resources block
@@ -981,7 +961,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 			final Object prop = mc.get(name);
 			if (prop != null)
 			{
-				return MessageUtils.isTrue(prop);
+				return PropertyUtils.isTrue(prop);
 			}
 		}
 		return defaultValue;

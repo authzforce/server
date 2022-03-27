@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2021 THALES.
+ * Copyright (C) 2012-2022 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -130,7 +130,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		}
 	}
 
-	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/xml/PolicyReference.Valid");
+	static final File XACML_POLICYREFS_PDP_TEST_DIR = new File(RestServiceTest.XACML_SAMPLES_DIR, "pdp/default_features/xml/PolicyReference.Valid");
 	static
 	{
 		if (!XACML_POLICYREFS_PDP_TEST_DIR.exists())
@@ -237,7 +237,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 	@Autowired
 	@Qualifier("clientJaxbProviderFI")
-	private JAXBElementProvider<?> clientJaxbProviderFI;
+	protected JAXBElementProvider<?> clientJaxbProviderFI;
 
 	protected Unmarshaller unmarshaller = null;
 
