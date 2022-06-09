@@ -23,7 +23,7 @@
 
 # The alternative is to use FROM ubuntu:* then install tomcat ubuntu package and use upstart/sysctl init script but this is not the way to go:
 # https://github.com/docker/docker/issues/6800
-FROM tomcat:9-jre11-slim
+FROM tomcat:9-jre11-temurin-focal
 MAINTAINER AuthzForce Team
 
 ENV DEBIAN_FRONTEND noninteractive
