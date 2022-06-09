@@ -6,7 +6,7 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
 
 ## 11.0.1
 ### Fixed
-- [GH-22]: replaced vulnerable Tomcat base image with latest official (tomcat:9-jre11-temurin-focal) for Docker.
+- Fixed Docker image: replaced vulnerable Tomcat base image with latest official (tomcat:9-jre11-temurin-focal) for Docker. [More info](https://github.com/authzforce/fiware/issues/22).
 
 
 ## 11.0.0
