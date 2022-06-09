@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 11.0.1
+### Fixed
+- [GH-22]: replaced vulnerable Tomcat base image with latest official (tomcat:9-jre11-temurin-focal) for Docker.
+
+
 ## 11.0.0
 ### Changed
 - **Supported PDP configuration schema version is now 8.0 minimum: if you are already using AuthzForce Server 10.x or older and wish to migrate to this new version, follow the [Upgrader tool instructions](upgrader/src/README.md)**
@@ -20,8 +25,8 @@ Issues reported on [GitHub](https://github.com/authzforce/server/issues) are ref
   - authzforce-ce-core-pdp-api to 21.2.0
 
 ### Added
-- Feature: XPath variables in `AttributeSelector`s' and `xPathExpression` `AttributeValue`s' XPath expressions can now be defined by XACML `VariableDefinitions` (variable name used as XACML `VariableId`), which means XACML Variables can be used as XPath variables there.
-- Feature: XACML `VariableReference`s can be used (indirectly) in `Match` elements through special `AttributeDesignators`, i.e. by enabling the new built-in Attribute Provider (`XacmlVariableBasedAttributeProvider` class) with an `attributeProvider` element of the new type `XacmlVarBasedAttributeProviderDescriptor` in PDP configuration, any `AttributeDesignator`s with `Category` matching the `attributeProvider/@category` in PDP configuration is handled as a `VariableReference` and the `AttributeId` is handled as the `VariableId`.
+- **New feature**: XPath variables in `AttributeSelector`s' and `xPathExpression` `AttributeValue`s' XPath expressions can now be defined by XACML `VariableDefinitions` (variable name used as XACML `VariableId`), which means XACML Variables can be used as XPath variables there.
+- **New feature**: XACML `VariableReference`s can be used (indirectly) in `Match` elements through special `AttributeDesignators`, i.e. by enabling the new built-in Attribute Provider (`XacmlVariableBasedAttributeProvider` class) with an `attributeProvider` element of the new type `XacmlVarBasedAttributeProviderDescriptor` in PDP configuration, any `AttributeDesignator`s with `Category` matching the `attributeProvider/@category` in PDP configuration is handled as a `VariableReference` and the `AttributeId` is handled as the `VariableId`.
 
 ### Fixed
 - [GH-66]: Support any XML namespace prefix declared on root PolicySet element in XACML AttributeSelectors' XPath expressions (namespace-aware evaluation).
