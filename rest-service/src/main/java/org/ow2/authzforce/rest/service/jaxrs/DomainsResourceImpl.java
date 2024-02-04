@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -25,11 +25,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Context;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Context;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.ow2.authzforce.core.pap.api.dao.DomainsDao;
@@ -112,11 +112,7 @@ public class DomainsResourceImpl implements DomainsResource
 		}
 
 		final String encodedUrlPathSegment = DomainResourceImpl.URL_PATH_SEGMENT_ESCAPER.escape(domainId);
-		final Link link = new Link();
-		link.setHref(encodedUrlPathSegment);
-		link.setRel(Relation.ITEM);
-		link.setTitle(domainId);
-		return link;
+        return new Link(Relation.ITEM, null, encodedUrlPathSegment, null, domainId, null, null);
 	}
 
 	/*
@@ -152,10 +148,9 @@ public class DomainsResourceImpl implements DomainsResource
 		}
 		else
 		{
-			if (attrVal instanceof List)
+			if (attrVal instanceof List<?> resourceIds)
 			{
-				final List<?> resourceIds = (List<?>) attrVal;
-				if (resourceIds.contains(anyResourceId))
+                if (resourceIds.contains(anyResourceId))
 				{
 					final Set<String> domainIDs;
 					try
@@ -199,10 +194,7 @@ public class DomainsResourceImpl implements DomainsResource
 		for (final String domainId : authorizedDomainIDs)
 		{
 			final String encodedUrlPathSegment = DomainResourceImpl.URL_PATH_SEGMENT_ESCAPER.escape(domainId);
-			final Link link = new Link();
-			link.setHref(encodedUrlPathSegment);
-			link.setRel(Relation.ITEM);
-			link.setTitle(domainId);
+			final Link link = new Link(Relation.ITEM, null, encodedUrlPathSegment, null, domainId, null, null);
 			domainResourceLinks.add(link);
 		}
 

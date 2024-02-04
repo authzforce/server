@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,28 +18,13 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.servlet.ServletException;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.validation.Schema;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Policy;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
@@ -74,9 +59,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Policy;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Target;
+import javax.xml.validation.Schema;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/client.xml" })
 abstract class RestServiceTest extends AbstractTestNGSpringContextTests
@@ -258,15 +251,15 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * 
 	 * @param port
 	 *            server port, actual port number is randomly generated if null
-	 * @param enableFastInfoset
-	 * @param enableDoSMitigation
-	 * @param domainSyncIntervalSec
-	 * @param enablePdpOnly
-	 * @param addSampleDomain
-	 * @return
-	 * @throws IllegalArgumentException
-	 * @throws IOException
-	 * @throws LifecycleException
+	 * @param enableFastInfoset enable Fast-Infoset
+	 * @param enableDoSMitigation enable DoS mitigation
+	 * @param domainSyncIntervalSec domain sync interval (in seconds)
+	 * @param enablePdpOnly enable the PDP only
+	 * @param addSampleDomain add the sample domain
+	 * @return the started Tomcat instance
+	 * @throws IllegalArgumentException invalid arg
+	 * @throws IOException I/O error
+	 * @throws LifecycleException Tomcat startup error
 	 */
 	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final String xacmlJsonSchemaRelativePath, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
 	        final boolean addSampleDomain) throws IllegalArgumentException, IOException, LifecycleException

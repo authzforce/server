@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,44 +18,34 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.json.JSONException;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileBasedDomainsDao;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
 import org.ow2.authzforce.rest.api.xmlns.Feature;
-import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
 import org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
-import org.testng.annotations.Optional;
 import org.w3._2005.atom.Link;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.NotFoundException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.xml.bind.JAXBException;
 import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 /**
  * Demo test
  */
-public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceTest
+public class DomainPdpResourceWithCustomXacmlJsonSchemaTest extends RestServiceTest
 {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DomainPdpResourceTestWithCustomXacmlJsonSchema.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DomainPdpResourceWithCustomXacmlJsonSchemaTest.class);
 
 	private DomainAPIHelper testDomainHelper = null;
 	private DomainResource testDomain = null;
@@ -66,11 +56,11 @@ public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceT
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
+	 * <p>
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
-	 * @throws Exception
+	 * @param remoteAppBaseUrl base URL of remote app
+	 * @throws Exception error
 	 */
 	@Parameters({ "remote.base.url", "xacmlJsonSchemaRelativePath" })
 	@BeforeTest()
@@ -83,7 +73,7 @@ public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceT
 	 * 
 	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
-	 * @throws Exception
+	 * @throws Exception error
 	 */
 	@AfterTest
 	public void afterTest() throws Exception
@@ -107,7 +97,7 @@ public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceT
 
 		final ClientConfiguration apiProxyClientConf = WebClient.getConfig(domainsAPIProxyClient);
 		final String appBaseUrl = apiProxyClientConf.getEndpoint().getEndpointInfo().getAddress();
-		httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider()), true);
+		httpClient = WebClient.create(appBaseUrl, Collections.singletonList(new JsonRiCxfJaxrsProvider<>()), true);
 
 		assertNotNull(testDomain, String.format("Error retrieving domain ID=%s", testDomainId));
 	}
@@ -133,6 +123,15 @@ public class DomainPdpResourceTestWithCustomXacmlJsonSchema extends RestServiceT
 		final Feature geometryDatatypeFeature = new Feature(customDatatype, FlatFileBasedDomainsDao.PdpFeatureType.DATATYPE.toString(), true);
 		final List<Feature> pdpFeatures = Collections.singletonList(geometryDatatypeFeature);
 		testDomainHelper.requestXacmlJsonPDP(testDir, pdpFeatures, !IS_EMBEDDED_SERVER_STARTED.get(), httpClient);
+	}
+
+	@Test(dataProvider = "getData")
+	public void requestPdpWithCustomMediaType(final String customDatatype, final String xacmlTestDirRelativePath) throws Exception
+	{
+		final File testDir = new File(RestServiceTest.XACML_SAMPLES_DIR, xacmlTestDirRelativePath);
+		final Feature geometryDatatypeFeature = new Feature(customDatatype, FlatFileBasedDomainsDao.PdpFeatureType.DATATYPE.toString(), true);
+		final List<Feature> pdpFeatures = Collections.singletonList(geometryDatatypeFeature);
+		testDomainHelper.requestXacmlJsonPDP(testDir, pdpFeatures, !IS_EMBEDDED_SERVER_STARTED.get(), httpClient, java.util.Optional.of("application/geoxacml+json"));
 	}
 
 

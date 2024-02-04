@@ -10,11 +10,11 @@
 	<!-- Default value other than classpath:... are not accepted, set the value 
 		via JNDI instead for other URL schemes (e.g. file:). -->
 	<jee:jndi-lookup id="jndi_configDir" jndi-name="org.ow2.authzforce.config.dir"
-		expected-type="java.lang.String" default-value="classpath:server/conf" />
+		expected-type="java.lang.String" default-value="#{systemProperties['org.ow2.authzforce.config.dir'] ?: 'classpath:server/conf'}" />
 	<!-- File: prefix matters. If not present, the path is loaded as classpath 
 		resource by Spring -->
 	<jee:jndi-lookup id="jndi_dataDir" jndi-name="org.ow2.authzforce.data.dir"
-		expected-type="java.lang.String" default-value="file:target/server/data" />
+		expected-type="java.lang.String" default-value="#{systemProperties['org.ow2.authzforce.data.dir'] ?: 'file:target/server/data'}" />
 	<!-- If no "real" Ethernet address to use (host disconnected from the network), 
 		use random multicast address. -->
 	<jee:jndi-lookup id="jndi_useRandomAddressBasedUUID"
@@ -23,10 +23,10 @@
 	<!-- 0 means no sync -->
 	<jee:jndi-lookup id="jndi_syncIntervalSec"
 		jndi-name="org.ow2.authzforce.domains.sync.interval" expected-type="java.lang.Integer"
-		default-value="#{T(java.lang.Integer).valueOf(0)}" />
+		default-value="#{T(java.lang.Integer).valueOf(systemProperties['org.ow2.authzforce.domains.sync.interval'] ?: '0')}" />
 	<jee:jndi-lookup id="jndi_enablePdpOnly"
 		jndi-name="org.ow2.authzforce.domains.enablePdpOnly" expected-type="java.lang.Boolean"
-		default-value="#{T(java.lang.Boolean).FALSE}" />
+		default-value="#{T(java.lang.Boolean).valueOf(systemProperties['org.ow2.authzforce.domains.enablePdpOnly'] ?: 'false')}" />
 	<jee:jndi-lookup id="jndi_enableXacmlJsonProfile" jndi-name="org.ow2.authzforce.domains.enableXacmlJsonProfile" expected-type="java.lang.Boolean" default-value="#{T(java.lang.Boolean).FALSE}" />
 
 	<bean id="pdpModelHandler" class="org.ow2.authzforce.core.pdp.impl.PdpModelHandler">

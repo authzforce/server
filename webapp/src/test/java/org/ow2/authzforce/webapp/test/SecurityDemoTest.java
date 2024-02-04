@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,39 +18,30 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
+import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
+import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.*;
+import org.w3._2005.atom.Link;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.NotFoundException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-
-import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
-import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
-import org.w3._2005.atom.Link;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Demo test
@@ -72,13 +63,13 @@ public class SecurityDemoTest extends RestServiceTest
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
+	 * <p>
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @throws Exception
+	 * @param remoteAppBaseUrl base URL of remote app
+	 * @param enableFastInfoset enable Fast Infoset support
+	 * @param domainSyncIntervalSec AuthzForce domain sync (filesystem-to-memory) interval in seconds
+	 * @throws Exception error
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
 	@BeforeTest()
@@ -92,7 +83,7 @@ public class SecurityDemoTest extends RestServiceTest
 	 * 
 	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
-	 * @throws Exception
+	 * @throws Exception error
 	 */
 	@AfterTest
 	public void afterTest() throws Exception
@@ -156,7 +147,7 @@ public class SecurityDemoTest extends RestServiceTest
 	/**
 	 * Server expected to reply with HTTP 413 Request Entity Too Large
 	 * 
-	 * @throws JAXBException
+	 * @throws JAXBException error
 	 */
 	@Test(expectedExceptions = ClientErrorException.class)
 	public void addPolicyWithTooManyChildElements() throws JAXBException

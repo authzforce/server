@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -29,9 +29,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.NotFoundException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
@@ -79,11 +79,10 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 	 *
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
+	 * @param remoteAppBaseUrl Base URL of remote app
+	 * @param enableFastInfoset enable Fast Infoset support
+	 * @param domainSyncIntervalSec AuthzForce domain sync (filesystem-to-memory) interval in seconds
 	 * @throws Exception
-	 *
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset", "enableDoSMitigation", "org.ow2.authzforce.domains.sync.interval", "enablePdpOnly" })
@@ -369,12 +368,12 @@ public class DomainResourceTestWithAutoSyncAndVersionRolling extends RestService
 	/**
 	 * To be executed last since the domain is removed as a result if successful
 	 *
-	 * @param remoteBaseUrl
+	 * @param remoteBaseUrl base URL of remote app
 	 *
-	 * @throws InterruptedException
-	 * @throws IOException
-	 * @throws IllegalArgumentException
-	 * @throws JAXBException
+	 * @throws InterruptedException domain sync error
+	 * @throws IOException I/O error
+	 * @throws IllegalArgumentException invalid arg
+	 * @throws JAXBException JAXB error
 	 */
 	@Parameters({ "remote.base.url", "org.ow2.authzforce.domains.sync.interval" })
 	@Test(timeOut = TEST_TIMEOUT_MS, dependsOnMethods = { "addTooManyPolicyVersions", "syncPdpAfterUsedPolicyDirectoryChanged" })

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableSet;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
 
 import org.ow2.authzforce.core.pap.api.dao.DomainDao;
 import org.ow2.authzforce.core.pap.api.dao.PolicyDaoClient;
@@ -97,10 +97,8 @@ public class PolicyResourceImpl implements PolicyDaoClient, PolicyResource
 		final List<Link> policyVersionLinks = new ArrayList<>(versions.size());
 		for (final PolicyVersion v : versions)
 		{
-			final Link link = new Link();
+			final Link link = new Link(Relation.ITEM, null, v.toString(), null, null, null, null);
 			policyVersionLinks.add(link);
-			link.setHref(v.toString());
-			link.setRel(Relation.ITEM);
 		}
 
 		return new Resources(policyVersionLinks);

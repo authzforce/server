@@ -285,10 +285,7 @@ quicker resolution:
 
 ## Security - Vulnerability reporting
 
-If you want to report a vulnerability, you must do so on the
-[OW2 Issue Tracker](https://jira.ow2.org/browse/AUTHZFORCE/) with _Security
-Level_ set to **Private**. Then, if the AuthzForce team can confirm it, they
-will change it to **Public** and set a fix version.
+If you want to report a vulnerability, you can do so on this Github repository by following the process: [Privately reporting a security vulnerability](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability#privately-reporting-a-security-vulnerability).
 
 ## Contributing
 

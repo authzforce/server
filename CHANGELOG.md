@@ -4,9 +4,49 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 12.0.0
+### Changed
+- Upgraded parent project authzforce-ce-parent: 9.1.0
+  - **Migrated to Java 17 (as the minimum required JRE version from now on), JAXB 4.0 (javax.xml.bind.\* imports replaced with jakarta.xml.bind.\*) and JAX-RS 3.0.0 (javax.ws.\* imports replaced with jakarta.ws.\*)**
+
+- Upgraded dependencies: 
+  - authzforce-ce-rest-api-model: 7.0.0 
+    - authzforce-ce-atom-model: 9.1.0
+	-  authzforce-ce-xacml-model: 9.1.0
+	-  authzforce-ce-pdp-ext-model: 9.1.0 
+    - Jakarta REST API: javax.ws.rs-api replaced with **jakarta.ws.rs-api: 3.0.0**
+    - org.json:json: 20231013
+  - authzforce-ce-jaxrs-utils: 3.0.0
+    - authzforce-ce-xacml-json-model: 4.1.0
+      - everit-json-schema: 1.14.3 
+  - authzforce-ce-core-pap-dao-flat-file: 15.0.0
+    - authzforce-ce-core-pap-api: 13.0.0
+    - authzforce-ce-core-pdp-engine: 21.0.1:
+	  - Fixed [GH-69](https://github.com/authzforce/core/issues/69): Support for XACML <StatusDetail> / <MissingAttributeDetail>s, returned when missing named Attribute(s) in AttributeDesignator/AttributeSelector expressions, and may be returned by custom PDP extensions as well.
+	  - Fixed [GH-73](https://github.com/authzforce/core/issues/73): (Rule's Condition that always returns False was considered invalid).
+	  - Fixed [GH-83](https://github.com/authzforce/core/issues/83): `NoSuchElementException` thrown when the rule combining algorithm is permit-unless-deny and there is no Deny rule but at least one Permit rule with Obligation/Advice.
+	  - Fixed [GH-92](https://github.com/authzforce/core/issues/92) Deny-overrides rule combining algorithm - Missing obligations in case of multiple Permit Rules and no Deny Rule (only the Obligations from the first Permit Rule were returned).
+    - authzforce-ce-core-pdp-io-xacml-json: 21.0.1
+    - java-uuid-generator: 4.2.0
+  - Servlet API: javax.servlet-api replaced with **jakarta.servlet-api: 5.0**.
+  - jettison: 1.5.4
+  - FastInfoset: 2.1.1
+  - spring-context, spring-web, spring-core, spring-beans: 6.1.3
+  - cxf-rt-*: 4.0.3
+  - Logback: 1.4.14
+
+- Upgraded Tomcat used in integration tests: 10.1.18
+
+### Added
+- Added support for GeoXACML content mime types on the REST API (WADL)
+
+### Removed
+- Removed dependency: logback-ext-spring
+
+
 ## 11.0.1
 ### Fixed
-- [GH-22]: replaced vulnerable Tomcat base image with latest official (tomcat:9-jre11-temurin-focal) for Docker.
+- Fixed Docker image: replaced vulnerable Tomcat base image with latest official (tomcat:9-jre11-temurin-focal) for Docker. [More info](https://github.com/authzforce/fiware/issues/22).
 
 
 ## 11.0.0

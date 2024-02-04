@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -26,8 +26,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 
 import org.apache.coheigea.cxf.sts.xacml.common.STSServer;
 import org.apache.coheigea.cxf.sts.xacml.common.TokenTestUtils;
@@ -42,7 +42,7 @@ import org.junit.Before;
  * The client authenticates to the STS using a username/password, and gets a signed holder-of-key SAML Assertion in return. This is presented to the service, who verifies proof-of-possession + the
  * signature of the STS on the assertion. The CXF endpoint extracts roles from the Assertion + populates the security context. Note that the CXF endpoint requires a "role" Claim via the security
  * policy.
- *
+ *<p>
  * The CXF Endpoint has configured the XACMLAuthorizingInterceptor, which creates a XACML 3.0 request for dispatch to the PDP, and then enforces the PDP's decision. The PDP is a REST service, that
  * requires that a user must have role "boss" to access the "doubleIt" operation ("alice" has this role, "bob" does not).
  */
@@ -101,7 +101,8 @@ public class RESTfulPdpBasedAuthzInterceptorTest extends AbstractBusClientServer
 		 * Client
 		 */
 		final URL busFile = RESTfulPdpBasedAuthzInterceptorTest.class.getResource("cxf-ws-client.xml");
-		this.createBus(busFile.toString());
+        assert busFile != null;
+        this.createBus(busFile.toString());
 		BusFactory.setThreadDefaultBus(this.getBus());
 		final Service service = Service.create(DOUBLEIT_WSDL, SERVICE_QNAME);
 		doubleItWsPort = service.getPort(DOUBLEIT_WS_PORT_QNAME, DoubleItPortType.class);

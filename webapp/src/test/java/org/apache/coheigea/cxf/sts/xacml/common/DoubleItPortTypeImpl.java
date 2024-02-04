@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -20,9 +20,9 @@ package org.apache.coheigea.cxf.sts.xacml.common;
 
 import java.security.Principal;
 
-import javax.annotation.Resource;
-import javax.jws.WebService;
-import javax.xml.ws.WebServiceContext;
+import jakarta.annotation.Resource;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceContext;
 
 import org.apache.cxf.feature.Features;
 import org.example.contract.doubleit.DoubleItPortType;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,9 +18,9 @@
  */
 package org.ow2.authzforce.webapp;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.codehaus.jettison.json.JSONException;

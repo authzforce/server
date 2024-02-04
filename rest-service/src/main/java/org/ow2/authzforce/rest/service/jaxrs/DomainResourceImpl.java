@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response.Status;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 	{
 		// Links to child resources (properties, pap, pdp)
 		// domain properties link
-		final Link propsLink = new Link();
+
 		// For the link, get Path annotation of corresponding method
 		final Path propsResourcePath;
 		try
@@ -153,12 +153,9 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'properties' resource of domain '" + domainId + "'", e);
 		}
 
-		propsLink.setHref(propsResourcePath.value());
-		propsLink.setTitle("Domain properties");
-		propsLink.setRel(Relation.ITEM);
+		final Link propsLink = new Link(Relation.ITEM, null, propsResourcePath.value(), null, "Domain properties", null, null);
 
 		// PAP link
-		final Link papLink = new Link();
 		// For the link, get Path annotation of getPap method
 		final Path papResourcePath;
 		try
@@ -170,12 +167,9 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'pap' resource of domain '" + domainId + "'", e);
 		}
 
-		papLink.setHref(papResourcePath.value());
-		papLink.setTitle("Policy Administration Point");
-		papLink.setRel(Relation.ITEM);
+		final Link papLink = new Link(Relation.ITEM, null, papResourcePath.value(), null, "Policy Administration Point", null, null);
 
 		// PDP link
-		final Link pdpLink = new Link();
 		// For the link, get Path annotation of getPap method
 		final Path pdpResourcePath;
 		try
@@ -187,15 +181,12 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'pdp' resource of domain '" + domainId + "'", e);
 		}
 
-		pdpLink.setHref(pdpResourcePath.value());
-		pdpLink.setTitle("Policy Decision Point");
-
 		/*
 		 * Conformance with test assertion 'urn:oasis:names:tc:xacml:3.0:profile:rest:assertion:home:pdp' of REST Profile of XACML v3.0 Version 1.0:
 		 * http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235433. Example:
 		 * http://docs.oasis-open.org/xacml/xacml-rest/v1.0/cs02/xacml-rest-v1.0-cs02.html#_Toc399235419
 		 */
-		pdpLink.setRel(Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP);
+		final Link pdpLink = new Link(Relation.HTTP_DOCS_OASIS_OPEN_ORG_NS_XACML_RELATION_PDP, null, pdpResourcePath.value(), null, "Policy Decision Point", null, null);
 
 		final Resources childResources = new Resources(Arrays.asList(propsLink, papLink, pdpLink));
 		final ReadableDomainProperties props;
@@ -279,7 +270,6 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 		}
 
 		// Link to child resource 'pdp.properties'
-		final Link pdpPropsLink = new Link();
 		// For the link, get Path annotation of corresponding method
 		final Path pdpPropsResourcePath;
 		try
@@ -291,12 +281,9 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'pdp.properties' resource of the domain '" + domainId + "'", e);
 		}
 
-		pdpPropsLink.setHref(pdpPropsResourcePath.value());
-		pdpPropsLink.setTitle("PDP properties");
-		pdpPropsLink.setRel(Relation.ITEM);
+		final Link pdpPropsLink = new Link(Relation.ITEM, null, pdpPropsResourcePath.value(), null, "PDP properties", null, null);
 
 		// Link to child resource 'prp.properties'
-		final Link prpPropsLink = new Link();
 		// For the link, get Path annotation of corresponding method
 		final Path prpPropsResourcePath;
 		try
@@ -308,12 +295,9 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'prp.properties' resource of the domain '" + domainId + "'", e);
 		}
 
-		prpPropsLink.setHref(prpPropsResourcePath.value());
-		prpPropsLink.setTitle("PRP properties");
-		prpPropsLink.setRel(Relation.ITEM);
+		final Link prpPropsLink = new Link(Relation.ITEM, null, prpPropsResourcePath.value(), null, "PRP properties", null, null);
 
 		// Link to child resource 'policies'
-		final Link policiesLink = new Link();
 		// For the link, get Path annotation of getPoliciesResource method
 		final Path policiesResourcePath;
 		try
@@ -325,12 +309,9 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'policies' resource of the domain '" + domainId + "'", e);
 		}
 
-		policiesLink.setHref(policiesResourcePath.value());
-		policiesLink.setTitle("PRP policies");
-		policiesLink.setRel(Relation.ITEM);
+		final Link policiesLink = new Link(Relation.ITEM, null, policiesResourcePath.value(), null, "PRP policies", null, null);
 
 		// Link to child resource 'attributeProviders'
-		final Link attrProvidersLink = new Link();
 		// For the link, get Path annotation of getAttributeProvidersResource
 		// method
 		final Path attrProvidersResourcePath;
@@ -343,9 +324,8 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting the 'attributeProviders' resource of the domain '" + domainId + "'", e);
 		}
 
-		attrProvidersLink.setHref(attrProvidersResourcePath.value());
-		attrProvidersLink.setTitle("PDP Attribute Providers");
-		attrProvidersLink.setRel(Relation.ITEM);
+		final Link attrProvidersLink = new Link(Relation.ITEM, null, attrProvidersResourcePath.value(), null, "PDP Attribute Providers", null, null);
+
 
 		final Resources childResources = new Resources(Arrays.asList(pdpPropsLink, prpPropsLink, policiesLink, attrProvidersLink));
 		return new ResourceContent(null, childResources);
@@ -493,11 +473,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 		// Policy ID is xs:anyURI, therefore may contain invalid characters for
 		// URL paths -> needs escaping to be used as URL path segment
 		final String policyIdUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(policy.getPolicySetId());
-		final Link policyResourceLink = new Link();
-		policyResourceLink.setHref(policyIdUrlPathSegment + "/" + policy.getVersion());
-		policyResourceLink.setTitle("Policy '" + policy.getPolicySetId() + "' v" + policy.getVersion());
-		policyResourceLink.setRel(Relation.ITEM);
-		return policyResourceLink;
+        return new Link(Relation.ITEM, null, policyIdUrlPathSegment + "/" + policy.getVersion(), null, "Policy '" + policy.getPolicySetId() + "' v" + policy.getVersion(), null, null);
 	}
 
 	@Override
@@ -530,7 +506,7 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 			throw new InternalServerErrorException("Error getting policy resource IDs in domain '" + domainId + "'", e);
 		}
 
-		if (policyResourceIDs.size() < 1)
+		if (policyResourceIDs.isEmpty())
 		{
 			throw new InternalServerErrorException("Missing root policy resource from DAO in domain '" + domainId + "'");
 		}
@@ -538,10 +514,8 @@ public class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourceImpl,
 		final List<Link> policyResourceLinks = new ArrayList<>(policyResourceIDs.size());
 		for (final String policyResourceId : policyResourceIDs)
 		{
-			final Link link = new Link();
+			final Link link = new Link(Relation.ITEM, null, policyResourceId, null, null, null, null);
 			policyResourceLinks.add(link);
-			link.setHref(policyResourceId);
-			link.setRel(Relation.ITEM);
 		}
 
 		return new Resources(policyResourceLinks);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,18 +18,16 @@
  */
 package org.ow2.authzforce.upgrader.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.ws.rs.NotFoundException;
+import jakarta.ws.rs.NotFoundException;
 
 import org.ow2.authzforce.rest.api.jaxrs.DomainPropertiesResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
@@ -42,7 +40,6 @@ import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.jndi.SimpleNamingContextBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterTest;
@@ -53,6 +50,8 @@ import org.testng.annotations.Test;
 import org.w3._2005.atom.Link;
 
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+
+import static org.testng.Assert.*;
 
 @ContextConfiguration(locations = { "classpath:META-INF/spring/beans.xml" })
 public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
@@ -72,13 +71,13 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
+	 * <p>
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param serverRootDir
+	 * @param serverRootDir server's root directory
 	 * 
-	 * @param domainSyncIntervalSec
-	 * @throws Exception
+	 * @param domainSyncIntervalSec authzforce domain (filesystem-to-memory) sync interval (in seconds)
+	 * @throws Exception error
 	 */
 	@Parameters({ "server.root.dir", "org.ow2.authzforce.domains.sync.interval", "org.ow2.authzforce.domains.enablePdpOnly" })
 	@BeforeTest
@@ -94,20 +93,11 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 		final File dataDir = new File(serverRootDir + "/data");
 		final String dataURI = dataDir.toURI().toString();
 
-		// Set some server properties via JNDI
-		try
-		{
-			final SimpleNamingContextBuilder jndiCtxFactoryBuilder = SimpleNamingContextBuilder.emptyActivatedContextBuilder();
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.config.dir", confURI);
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.data.dir", dataURI);
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.uuid.gen.randomMulticastAddressBased", Boolean.TRUE);
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.sync.interval", domainSyncIntervalSec);
-			jndiCtxFactoryBuilder.bind("java:comp/env/org.ow2.authzforce.domains.enablePdpOnly", enablePdpOnly);
-		}
-		catch (final NamingException ex)
-		{
-			throw new RuntimeException("Error setting property via JNDI", ex);
-		}
+		// Set app properties in classpath:META-INF/spring/beans.xml
+		System.setProperty("org.ow2.authzforce.config.dir", confURI);
+		System.setProperty("org.ow2.authzforce.data.dir", dataURI);
+		System.setProperty("org.ow2.authzforce.domains.sync.interval", Integer.toString(domainSyncIntervalSec));
+		System.setProperty("org.ow2.authzforce.domains.enablePdpOnly", Boolean.toString(enablePdpOnly));
 
 		/*
 		 * Workaround for: http://stackoverflow.com/questions/10184602/accessing -spring-context-in-testngs -beforetest https://jira.spring.io/browse/SPR-4072 https://jira.spring.io/browse/SPR-5404
@@ -259,7 +249,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	{
 		final Resources resources = testDomain.getPapResource().getPoliciesResource().getPolicies();
 		assertNotNull(resources);
-		assertTrue(resources.getLinks().size() > 0, "No resource for root policy found");
+        assertFalse(resources.getLinks().isEmpty(), "No resource for root policy found");
 	}
 
 	@Test(dependsOnMethods = { "getDomainProperties", "getPolicies" })
@@ -267,7 +257,7 @@ public class UpgradedDataLoadTest extends AbstractTestNGSpringContextTests
 	{
 		final IdReferenceType rootPolicyRef = testDomain.getPapResource().getPdpPropertiesResource().getOtherPdpProperties().getRootPolicyRefExpression();
 		final List<Link> links = testDomain.getPapResource().getPoliciesResource().getPolicyResource(rootPolicyRef.getValue()).getPolicyVersions().getLinks();
-		assertTrue(links.size() > 0, "No root policy version found");
+        assertFalse(links.isEmpty(), "No root policy version found");
 	}
 
 }

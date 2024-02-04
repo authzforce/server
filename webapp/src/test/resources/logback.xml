@@ -37,8 +37,8 @@
 		<appender-ref ref="stdout" />
 	</logger>
 	<!-- HTTP/JAX-RS/SOAP request/response debugging -->
-	<!-- For logging request/response to/from webapp, only logger "org.apache.cxf" 
-		in level INFO is required. When running unit test with embedded 
+	<!-- For logging request/response to/from webapp, only logger "org.apache.cxf"
+		in level INFO is required and for HTTP client debugging, switch the 'org.ow2.authzforce' to DEBUG. When running unit test with embedded
 		Tomcat, the server's logback.xml overrides this, so you need to modify the 
 		server's logback.xml to get the proper CXF client logging. -->
 	<logger name="org.apache.cxf" additivity="false" level="WARN"> <appender-ref

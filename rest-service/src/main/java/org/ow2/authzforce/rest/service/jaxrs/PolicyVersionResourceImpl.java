@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -25,8 +25,8 @@ import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDaoClient;
 import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class PolicyVersionResourceImpl implements PolicyVersionDaoClient, Policy
 	private static final IllegalArgumentException ILLEGAL_VERSION_DAO_ARGUMENT_EXCEPTION = new IllegalArgumentException("Policy version DAO for policy version resource undefined");
 
 	/**
-	 * Name of the (Apache CXF) MessageContext property where the XML namespace contexts (Java {@link Map <String, String>} ) used for input XML (esp. usable in XACML PolicySet's XPath expressions) is to be injected.
+	 * Name of the (Apache CXF) MessageContext property where the XML namespace contexts (Java {@code java.util.Map <String, String>} ) used for input XML (esp. usable in XACML PolicySet's XPath expressions) is to be injected.
 	 */
 	public   static final String XML_NS_CONTEXTS_CXF_MESSAGE_CONTEXT_PROPERTY_NAME = PolicyVersionResourceImpl.class.getName() + ".xmlnsContexts";
 
