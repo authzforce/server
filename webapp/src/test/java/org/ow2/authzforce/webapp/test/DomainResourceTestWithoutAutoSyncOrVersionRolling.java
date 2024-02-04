@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -49,11 +49,11 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.*;
 import org.w3._2005.atom.Link;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.*;
@@ -300,8 +300,8 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		testDomainHelper.modifyDomainPropertiesFile(newExternalId, isFilesystemLegacy);
 
 		// manual sync with HEAD /domains/{id}/properties
-		final javax.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("properties").accept(MediaType.APPLICATION_XML).head();
-		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/properties failed");
+		final jakarta.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("properties").accept(MediaType.APPLICATION_XML).head();
+		assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/properties failed");
 
 		verifySyncAfterDomainPropertiesFileModification(newExternalId);
 
@@ -487,7 +487,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		 * Push XACML Policy instead of PolicySet, although only PolicySets are allowed
 		 */
 		final Policy policy = RestServiceTest.createDumbXacmlPolicy(TEST_POLICY_ID0, "1.0");
-		final javax.ws.rs.core.Response resp = httpClient.reset().path("domains").path(testDomainId).path("pap").path("policies").accept(MediaType.APPLICATION_XML_TYPE)
+		final jakarta.ws.rs.core.Response resp = httpClient.reset().path("domains").path(testDomainId).path("pap").path("policies").accept(MediaType.APPLICATION_XML_TYPE)
 		        .type(MediaType.APPLICATION_XML_TYPE).post(policy);
 		assertEquals(resp.getStatusInfo().getStatusCode(), Status.BAD_REQUEST.getStatusCode(),
 		        "Server did not return 400 Bad Request as expected for attempt to upload XACML Policy instead of PolicySet");
@@ -1038,7 +1038,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 			 */
 			if (LOGGER.isDebugEnabled())
 			{
-				try (final javax.ws.rs.core.Response resp = e.getResponse())
+				try (final jakarta.ws.rs.core.Response resp = e.getResponse())
 				{
 					LOGGER.debug("BadRequestException for test method setRootPolicyWithBadFunctionId() as expected with payload: {}", resp.readEntity(String.class));
 				}
@@ -1085,7 +1085,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 			 */
 			if (LOGGER.isDebugEnabled())
 			{
-				try (final javax.ws.rs.core.Response resp = e.getResponse())
+				try (final jakarta.ws.rs.core.Response resp = e.getResponse())
 				{
 					LOGGER.debug("BadRequestException for test method addPolicyWithBadCombiningAlgId() as expected with payload: {}", resp.readEntity(String.class));
 				}
@@ -1194,6 +1194,7 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		}
 		catch (final ClientErrorException e)
 		{
+			// HTTP 413 also valid
 			assertEquals(e.getResponse().getStatus(), Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
 		}
 
@@ -1670,8 +1671,8 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		final IdReferenceType newRootPolicyRef = testDomainHelper.modifyRootPolicyRefInPdpConfFile(isFilesystemLegacy);
 
 		// Manual sync via HEAD /domains/{domainId}/pap/properties
-		final javax.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("pap").path("pdp.properties").accept(MediaType.APPLICATION_XML).head();
-		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/pap/pdp.properties failed");
+		final jakarta.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("pap").path("pdp.properties").accept(MediaType.APPLICATION_XML).head();
+		assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/pap/pdp.properties failed");
 
 		verifySyncAfterPdpConfFileModification(newRootPolicyRef);
 	}
@@ -1834,8 +1835,8 @@ public class DomainResourceTestWithoutAutoSyncOrVersionRolling extends RestServi
 		final IdReferenceType newRefPolicySetRef = testDomainHelper.addRootPolicyWithRefAndUpdate(inputRootPolicyFile, inputRefPolicyFile, false, isFileSystemLegacy);
 
 		// Manual sync via HEAD /domains/{domainId}/pap/properties
-		final javax.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("pap").path("pdp.properties").accept(MediaType.APPLICATION_XML).head();
-		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/pap/pdp.properties failed");
+		final jakarta.ws.rs.core.Response response = httpClient.reset().path("domains").path(testDomainId).path("pap").path("pdp.properties").accept(MediaType.APPLICATION_XML).head();
+		assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.OK.getStatusCode(), "HEAD /domains/" + testDomainId + "/pap/pdp.properties failed");
 
 		verifyPdpReturnedPolicies(newRefPolicySetRef);
 

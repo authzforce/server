@@ -110,9 +110,17 @@
       <util:list id="xacmlJsonMediaTypes">
          <!-- OASIS JSON Profile of XACML 3.0 -->
          <value>application/xacml+json</value>
+         <value>application/geoxacml+json</value>
+      </util:list>
+      <util:list id="xacmlXmlMediaTypes">
+         <value>application/xml</value>
+         <!-- OASIS XACML 3.0 -->
+         <value>application/xacml+xml</value>
+         <!-- OGC GeoXACML 3.0 -->
+         <value>application/geoxacml+xml</value>
       </util:list>
 
-      <jaxrs:server id="tazService" address="/" docLocation="classpath:authz-api+json.wadl" staticSubresourceResolution="true" publishedEndpointUrl="#{jndi_publishedEndpointUrl}">
+      <jaxrs:server id="tazService" address="/" docLocation="classpath:authz-api+xacml+json.wadl" staticSubresourceResolution="true" publishedEndpointUrl="#{jndi_publishedEndpointUrl}">
          <jaxrs:serviceBeans>
             <ref bean="productMetadataResourceBean" />
             <ref bean="domainsResourceBean" />
@@ -127,8 +135,12 @@
                      <value>application/xml</value>
                      <!-- IETF RFC 7061 -->
                      <value>application/xacml+xml</value>
+                     <value>application/geoxacml+xml</value>
                      <value>application/json</value>
                      <!-- OASIS JSON Profile of XACML 3.0 -->
+                     <value>application/xacml+json</value>
+                     <!-- GeoXACML 3.0 -->
+                     <value>application/geoxacml+json</value>
                      <value>application/xacml+json</value>
                   </util:list>
                </constructor-arg>
@@ -137,6 +149,8 @@
                <property name="singleJaxbContext" value="true" />
                <property name="extraClass" value="#{ T(org.ow2.authzforce.core.pdp.impl.PdpExtensions).getExtensionJaxbClasses().toArray() }" />
                <property name="schemaHandler" ref="apiSchemaHandler" />
+               <property name="produceMediaTypes" ref="xacmlXmlMediaTypes" />
+               <property name="consumeMediaTypes" ref="xacmlXmlMediaTypes" />
             </bean>
             <!-- Fast Infoset replaced by JSON support: -->
             <bean class="org.ow2.authzforce.webapp.JsonRiCxfJaxrsProvider">

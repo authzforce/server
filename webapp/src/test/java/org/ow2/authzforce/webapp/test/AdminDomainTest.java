@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,33 +18,24 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import static org.testng.Assert.assertNotNull;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
+import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.annotations.*;
+import org.w3._2005.atom.Link;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
-import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Tests specific to the special 'superadmin' domain for managing and enforcing the AuthzForce REST API access policy (controls access to all the REST API itself including all domains). For example,

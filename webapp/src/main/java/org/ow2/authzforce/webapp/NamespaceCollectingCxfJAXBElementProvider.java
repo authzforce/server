@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -26,10 +26,10 @@ import org.apache.cxf.staxutils.StaxUtils;
 import org.ow2.authzforce.pap.dao.flatfile.XmlnsAppendingDelegatingXMLStreamWriter;
 import org.ow2.authzforce.rest.service.jaxrs.PolicyVersionResourceImpl;
 
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.stream.StreamFilter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;

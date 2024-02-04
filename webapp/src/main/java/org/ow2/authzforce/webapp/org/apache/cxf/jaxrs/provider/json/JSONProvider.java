@@ -66,18 +66,18 @@ import org.ow2.authzforce.webapp.org.apache.cxf.jaxrs.provider.json.utils.JSONUt
 import org.ow2.authzforce.webapp.org.codehaus.jettison.mapped.Configuration;
 import org.w3c.dom.Document;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -608,7 +608,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>
 	}
 
 	/**
-	 * Reason for changing original {@link org.apache.cxf.jaxrs.provider.json.JSONProvider#createReader(Class,InputStream,String)}:
+	 * Reason for changing original org.apache.cxf.jaxrs.provider.json.JSONProvider#createReader(Class,InputStream,String):
 	 * <ol>
 	 * <li>Prevent use of depthProperties with badgerfish convention (not supported). More info: http://cxf.547215.n5.nabble.com/No-JSON-depth-control-with-Badgerfish -td5776211.html</li>
 	 * <li>Support innerElementLevelThreshold (only innerElementCount is supported by CXF JSONProvider as shown by method JSONUtils$JettisonMappedReaderFactory#createNewJSONTokener() ) and max string

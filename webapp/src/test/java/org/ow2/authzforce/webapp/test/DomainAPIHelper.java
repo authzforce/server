@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -18,27 +18,21 @@
  */
 package org.ow2.authzforce.webapp.test;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.*;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-
 import com.sun.xml.fastinfoset.tools.FI_SAX_XML;
 import com.sun.xml.fastinfoset.tools.XML_SAX_FI;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
+import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.ow2.authzforce.core.pdp.api.XmlUtils;
@@ -48,18 +42,8 @@ import org.ow2.authzforce.core.pdp.testutil.TestUtils;
 import org.ow2.authzforce.core.xmlns.pdp.Pdp;
 import org.ow2.authzforce.core.xmlns.pdp.TopLevelPolicyElementRef;
 import org.ow2.authzforce.pap.dao.flatfile.FlatFileDAOUtils;
-import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
-import org.ow2.authzforce.rest.api.jaxrs.PdpPropertiesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PoliciesResource;
-import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
-import org.ow2.authzforce.rest.api.jaxrs.PrpPropertiesResource;
-import org.ow2.authzforce.rest.api.xmlns.AttributeProviders;
-import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
-import org.ow2.authzforce.rest.api.xmlns.Feature;
-import org.ow2.authzforce.rest.api.xmlns.PdpProperties;
-import org.ow2.authzforce.rest.api.xmlns.PdpPropertiesUpdate;
-import org.ow2.authzforce.rest.api.xmlns.PrpProperties;
-import org.ow2.authzforce.rest.api.xmlns.Resources;
+import org.ow2.authzforce.rest.api.jaxrs.*;
+import org.ow2.authzforce.rest.api.xmlns.*;
 import org.ow2.authzforce.xacml.Xacml3JaxbHelper;
 import org.ow2.authzforce.xacml.json.model.XacmlJsonUtils;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
@@ -67,12 +51,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.w3._2005.atom.Link;
-
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.IdReferenceType;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySet;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Request;
-import oasis.names.tc.xacml._3_0.core.schema.wd_17.Response;
 import org.xml.sax.InputSource;
+
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
@@ -229,10 +215,10 @@ class DomainAPIHelper
 
     /**
      *
-     * @param isFilesystemLegacy
+     * @param isFilesystemLegacy is the filesystem "legacy", i.e. file timestamps are limited to second-precision resolution
      * @return new root policy reference
-     * @throws JAXBException
-     * @throws InterruptedException
+     * @throws JAXBException JAVA-XML (JAXB) conversion issue
+     * @throws InterruptedException legacy filesystem issue
      */
     protected IdReferenceType modifyRootPolicyRefInPdpConfFile(final boolean isFilesystemLegacy) throws JAXBException, InterruptedException
     {
@@ -297,10 +283,10 @@ class DomainAPIHelper
      *            referenced policy to be updated if {@code !updateRoot}
      * @param updateRoot
      *            true iff we update root, else update the ref policy
-     * @param isFileSystemLegacy
+     * @param isFileSystemLegacy is the filesystem "legacy", i.e. file timestamps are limited to second-precision resolution
      * @return reference to new policy from update
-     * @throws JAXBException
-     * @throws InterruptedException
+     * @throws JAXBException JAVA-XML conversion issue (JAXB)
+     * @throws InterruptedException legacy filesystem issue
      */
     protected IdReferenceType addRootPolicyWithRefAndUpdate(final File oldRootPolicyFile, final File oldRefPolicyFile, final boolean updateRoot, final boolean isFileSystemLegacy)
             throws JAXBException, InterruptedException
@@ -348,7 +334,7 @@ class DomainAPIHelper
 
     /**
      *
-     * @param policyId
+     * @param policyId Policy(Set)Id
      * @return the policy matching {@code policyId} and {@code version}
      * @throws NotFoundException
      *             if no such policy exists
@@ -528,16 +514,16 @@ class DomainAPIHelper
     private static void assertNormalizedXacmlJaxbResponseEquals(final Response expectedResponse, final Response actualResponseFromPDP)
     {
         // normalize responses for comparison
-        final Response normalizedActualResponse = TestUtils.normalizeForComparison(actualResponseFromPDP);
-        final Response normalizedExpectedResponse = TestUtils.normalizeForComparison(expectedResponse);
+        final Response normalizedActualResponse = TestUtils.normalizeForComparison(actualResponseFromPDP, true, true);
+        final Response normalizedExpectedResponse = TestUtils.normalizeForComparison(expectedResponse, true, true);
         assertEquals(normalizedActualResponse, normalizedExpectedResponse, "Actual and expected XACML/XML responses don't match (Status elements removed/ignored for comparison)");
     }
 
     private static void assertNormalizedXacmlJsonResponseEquals(final JSONObject expectedResponse, final JSONObject actualResponseFromPDP)
     {
         // normalize responses for comparison
-        final JSONObject normalizedActualResponse = XacmlJsonUtils.canonicalizeResponse(actualResponseFromPDP, true);
-        final JSONObject normalizedExpectedResponse = XacmlJsonUtils.canonicalizeResponse(expectedResponse, true);
+        final JSONObject normalizedActualResponse = XacmlJsonUtils.canonicalizeResponse(actualResponseFromPDP);
+        final JSONObject normalizedExpectedResponse = XacmlJsonUtils.canonicalizeResponse(expectedResponse);
         Assert.assertTrue(normalizedActualResponse.similar(normalizedExpectedResponse), "Actual and expected XACML/JSON responses don't match (Status elements removed/ignored for comparison)");
     }
 
@@ -613,12 +599,12 @@ class DomainAPIHelper
 
     /**
      *
-     * @param testDirectory
+     * @param testDirectory test resources directory
      * @param pdpFeaturesToEnable
      *            if and only if not null, reset policies and PDP with these features enabled
-     * @param isPdpRemote
-     * @throws JAXBException
-     * @throws IOException
+     * @param isPdpRemote id the PDP remote (RESTful API)
+     * @throws JAXBException JAXB error
+     * @throws IOException I/O error
      */
     protected void requestXacmlXmlPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, Optional<WebClient> httpClientForSendingRawUnparsedPolicy, boolean enableFastInfoset) throws Exception
     {
@@ -632,6 +618,11 @@ class DomainAPIHelper
     }
 
     public void requestXacmlJsonPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final WebClient httpClient)
+            throws Exception {
+        requestXacmlJsonPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, httpClient, Optional.empty());
+    }
+
+    public void requestXacmlJsonPDP(final File testDirectory, final List<Feature> pdpFeaturesToEnable, final boolean isPdpRemote, final WebClient httpClient, Optional<String> customMediaType)
             throws Exception
     {
         requestPDP(testDirectory, pdpFeaturesToEnable, isPdpRemote, Optional.empty(), false, () ->
@@ -671,9 +662,10 @@ class DomainAPIHelper
                 // No expected JSON response means we except a 40X error
             }
 
+            final String mediaType = customMediaType.orElse("application/xacml+json");
             try
             {
-                final JSONObject actualResponse = httpClient.reset().path("domains").path(domainId).path("pdp").type("application/xacml+json").accept("application/xacml+json").post(xacmlReq,
+                final JSONObject actualResponse = httpClient.reset().path("domains").path(domainId).path("pdp").type(mediaType).accept(mediaType).post(xacmlReq,
                         JSONObject.class);
 
                 // final Response actualResponse = testDomainFI.getPdpResource().requestPolicyDecision(xacmlReq.getValue());

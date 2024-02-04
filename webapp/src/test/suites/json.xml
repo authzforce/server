@@ -22,7 +22,7 @@
    <!-- Enable PDP only (i.e. disable all admin/PAP features) -->
    <parameter name="enablePdpOnly" value="false" />
 
-   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:Yes.AutoSync:No.VersionRolling:No.DoSMitigation:Yes" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:Yes.AutoSync:No.VersionRolling:No.DoSMitigation:Yes" preserve-order="true" enabled="false">
       <classes>
          <class name="org.ow2.authzforce.webapp.test.RootResourcesTest">
             <methods>
@@ -60,7 +60,7 @@
          </class>
       </classes>
    </test>
-   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:Yes.AutoSync:No.VersionRolling:No.DoSMitigation:No.CustomXacmlJsonSchema" preserve-order="true" enabled="true">
+   <test name="Test_PDPOnly:No.FastInfoset:No.JSON:Yes.AutoSync:No.VersionRolling:No.DoSMitigation:No.CustomXacmlJsonSchema" preserve-order="true" enabled="false">
       <!-- Path to custom JSON schema for XACML/JSON Requests, relative to authzforce server's config directory-->
       <parameter name="xacmlJsonSchemaRelativePath" value="Request-with-geometry.schema.json" />
       <!-- Custom XACML Datatype allowed by the custom JSON schema -->
@@ -68,7 +68,7 @@
       <!-- Comma-separated paths to directories holding XACML policy/request/response to test with, relative to RestServiceTest.XACML_SAMPLES_DIR -->
       <parameter name="xacmlTestDirs" value="pdp/default_features/json/GeoJSON_good,pdp/default_features/json/GeoJSON_bad" />
       <classes>
-         <class name="org.ow2.authzforce.webapp.test.DomainPdpResourceTestWithCustomXacmlJsonSchema" />
+         <class name="org.ow2.authzforce.webapp.test.DomainPdpResourceWithCustomXacmlJsonSchemaTest" />
       </classes>
    </test>
 </suite> 

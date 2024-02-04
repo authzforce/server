@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2022 THALES.
+ * Copyright (C) 2012-2024 THALES.
  *
  * This file is part of AuthzForce CE.
  *
@@ -32,16 +32,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBException;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -79,13 +79,13 @@ public class RootResourcesTest extends RestServiceTest
 
 	/**
 	 * Test parameters from testng.xml are ignored when executing with maven surefire plugin, so we use default values for all.
-	 * 
+	 * <p>
 	 * WARNING: the BeforeTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 * 
-	 * @param remoteAppBaseUrl
-	 * @param enableFastInfoset
-	 * @param domainSyncIntervalSec
-	 * @throws Exception
+	 * @param remoteAppBaseUrl base URL of the remote AuthzForce webapp
+	 * @param enableFastInfoset enable Fast Infoset support
+	 * @param domainSyncIntervalSec AuthzForce domain sync (filesystem-to-memory) interval in seconds
+	 * @throws Exception error
 	 * 
 	 *             NB: use Boolean class instead of boolean primitive type for Testng parameter, else the default value in @Optional annotation is not handled properly.
 	 */
@@ -102,7 +102,7 @@ public class RootResourcesTest extends RestServiceTest
 	 * 
 	 * WARNING: the AfterTest-annotated method must be in the test class, not in a super class although the same method logic is used in other test class
 	 *
-	 * @throws Exception
+	 * @throws Exception error
 	 */
 	@AfterTest
 	public void afterTest() throws Exception
@@ -123,9 +123,9 @@ public class RootResourcesTest extends RestServiceTest
 		        : remoteAppBaseUrlParam;
 		final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).queryParam("_wadl", "");
 		final Invocation.Builder builder = target.request();
-		try (final javax.ws.rs.core.Response response = builder.get())
+		try (final jakarta.ws.rs.core.Response response = builder.get())
 		{
-			assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
+			assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.OK.getStatusCode());
 		}
 	}
 
@@ -156,16 +156,16 @@ public class RootResourcesTest extends RestServiceTest
 		        : remoteAppBaseUrlParam;
 		final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).path("domains");
 		final Invocation.Builder builder = target.request();
-		final javax.ws.rs.core.Response response = builder.get();
-		assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.OK.getStatusCode());
+		final jakarta.ws.rs.core.Response response = builder.get();
+		assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.OK.getStatusCode());
 		assertEquals(response.getMediaType(), MediaType.APPLICATION_XML_TYPE);
 	}
 
 	/**
 	 * Get /domains with Accept=application/fastinfoset although fastinfoset disabled. Should result in bad request
 	 * 
-	 * @param remoteAppBaseUrlParam
-	 * @param enableFastInfoset
+	 * @param remoteAppBaseUrlParam base URL of the remote app
+	 * @param enableFastInfoset enable Fast Infoset support
 	 */
 	@Parameters({ "remote.base.url", "enableFastInfoset" })
 	@Test()
@@ -178,12 +178,12 @@ public class RootResourcesTest extends RestServiceTest
 			        : remoteAppBaseUrlParam;
 			final WebTarget target = ClientBuilder.newClient().register(LoggingFeature.class).target(remoteAppBaseUrl).path("domains");
 			final Invocation.Builder builder = target.request().accept("application/fastinfoset");
-			try (final javax.ws.rs.core.Response response = builder.get())
+			try (final jakarta.ws.rs.core.Response response = builder.get())
 			{
 				/*
 				 * CXF should return code 500 with Payload: "No message body writer has been found for class org.ow2.authzforce.rest.api.xmlns.Resources, ContentType: application/fastinfoset"
 				 */
-				assertEquals(response.getStatus(), javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE.getStatusCode());
+				assertEquals(response.getStatus(), jakarta.ws.rs.core.Response.Status.NOT_ACCEPTABLE.getStatusCode());
 			}
 		}
 	}
@@ -447,9 +447,9 @@ public class RootResourcesTest extends RestServiceTest
 	 * We don't want deleteDomain happening after this method and before next one (deleteDomainAfterDirectoryDeleted()), otherwise SAMPLE_DOMAIN_COPY_DIR directory might be removed before test
 	 * deleteDomainAfterDirectoryDeleted() occurs, causing unexpected error
 	 * 
-	 * @param remoteAppBaseUrl
-	 * @throws IllegalArgumentException
-	 * @throws IOException
+	 * @param remoteAppBaseUrl base URL of the remote app
+	 * @throws IllegalArgumentException invalid arg
+	 * @throws IOException I/O error
 	 */
 	@Parameters({ "remote.base.url" })
 	@Test(dependsOnMethods = { "deleteDomain" })
