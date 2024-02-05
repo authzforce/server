@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2021 Thales.
+# Copyright (C) 2012-2024 Thales.
 #
 # This file is part of AuthzForce CE.
 #
@@ -18,15 +18,14 @@
 # Best practices for writing Dockerfiles:
 # https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/
 
-# Tips to do an unattended installation on Debian/Ubuntu: 
-# http://www.microhowto.info/howto/perform_an_unattended_installation_of_a_debian_package.html
-
 # The alternative is to use FROM ubuntu:* then install tomcat ubuntu package and use upstart/sysctl init script but this is not the way to go:
 # https://github.com/docker/docker/issues/6800
-FROM tomcat:9-jre11-temurin-focal
-MAINTAINER AuthzForce Team
-
-ENV DEBIAN_FRONTEND noninteractive
+FROM tomcat:10-jre17-temurin-jammy
+LABEL maintainer="AuthzForce Team"
+LABEL org.label-schema.schema-version="1.0"
+# LABEL org.label-schema.vendor=""
+LABEL org.label-schema.name="AuthzForce Server"
+# LABEL org.label-schema.description=""
 
 # Proxy configuration (if you are building from behind a proxy)
 # Next release of docker 1.9.0 should allow you to configure these by passing build-time arguments
@@ -39,38 +38,29 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true -Djavax.xml.accessExternalSchema=all -Xms1024m -Xmx1024m -server"
 
-# Version replaced by maven resources plugin during Maven package/install build
-ENV AUTHZFORCE_SERVER_VERSION=${project.version}
-ENV AUTHZFORCE_SERVER_DOWNLOAD_URL="https://repo1.maven.org/maven2/org/ow2/authzforce/authzforce-ce-server-dist/$AUTHZFORCE_SERVER_VERSION/authzforce-ce-server-dist-$AUTHZFORCE_SERVER_VERSION.deb"
+COPY authzforce-ce-server-*.tar.gz /opt/authzforce-ce-server.tar.gz
 
-# Download and install Authzforce Server (service starts automatically)
+# Download and install Authzforce Server
 # Where there is a command with a pipe, we need to put in between quotes and make it an argument to bash -c command
 RUN apt-get update --assume-yes -qq && \
- apt-get install --assume-yes -qq \
-        locales-all \
-        locales \
-        less \
-        apt-utils \
-        debconf-utils \
-        gdebi \
-        curl && \
+ apt-get install --assume-yes -qq locales-all locales less && \
  rm -rf /var/lib/apt/lists/* 
  
-RUN locale-gen en_US en_US.UTF-8
-RUN dpkg-reconfigure locales
+RUN locale-gen en_US en_US.UTF-8 && \
+    dpkg-reconfigure locales
 ENV LANG en_US.UTF-8 
 ENV LANGUAGE en_US:en 
 ENV LC_ALL en_US.UTF-8 
 
-RUN curl --silent --output authzforce-ce-server.deb --location $AUTHZFORCE_SERVER_DOWNLOAD_URL && \
- dpkg --extract authzforce-ce-server.deb /root/authzforce/ && \
- mv /root/authzforce/etc/tomcat9/Catalina /usr/local/tomcat/conf/ && \
- mv /root/authzforce/opt/* /opt/ && \
+RUN cd /opt && \
+ tar xvzf authzforce-ce-server.tar.gz && \
+ ln -s $(ls -d authzforce-ce-server-*) authzforce-ce-server && \
+ mkdir -p /usr/local/tomcat/conf/Catalina/localhost && \
+ cp /opt/authzforce-ce-server/conf/context.xml.sample /usr/local/tomcat/conf/Catalina/localhost/authzforce-ce.xml && \
  rm -rf /opt/authzforce-ce-server/data/domains/* && \
- rm -rf /root/authzforce && \
- rm -f authzforce-ce-server.deb
+ rm -f authzforce-ce-server.tar.gz
  
-VOLUME /opt/authzforce-ce-server/data
+VOLUME /opt/authzforce-ce-server
 VOLUME /usr/local/tomcat/conf
  
 CMD ["catalina.sh", "run"]

@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file following the [K
 Issues reported on [GitHub](https://github.com/authzforce/server/issues) are referenced in the form of `[GH-N]`, where N is the issue number. Issues reported on [OW2](https://jira.ow2.org/browse/AUTHZFORCE/) are mentioned in the form of `[OW2-N]`, where N is the issue number.
 
 
+## 12.0.1
+### Fixed
+- Fixed Docker image (Dockerfile) and Debian package: change of Tomcat version (9->10) and JRE version (11->17)
+- Fixed class not found error when starting the webapp and missing CXF library for logging HTTP requests/responses: 
+  - Added dependencies:
+    - cxf-rt-features-logging: 4.0.3 
+    - jakarta.xml.ws-api: 3.0.1
+
+
 ## 12.0.0
 ### Changed
 - Upgraded parent project authzforce-ce-parent: 9.1.0

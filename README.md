@@ -202,7 +202,7 @@ Every release is packaged in various types of distribution and the installation 
 
 -   Ubuntu/Debian package (recommended option): `.deb`. Use your usual Ubuntu/Debian APT to install the package;
 -   Other Linux distributions: `.tar.gz` for any Linux distribution. More info in the [documentation](#documentation);
--   Docker image, installed/deployed with the usual docker container commands.
+-   Docker image, installed/deployed with the usual docker container commands. See [dist/src/docker/README.md](dist/src/docker/README.md) for more info.
 
 For download links, please go to the specific
 [release page](https://github.com/authzforce/server/releases).
@@ -330,7 +330,8 @@ $ mvn -Dhttps.proxyHost=proxyhostname -Dhttps.proxyPort=8080 jgitflow:release-st
    ```shell
      $ git checkout master
      $ mvn clean package
-     $ cd dist/target/classes/docker
+     $ cd dist/target
+     $ chmod +x release-docker.sh
      $ ./release.sh
    ```
 10. Update the versions in badges at the top of this file.
