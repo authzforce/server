@@ -87,8 +87,10 @@
                               <include>debian/changelog</include>
                               <include>debian/changes.jdeb.txt</include>
                               <include>tar/README.md</include>
+                              <!--
                               <include>docker/Dockerfile.tmpl</include>
                               <include>docker/release.sh.tmpl</include>
+                              -->
                            </includes>
                         </resource>
                      </resources>
@@ -102,25 +104,39 @@
             <version>1.0.1</version>
             <executions>
                <execution>
-                  <id>copy-and-rename-dockerfile</id>
+                  <id>copy-dockerfile-and-release-script</id>
                   <phase>process-resources</phase>
                   <goals>
-                     <goal>rename</goal>
+                     <goal>copy</goal>
                   </goals>
                   <configuration>
-                     <sourceFile>${project.build.outputDirectory}/docker/Dockerfile.tmpl</sourceFile>
-                     <destinationFile>${project.build.outputDirectory}/docker/Dockerfile</destinationFile>
+                     <!-- project.build.directory:  target
+                     project.build.outputDirectory: target/classes
+                     -->
+                     <fileSets>
+                        <fileSet>
+                           <!--<sourceFile>${project.build.outputDirectory}/docker/Dockerfile.tmpl</sourceFile>-->
+                           <sourceFile>src/docker/Dockerfile</sourceFile>
+                           <destinationFile>${project.build.directory}/Dockerfile</destinationFile>
+                        </fileSet>
+                        <fileSet>
+                           <!--<sourceFile>${project.build.outputDirectory}/docker/release.sh.tmpl</sourceFile>-->
+                           <sourceFile>src/docker/release.sh</sourceFile>
+                           <destinationFile>${project.build.directory}/release.sh</destinationFile>
+                        </fileSet>
+                     </fileSets>
+
                   </configuration>
                </execution>
                <execution>
-                  <id>copy-and-rename-release-script</id>
+                  <id>rename-release-script</id>
                   <phase>process-resources</phase>
                   <goals>
                      <goal>rename</goal>
                   </goals>
                   <configuration>
-                     <sourceFile>${project.build.outputDirectory}/docker/release.sh.tmpl</sourceFile>
-                     <destinationFile>${project.build.outputDirectory}/docker/release.sh</destinationFile>
+                     <sourceFile>${project.build.directory}/release.sh</sourceFile>
+                     <destinationFile>${project.build.directory}/release-docker.sh</destinationFile>
                   </configuration>
                </execution>
             </executions>
@@ -215,7 +231,7 @@
                         <data>
                            <!-- Webapp-specific context for Tomcat, after replacing 'productId' (see previous <resources> tag), therefore take it from target/classes, i.e. ${project.build.outputDirectory} -->
                            <src>${project.build.outputDirectory}/webapp-context.xml</src>
-                           <dst>/etc/tomcat9/Catalina/localhost/authzforce-ce.xml</dst>
+                           <dst>/etc/tomcat10/Catalina/localhost/authzforce-ce.xml</dst>
                            <type>file</type>
                            <conffile>true</conffile>
                         </data>
@@ -237,9 +253,9 @@
                            </mapper>
                         </data>
                         <data>
-                           <!-- Systemd config override to allow writing to other non-official Tomcat directories. More info: https://salsa.debian.org/java-team/tomcat9/blob/master/debian/README.Debian -->
-                           <src>${project.basedir}/src/debian/systemd-tomcat9-override.conf</src>
-                            <dst>/etc/systemd/system/tomcat9.service.d/override.conf</dst>
+                           <!-- Systemd config override to allow writing to other non-official Tomcat directories. More info: https://salsa.debian.org/java-team/tomcat10/blob/master/debian/README.Debian -->
+                           <src>${project.basedir}/src/debian/systemd-tomcat10-override.conf</src>
+                            <dst>/etc/systemd/system/tomcat10.service.d/override.conf</dst>
                            <type>file</type>
                            <conffile>true</conffile>
                         </data>

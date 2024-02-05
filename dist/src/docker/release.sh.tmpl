@@ -1,5 +1,0 @@
-set -ex
-
-docker build -t authzforce/server:release-${project.version} .
-docker login
-docker push authzforce/server:release-${project.version}
