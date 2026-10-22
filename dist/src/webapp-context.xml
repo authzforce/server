@@ -12,6 +12,9 @@
 		override="false" />
 
 	<!-- <env-entry>s in web.xml do not override entries below iff override=false. -->
+    <Environment name="org.ow2.authzforce.rest.service.PapChangeListener.class"
+        description="Fully qualified PAP change listener Java class with a public no-argument constructor (empty string disables notifications)"
+        type="java.lang.String" value="" override="false" />
 	<Environment name="org.ow2.authzforce.config.dir" value="file:/opt/${productId}/conf" type="java.lang.String" override="false"
 		description="Configuration directory path that may contain \${...} placeholders, to be resolved as system properties: e.g. \${user.dir}. Default values can be supplied using the ':' separator between key and value (see org.springframework.util.SystemPropertyUtils class)" />
 
@@ -83,5 +86,4 @@
 			type="java.lang.Integer"
 			value="134217728"
 			override="false" />
-
 </Context>

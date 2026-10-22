@@ -81,9 +81,17 @@
 
    <bean id="productMetadataResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.ProductMetadataResourceImpl" />
 
+   <jee:jndi-lookup id="jndi_papChangeListenerClass" jndi-name="org.ow2.authzforce.rest.service.PapChangeListener.class"
+      expected-type="java.lang.String" default-value="#{''}" />
+   <!-- A FactoryBean handles the empty configuration explicitly; a bean with a null class is not a null reference. -->
+   <bean id="papChangeListener" class="org.ow2.authzforce.webapp.PapChangeListenerFactoryBean">
+      <constructor-arg index="0" ref="jndi_papChangeListenerClass" />
+   </bean>
+
    <bean id="domainsResourceBean" class="org.ow2.authzforce.rest.service.jaxrs.DomainsResourceImpl">
       <constructor-arg name="domainsDao" ref="domainsDaoBean" />
       <constructor-arg name="authorizedResourceAttribute" value="authorizedResource" />
+      <constructor-arg name="papChangeListener" ref="papChangeListener" />
       <constructor-arg name="anyResourceId">
          <null />
       </constructor-arg>

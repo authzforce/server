@@ -262,7 +262,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 	 * @throws LifecycleException Tomcat startup error
 	 */
 	private static Tomcat startServer(final int port, final boolean enableFastInfoset, final String xacmlJsonSchemaRelativePath, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly,
-	        final boolean addSampleDomain) throws IllegalArgumentException, IOException, LifecycleException
+	        final boolean addSampleDomain, final String papChangeListenerClass) throws IllegalArgumentException, IOException, LifecycleException
 	{
 		/*
 		 * Make sure the domains directory exists and is empty
@@ -330,6 +330,11 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 
 		// Initialize server JNDI properties for embedded Tomcat
 		final NamingResources webappNamingResources = webappCtx.getNamingResources();
+        if (!papChangeListenerClass.isEmpty())
+        {
+            webappNamingResources.addEnvironment(newJndiEnvEntry(
+                    "org.ow2.authzforce.rest.service.PapChangeListener.class", String.class, papChangeListenerClass));
+        }
 
 		/*
 		 * Override spring active profile context parameter with system property (no way to override context parameter with Tomcat embedded API, otherwise error
@@ -377,6 +382,11 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		XML, FAST_INFOSET, JSON
 	}
 
+    protected String getPapChangeListenerClassName()
+    {
+        return "";
+    }
+
 	protected void startServerAndInitCLient(final String remoteAppBaseUrl, final ClientType clientType, final String xacmlJsonSchemaRelativePath, final boolean enableDoSMitigation, final int domainSyncIntervalSec, final boolean enablePdpOnly)
 	        throws Exception
 	{
@@ -386,7 +396,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 		if (!IS_EMBEDDED_SERVER_STARTED.get() && (remoteAppBaseUrl == null || remoteAppBaseUrl.isEmpty()))
 		{
 			// Not a remote server -> start the embedded server (local)
-			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, xacmlJsonSchemaRelativePath, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false);
+			embeddedServer = startServer(-1, clientType == ClientType.FAST_INFOSET, xacmlJsonSchemaRelativePath, enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, false, getPapChangeListenerClassName());
 			IS_EMBEDDED_SERVER_STARTED.set(true);
 		}
 
@@ -561,7 +571,7 @@ abstract class RestServiceTest extends AbstractTestNGSpringContextTests
 			}
 		}
 
-		final Tomcat tomcat = startServer(port, enableFastInfoset, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true);
+		final Tomcat tomcat = startServer(port, enableFastInfoset, "", enableDoSMitigation, domainSyncIntervalSec, enablePdpOnly, true, "");
 		System.out.println("Server up and listening!");
 		tomcat.getServer().await();
 	}

@@ -24,6 +24,7 @@ import org.ow2.authzforce.core.pap.api.dao.DomainDao;
 import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDaoClient;
 import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
+import org.ow2.authzforce.rest.service.PapChangeEvent.Operation;
 
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
@@ -73,14 +74,27 @@ public final class PolicyVersionResourceImpl implements PolicyVersionDaoClient, 
 	private final DomainDao<?, ?> domainDAO;
 
 	private final String policyId;
+    private final PapChangeNotifier notifier;
 
 	private PolicyVersionResourceImpl(final String policyId, final PolicyVersion versionId, final DomainDao<?, ?> domainDAO)
+    {
+        this(policyId, versionId, domainDAO, PapChangeNotifier.NONE);
+    }
+
+    private PolicyVersionResourceImpl(final String policyId, final PolicyVersion versionId, final DomainDao<?, ?> domainDAO,
+                                      PapChangeNotifier notifier)
 	{
 		assert versionId != null && domainDAO != null;
 		this.policyId = policyId;
 		this.versionId = versionId;
 		this.domainDAO = domainDAO;
+        this.notifier = notifier;
 	}
+
+    PolicyVersionResourceImpl withNotifier(PapChangeNotifier notifier)
+    {
+        return new PolicyVersionResourceImpl(policyId, versionId, domainDAO, notifier);
+    }
 
 	@Override
 	public PolicySet getPolicyVersion()
@@ -128,6 +142,7 @@ public final class PolicyVersionResourceImpl implements PolicyVersionDaoClient, 
 		// This does not work, PhaseInterceptorChain.getCurrentMessage() is replaced in response, so JAXBElementProvider does not have access to it
 		//PhaseInterceptorChain.getCurrentMessage().put(DomainResourceImpl.XML_NS_CONTEXTS_CXF_MESSAGE_CONTEXT_PROPERTY_NAME, policyVersion.getXPathNamespaceContexts());
 
+        notifier.notifyChange(Operation.POLICY_VERSION_DELETED, policyId, versionId.toString());
 		OUTPUT_POLICY_XPATH_NAMESPACE_CONTEXT.get().putAll(deletedPolicyVersion.getXPathNamespaceContexts());
 		return deletedPolicyVersion.toXacml();
 	}
