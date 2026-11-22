@@ -32,6 +32,7 @@ import org.ow2.authzforce.core.pap.api.dao.PolicyDaoClient;
 import org.ow2.authzforce.core.pap.api.dao.PolicyVersionDaoClient;
 import org.ow2.authzforce.core.pdp.api.policy.PolicyVersion;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyResource;
+import org.ow2.authzforce.rest.service.PapChangeEvent.Operation;
 import org.ow2.authzforce.rest.api.jaxrs.PolicyVersionResource;
 import org.ow2.authzforce.rest.api.xmlns.Resources;
 import org.w3._2005.atom.Link;
@@ -83,13 +84,26 @@ public final class PolicyResourceImpl implements PolicyDaoClient, PolicyResource
 
 	private final DomainDao<PolicyVersionResourceImpl, ?> domainDAO;
 	private final String policyId;
+    private final PapChangeNotifier notifier;
 
 	private PolicyResourceImpl(final String policyId, final DomainDao<PolicyVersionResourceImpl, ?> domainDAO)
+    {
+        this(policyId, domainDAO, PapChangeNotifier.NONE);
+    }
+
+    private PolicyResourceImpl(final String policyId, final DomainDao<PolicyVersionResourceImpl, ?> domainDAO,
+                               PapChangeNotifier notifier)
 	{
 		assert domainDAO != null;
 		this.policyId = policyId;
 		this.domainDAO = domainDAO;
+        this.notifier = notifier;
 	}
+
+    PolicyResourceImpl withNotifier(PapChangeNotifier notifier)
+    {
+        return new PolicyResourceImpl(policyId, domainDAO, notifier);
+    }
 
 	private static Resources getVersionResources(final NavigableSet<PolicyVersion> versions)
 	{
@@ -126,6 +140,7 @@ public final class PolicyResourceImpl implements PolicyDaoClient, PolicyResource
 			throw NOT_FOUND_EXCEPTION;
 		}
 
+        notifier.notifyChange(Operation.POLICY_DELETED, policyId, null);
 		return getVersionResources(removedPolicyVersions);
 	}
 
@@ -182,13 +197,13 @@ public final class PolicyResourceImpl implements PolicyDaoClient, PolicyResource
 			}
 		}
 
-		final PolicyVersionResource versionResource = domainDAO.getVersionDaoClient(policyId, policyVersion);
+		final PolicyVersionResourceImpl versionResource = domainDAO.getVersionDaoClient(policyId, policyVersion);
 		if (versionResource == null)
 		{
 			throw NOT_FOUND_EXCEPTION;
 		}
 
-		return versionResource;
+		return notifier == PapChangeNotifier.NONE ? versionResource : versionResource.withNotifier(notifier);
 	}
 
 }

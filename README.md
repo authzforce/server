@@ -251,6 +251,12 @@ Permit, else rejects it. For more information, see the Javadoc of
 [RESTfulPdpBasedAuthzInterceptorTest](webapp/src/test/java/org/ow2/authzforce/webapp/test/pep/cxf/RESTfulPdpBasedAuthzInterceptorTest.java).
 
 
+### PAP change listener
+
+For optional notifications of successful policy, PDP configuration and
+attribute-provider configuration changes, see
+[PAP change notifications](docs/pap-change-listener.md).
+
 ## Testing
 
 To run unit tests, install Maven and type

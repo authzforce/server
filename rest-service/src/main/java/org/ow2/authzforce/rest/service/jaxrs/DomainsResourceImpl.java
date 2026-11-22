@@ -33,6 +33,7 @@ import jakarta.ws.rs.core.Context;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.ow2.authzforce.core.pap.api.dao.DomainsDao;
+import org.ow2.authzforce.rest.service.PapChangeListener;
 import org.ow2.authzforce.rest.api.jaxrs.DomainResource;
 import org.ow2.authzforce.rest.api.jaxrs.DomainsResource;
 import org.ow2.authzforce.rest.api.xmlns.DomainProperties;
@@ -59,6 +60,8 @@ public class DomainsResourceImpl implements DomainsResource
 
 	private final String anyResourceId;
 
+    private final PapChangeListener papChangeListener;
+
 	/**
 	 * Constructor
 	 * 
@@ -69,13 +72,28 @@ public class DomainsResourceImpl implements DomainsResource
 	 * @param anyResourceId
 	 *            identifier for "any resource" (access to any one)
 	 */
-	@SuppressFBWarnings(value="EI_EXPOSE_REP2")
 	@ConstructorProperties({ "domainsDao", "authorizedResourceAttribute", "anyResourceId" })
 	public DomainsResourceImpl(final DomainsDao<DomainResourceImpl<?>> domainsDao, final String authorizedResourceAttribute, final String anyResourceId)
+	{
+        this(domainsDao, authorizedResourceAttribute, anyResourceId, null);
+    }
+
+    /**
+     * Construct the resource with optional PAP notifications.
+     * @param domainsDao domain repository
+     * @param authorizedResourceAttribute authorized resource request attribute
+     * @param anyResourceId wildcard resource identifier
+     * @param papChangeListener optional listener; null disables notifications
+     */
+    @SuppressFBWarnings(value="EI_EXPOSE_REP2")
+    @ConstructorProperties({ "domainsDao", "authorizedResourceAttribute", "anyResourceId", "papChangeListener" })
+    public DomainsResourceImpl(final DomainsDao<DomainResourceImpl<?>> domainsDao, final String authorizedResourceAttribute,
+                               final String anyResourceId, final PapChangeListener papChangeListener)
 	{
 		this.domainRepo = domainsDao;
 		this.authorizedResourceAttrId = authorizedResourceAttribute;
 		this.anyResourceId = anyResourceId;
+        this.papChangeListener = papChangeListener;
 	}
 
 	/*
@@ -214,7 +232,7 @@ public class DomainsResourceImpl implements DomainsResource
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final DomainResource domainRes;
+		final DomainResourceImpl<?> domainRes;
 		try
 		{
 			domainRes = domainRepo.getDomainDaoClient(domainId);
@@ -229,6 +247,7 @@ public class DomainsResourceImpl implements DomainsResource
 			throw NOT_FOUND_EXCEPTION;
 		}
 
-		return domainRes;
+		return papChangeListener == null ? domainRes
+                : domainRes.withNotifier(new PapChangeNotifier(domainId, papChangeListener));
 	}
 }

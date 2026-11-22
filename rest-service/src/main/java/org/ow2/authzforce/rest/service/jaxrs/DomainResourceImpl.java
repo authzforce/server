@@ -33,6 +33,7 @@ import org.ow2.authzforce.rest.api.xmlns.*;
 import org.ow2.authzforce.xmlns.pdp.ext.AbstractAttributeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ow2.authzforce.rest.service.PapChangeEvent.Operation;
 import org.w3._2005.atom.Link;
 import org.w3._2005.atom.Relation;
 
@@ -128,13 +129,28 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 
 	private final String domainId;
 	private final DAO domainDAO;
+    private final PapChangeNotifier notifier;
 
 	private DomainResourceImpl(final String domainId, final Builder<DAO> domainDaoBuilder) throws IOException
 	{
 		assert domainDaoBuilder != null;
 		this.domainId = domainId;
 		this.domainDAO = domainDaoBuilder.build();
+        this.notifier = PapChangeNotifier.NONE;
 	}
+
+    private DomainResourceImpl(String domainId, DAO domainDAO, PapChangeNotifier notifier)
+    {
+        this.domainId = domainId;
+        this.domainDAO = domainDAO;
+        this.notifier = notifier;
+    }
+
+    // Keep DAO-cached clients untouched: request views carry an immutable listener context.
+    DomainResourceImpl<DAO> withNotifier(PapChangeNotifier notifier)
+    {
+        return new DomainResourceImpl<>(domainId, domainDAO, notifier);
+    }
 
 	@Override
 	public Domain getDomain()
@@ -227,6 +243,7 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 			throw NOT_FOUND_EXCEPTION;
 		}
 
+        notifier.notifyChange(Operation.DOMAIN_DELETED, null, null);
 		return new DomainProperties(props.getDescription(), props.getExternalId());
 	}
 
@@ -427,6 +444,7 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 			throw new BadRequestException(e);
 		}
 
+        notifier.notifyChange(Operation.ATTRIBUTE_PROVIDERS_CHANGED, null, null);
 		return attributeproviders;
 	}
 
@@ -472,6 +490,7 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 			throw ADD_POLICY_CONFLICT_EXCEPTION;
 		}
 
+        notifier.notifyChange(Operation.POLICY_VERSION_ADDED, policy.getPolicySetId(), policy.getVersion());
 		// Policy ID is xs:anyURI, therefore may contain invalid characters for
 		// URL paths -> needs escaping to be used as URL path segment
 		final String policyIdUrlPathSegment = URL_PATH_SEGMENT_ESCAPER.escape(policy.getPolicySetId());
@@ -486,13 +505,13 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 			throw INVALID_ARG_BAD_REQUEST_EXCEPTION;
 		}
 
-		final PolicyResource policyRes = domainDAO.getPolicyDaoClient(policyId);
+		final PolicyResourceImpl policyRes = domainDAO.getPolicyDaoClient(policyId);
 		if (policyRes == null)
 		{
 			throw NOT_FOUND_EXCEPTION;
 		}
 
-		return policyRes;
+		return notifier == PapChangeNotifier.NONE ? policyRes : policyRes.withNotifier(notifier);
 	}
 
 	@Override
@@ -591,6 +610,7 @@ public final class DomainResourceImpl<DAO extends DomainDao<PolicyVersionResourc
 			throw new BadRequestException(e);
 		}
 
+        notifier.notifyChange(Operation.PDP_CONFIGURATION_CHANGED, null, null);
 		final GregorianCalendar cal = new GregorianCalendar(UTC_TZ);
 		cal.setTimeInMillis(allProps.getLastModified());
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="AuthzForce.PAP.Notifications" verbose="3">
+   <test name="PAP_change_notifications">
+      <classes>
+         <class name="org.ow2.authzforce.rest.service.jaxrs.PapChangeListenerTest" />
+         <class name="org.ow2.authzforce.webapp.test.PapChangeListenerConfigurationTest" />
+      </classes>
+   </test>
+   <test name="PAP_change_notifications_HTTP">
+      <classes>
+         <class name="org.ow2.authzforce.webapp.test.PapChangeListenerHttpTest" />
+      </classes>
+   </test>
+</suite>
